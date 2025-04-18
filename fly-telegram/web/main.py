@@ -1,0 +1,98 @@
+#         _______  _____   ___ ___  _______  _______
+#        |    ___||     |_|   |   ||_     _||     __|
+#        |    ___||       |\     /   |   |  |    |  |
+#        |___|    |_______| |___|    |___|  |_______|
+#                      t.me/FLYTG_UB
+#
+#              ðŸ”’ Licensed under the Ð¡Ð¡-by-NC
+#           creativecommons.org/licenses/by-nc/4.0/
+
+from fastapi import FastAPI, Request, Form, HTTPException
+from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.templating import Jinja2Templates
+
+from pyrogram import Client, errors
+import uvicorn
+import asyncio
+
+
+class Web:
+    def __init__(self, client):
+        self.app = FastAPI()
+        self._setup_web()
+        self.client = client
+        self.server = None
+
+    def _setup_web(self):
+        self.app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_methods=["*"],
+            allow_headers=["*"],
+            allow_credentials=True,
+        )
+        self.app.mount(
+            "/static/", StaticFiles(directory="fly-telegram/web/static"), name="static")
+        self.templates = Jinja2Templates(
+            directory="fly-telegram/web/templates")
+
+        @self.app.get("/", response_class=HTMLResponse)
+        async def index(request: Request):
+            return self.templates.TemplateResponse("index.html", {"request": request})
+
+        @self.app.post("/send_code")
+        async def send_code(phone: str = Form(...)):
+            if not self.client.is_connected:
+                await self.client.connect()
+
+            try:
+                sent_code = await self.client.send_code(phone)
+                return JSONResponse(content={"code_hash": sent_code.phone_code_hash})
+            except errors.PhoneNumberInvalid:
+                raise HTTPException(
+                    status_code=400, detail="Invalid phone number")
+            except errors.PhoneNumberBanned:
+                raise HTTPException(
+                    status_code=400, detail="Phone number banned")
+            except errors.PhoneNumberFlood:
+                raise HTTPException(
+                    status_code=400, detail="Phone number flood")
+            except errors.PhoneNumberUnoccupied:
+                raise HTTPException(
+                    status_code=400, detail="Phone number unoccupied")
+            except errors.BadRequest:
+                raise HTTPException(status_code=400, detail="Bad request")
+
+        @self.app.post("/sign_in")
+        async def sign_in(phone: str = Form(...), code_hash: str = Form(...), code: str = Form(...), password: str = Form(None)):
+            if not self.client.is_connected:
+                await self.client.connect()
+
+            try:
+                if password:
+                    user = await self.client.check_password(password)
+                else:
+                    user = await self.client.sign_in(phone, code_hash, code)
+
+                response = JSONResponse(content={"user": user.first_name})
+
+                if self.server:
+                    self.server.should_exit = True
+                    await self.server.shutdown()
+
+                return response
+            except errors.SessionPasswordNeeded:
+                return JSONResponse(content={"status": "2fa_required"}, status_code=401)
+            except errors.BadRequest:
+                raise HTTPException(status_code=402, detail="Invalid code")
+            except Exception as err:
+                raise HTTPException(status_code=403, detail=f"Error: {err}")
+
+    async def run(self, host: str = "0.0.0.0", port: int = 8000):
+        config = uvicorn.Config(self.app, host=host, port=port)
+        self.server = uvicorn.Server(config)
+        await self.server.serve()
+
+        return self.client

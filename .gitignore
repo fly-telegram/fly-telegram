@@ -1,9 +1,0 @@
-account/*.session
-account/*.session-journal
-account/account.json
-dragon_modules/*
-database/data.json
-venv
-
-__pycache__
-database/data.json

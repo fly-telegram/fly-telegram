@@ -1,0 +1,10 @@
+{
+  "name": "loader",
+  "description": "The Fly Telegram loader module, for installing/removing modules",
+  "version": [1, 0, "beta"],
+  "author": {
+    "name": "fly-telegram",
+    "link": "https://t.me/flyub"
+  },
+  "license": "cc-by-nc"
+}

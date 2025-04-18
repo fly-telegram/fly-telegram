@@ -1,0 +1,168 @@
+:root {
+  --primary-color: #fff;
+  --background-color: #000;
+  --font-size: 18px;
+  --border-radius: 13px;
+  --box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  --transition: opacity 0.5s;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Raleway', sans-serif;
+  background-color: var(--background-color);
+}
+
+.text-container {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.logo {
+  text-transform: uppercase;
+  background-image: linear-gradient(
+    -225deg,
+    #66CCCC 0%,
+    #87CEEB 29%,
+    #ADD8E6 67%,
+    #C9E4CA 100%
+  );
+  background-size: 200% auto;
+  color: #fff;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: textclip 2s linear infinite;
+  display: inline-block;
+  font-size: 190px;
+}
+
+@keyframes textclip {
+  to {
+    background-position: 200% center;
+  }
+}
+
+.form-container {
+  margin-bottom: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  opacity: 0;
+  transition: var(--transition);
+}
+
+.form-container.show {
+  opacity: 1;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+input[type="text"],
+input[type="password"],
+.login-button,
+#twofa-password,
+#twofa-submit {
+  padding: 10px;
+  margin-bottom: 10px;
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: var(--font-size);
+  font-weight: 900;
+  color: var(--primary-color);
+  background-color: rgba(225, 225, 225, 0.1);
+  box-shadow: var(--box-shadow);
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus {
+  background-color: rgba(225, 225, 225, 0.3);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+}
+
+.login-button {
+  cursor: pointer;
+  position: relative;
+  top: 0;
+  transition: top 0.5s;
+}
+
+.login-button.animate {
+  top: 200px;
+}
+
+.popup-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+
+.popup {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+}
+
+.popup p {
+  font-size: var(--font-size);
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+#twofa-popup {
+  display: none;
+}
+
+.notification-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+.notification {
+  background-color: #ff4444;
+  color: white;
+  padding: 15px 20px;
+  border-radius: var(--border-radius);
+  margin-bottom: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
