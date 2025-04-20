@@ -14,7 +14,7 @@
 </ul>
 
 <h2>📥 Installation</h2>
-<p><code>. <(wget -qO- https://raw.githubusercontent.com/fly-telegram/fly-telegram/master/install.sh)</code></p>
+<p><code>. <(wget -qO- https://raw.githubusercontent.com/fly-telegram/fly-telegram/refs/heads/v2/install.sh)</code></p>
 
 <h2>📦 Manual installation</h2>
 <ul>
