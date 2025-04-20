@@ -198,7 +198,7 @@ main() {
 
     show_stage "Installation Complete"
     echo -e "${GREEN}Installation completed successfully!${NC}\n"
-
+    
     installation_path=$(pwd)
     echo -e "${CYAN}Fly-Telegram has been installed to:${NC}"
     echo -e "${YELLOW}$installation_path${NC}\n"
