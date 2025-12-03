@@ -28,10 +28,9 @@ modules = {}
 
 
 class CommandWrapper:
-    def __init__(self, client: Client, tl_client: TelegramClient, func):
+    def __init__(self, client: Client, func):
         self.client = client
-        self.tl_client = tl_client
-
+        
         self.func = func
         self.filters = filters
         self.message = None
@@ -67,7 +66,7 @@ class Loader:
         self.core_modules = ("help", "loader", "core", "executor")
         self.command_handlers = {}
 
-    async def load(self, name: str, client: Client, tl_client: TelegramClient) -> bool:
+    async def load(self, name: str, client: Client) -> bool:
         path = self.modules_path / name
 
         if not path.exists():
@@ -94,7 +93,7 @@ class Loader:
                     module_commands.append(command_name)
 
                     self._register_command(
-                        client, tl_client, command_name, func, name)
+                        client, command_name, func, name)
 
             for obj_name, obj in vars(module).items():
                 handlers = getattr(obj, "handlers", [])
@@ -112,8 +111,8 @@ class Loader:
 
         return True
 
-    def _register_command(self, client: Client, tl_client: TelegramClient, command_name: str, func, module_name: str):
-        wrapper = CommandWrapper(client, tl_client, func)
+    def _register_command(self, client: Client, command_name: str, func, module_name: str):
+        wrapper = CommandWrapper(client, func)
 
         async def wrapped_command(_, message: Message):
             await wrapper(message)
@@ -130,7 +129,7 @@ class Loader:
             self.command_handlers[module_name] = []
         self.command_handlers[module_name].append(handler)
 
-    async def unload(self, name: str, client: Client, tl_client: TelegramClient) -> bool:
+    async def unload(self, name: str, client: Client) -> bool:
         if name not in self.command_handlers:
             return False
 
@@ -145,11 +144,11 @@ class Loader:
 
         return True
 
-    async def load_all(self, client: Client, tl_client: TelegramClient) -> None:
+    async def load_all(self, client: Client) -> None:
         for module in self.modules_path.iterdir():
             if module.is_dir() and not module.name.endswith("_"):
                 try:
-                    await self.load(module.name, client, tl_client)
+                    await self.load(module.name, client)
                 except Exception as error:
                     logging.error(
                         f"Error loading module '{module.name}': {error}")

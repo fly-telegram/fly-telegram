@@ -17,29 +17,8 @@ from typing import Optional, Tuple
 from pyrogram import Client, errors, types
 from pyrogram.enums import ParseMode
 
-from telethon.crypto import AuthKey
-from telethon import TelegramClient
-from telethon.sessions import MemorySession
-
 from .web import Web
 from .utils import SESSION_FILE
-
-TELEGRAM_SERVERS = {
-    "TEST": {
-        1: "149.154.175.10",
-        2: "149.154.167.40",
-        3: "149.154.175.117",
-    },
-    "PROD": {
-        1: "149.154.175.53",
-        2: "149.154.167.51",
-        3: "149.154.175.100",
-        4: "149.154.167.91",
-        5: "91.108.56.130",
-        203: "91.105.192.100",
-    }
-}
-
 
 class Auth:
     def __init__(self):
@@ -99,58 +78,11 @@ class Auth:
             except errors.BadRequest:
                 logging.error("Invalid 2FA password. Try again")
 
-    async def convector(self) -> TelegramClient:
-        session_string = await self.client.export_session_string()
-        try:
-            # Create a new MemorySession
-            session = MemorySession()
-
-            # Get DC information from Pyrogram session
-            dc_id = self.client.session.dc_id
-            ip = TELEGRAM_SERVERS["PROD"].get(dc_id)
-
-            # Set DC information
-            session.set_dc(
-                dc_id=dc_id,
-                server_address=ip,
-                port=443
-            )
-
-            # Convert session string to AuthKey
-            from telethon.crypto import AuthKey
-            auth_key = AuthKey(data=base64.urlsafe_b64decode(
-                session_string + '=' * (-len(session_string) % 4)))
-
-            # Set the auth key for the session
-            session.auth_key = auth_key
-
-            return TelegramClient(
-                session,
-                self.config["api_id"],
-                self.config["api_hash"]
-            )
-
-        except Exception as e:
-            logging.error(f"Error converting session: {e}")
-            raise ValueError("Failed to convert session") from e
-
-    async def load(self, web=False, tl_session=False) -> Tuple[Client, types.User]:
+    async def load(self, web=False) -> Tuple[Client, types.User]:
         await self.client.connect()
 
         try:
             me = await self.client.get_me()
-
-            if tl_session:
-                logging.debug("Telethon converting...")
-                self.tl_client = await self.convector()
-                await self.tl_client.start()
-
-                tl_me = await self.tl_client.get_me()
-                logging.debug("Telethon client is started.")
-
-                if me.id != tl_me.id:
-                    raise RuntimeError(
-                        "The telethon session and pyrogram were not converted.")
 
         except errors.AuthKeyUnregistered:
             if web:
@@ -159,12 +91,10 @@ class Auth:
                 phone, code_hash = await self.send_code()
                 me = await self.enter_code(phone, code_hash) or await self.enter_2fa()
 
-            self.tl_client = await self.convector()
-            await self.tl_client.start()
         except errors.SessionRevoked:
             logging.error("Session revoked! Removing session file...")
             os.remove(SESSION_FILE)
             await self.client.disconnect()
             sys.exit(64)
 
-        return self.client, self.tl_client, me
+        return self.client, me

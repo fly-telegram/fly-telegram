@@ -48,7 +48,7 @@ class Userbot:
         async userbot process
         for setting client, loader and etc.
         """
-        client, tl_client, me = await self.auth.load(web=False)
+        client, me = await self.auth.load(web=False)
 
         await client.initialize()
         await client.dispatcher.start()
@@ -60,7 +60,7 @@ class Userbot:
 
         await inline.start()
 
-        await self.loader.load_all(client, tl_client)
+        await self.loader.load_all(client)
 
         await idle()
         return True
