@@ -107,7 +107,7 @@ class Loader:
         modules[name] = module_commands
 
         # restart dispatcher.
-        await client.dispatcher.stop(clear=False)
+        await client.dispatcher.stop(clear_handlers=False)
         await client.dispatcher.start()
 
         return True
