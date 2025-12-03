@@ -6,3 +6,8 @@
 #
 #              🔒 Licensed under the СС-by-NC
 #           creativecommons.org/licenses/by-nc/4.0/
+
+__author__ = "HotDrify"
+__contact__ = "https://t.me/hotdrify"
+__license__ = "CC-BY-NC"
+__credits__ = ["Hikka" "friendly-telegram", "teagram-TL", "Dragon-Userbot"]
