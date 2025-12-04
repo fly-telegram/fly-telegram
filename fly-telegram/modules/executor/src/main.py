@@ -54,7 +54,7 @@ async def eval_cmd(self, code):
         except:  # noqa: E722
             pass
     
-    await message.edit(
+    await self.message.edit(
         "<b>🐍 Python code:</b>\n"
         f"<pre language='python'>{code}</pre>\n"
         f"<b>📀 Result: </b>\n"
