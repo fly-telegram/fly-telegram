@@ -1,0 +1,10 @@
+{
+  "name": "executor", 
+  "description": "The Fly Telegram Module for executing",
+  "version": [1, 0, "beta"],
+  "author": {
+    "name": "fly-telegram",
+    "link": "https://t.me/hotdrify"
+  },
+  "license": "MIT"
+}
