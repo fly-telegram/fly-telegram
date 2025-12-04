@@ -13,8 +13,13 @@ import inspect
 import logging
 import sys
 from pathlib import Path
+from typing import (
+    List, Optional, Dict, Any, Set, Callable, Tuple, Type, Union,
+    TYPE_CHECKING
+)
 
-from telethon import TelegramClient
+if TYPE_CHECKING:
+    from pyrogram.handlers import Handler
 
 from pyrogram import Client, filters
 from pyrogram.handlers import MessageHandler
@@ -24,134 +29,204 @@ THE_DIR = Path(__file__).parent
 if str(THE_DIR) not in sys.path:
     sys.path.append(str(THE_DIR))
 
-modules = {}
+modules: Dict[str, List[str]] = {}
+
+
+class LoaderError(Exception):
+    pass
+
+
+class ModuleNotFoundError(LoaderError):
+    pass
+
+
+class ArgumentsError(LoaderError):
+    pass
+
+
+class ModuleImportError(LoaderError):
+    pass
 
 
 class CommandWrapper:
-    def __init__(self, client: Client, func):
-        self.client = client
+    __slots__ = ('client', 'func', 'filters', 'message', 'command', 'args')
 
-        self.func = func
-        self.filters = filters
-        self.message = None
-        self.command = None
-        self.args = []
+    def __init__(self, client: Client, func: Callable[..., Any]) -> None:
+        self.client: Client = client
+        self.func: Callable[..., Any] = func
+        self.filters: Any = filters
+        self.message: Optional[Message] = None
+        self.command: Optional[str] = None
+        self.args: List[str] = []
 
-    async def __call__(self, message: Message):
+    async def __call__(self, message: Message) -> None:
         self.message = message
-        self.command = message.command[0]
-        self.args = message.command[1:]
+        self.command = message.command[0] if message.command else ""
+        self.args = message.command[1:] if message.command else []
 
-        arguments = inspect.getfullargspec(self.func).args
-        arguments.remove('self')
+        arguments: List[str] = inspect.getfullargspec(self.func).args
+
+        if 'self' in arguments:
+            arguments.remove('self')
 
         if len(self.args) < len(arguments):
-            await message.edit("❌ <b>Command arguments required! {}</b>".format(
-                ", ".join(arguments)))
-        else:
-            try:
-                await self.func(self, *self.args)
-            except Exception as e:
-                await message.edit(f"❌ <b>Error: {e}</b>")
+            missing_args: str = ", ".join(arguments)
+            raise ArgumentsError(f"Command arguments required: {missing_args}")
 
-    def __getattr__(self, name):
+        try:
+            await self.func(self, *self.args)
+        except ArgumentsError as e:
+            await message.edit(f"❌ <b>Arguments Error: {e}</b>")
+        except Exception as e:
+            await message.edit(f"❌ <b>Error: {e}</b>")
+
+    def __getattr__(self, name: str) -> Any:
         return getattr(self.client, name)
 
 
 class Loader:
     """fly-telegram modules loader"""
 
-    def __init__(self):
-        self.modules_path = Path(f"./{__package__}/modules")
-        self.core_modules = ("help", "loader", "core", "executor")
-        self.command_handlers = {}
+    def __init__(self) -> None:
+        self.modules_path: Path = Path(f"./{__package__}/modules")
+        self.core_modules: Tuple[str, ...] = (
+            "help", "loader", "core", "executor")
+        self.command_handlers: Dict[str, List[MessageHandler]] = {}
+        self._package_prefix: str = f"{__package__}.modules." if __package__ else "modules."
+        self._loaded_modules: Set[str] = set()
 
     async def load(self, name: str, client: Client, startup: bool = False) -> bool:
-        path = self.modules_path / name
+        """load module by name"""
+        path: Path = self.modules_path / name
 
         if not path.exists():
-            raise ValueError(f"Module '{name}' not found!")
+            raise ModuleNotFoundError(f"Module '{name}' not found!")
 
         if name in self.command_handlers:
             await self.unload(name, client)
 
-        sources = path / "src"
-        module_commands = []
+        sources: Path = path / "src"
+        module_commands: List[str] = []
+        module_prefix: str = f"{self._package_prefix}{name}.src."
 
-        # importing all files
         for file in sources.glob('*.py'):
-            module_name = f"{__package__}.modules.{name}.src.{file.stem}"
-            if module_name in sys.modules:
-                module = importlib.reload(sys.modules[module_name])
-            else:
-                module = importlib.import_module(module_name)
+            module_name: str = f"{module_prefix}{file.stem}"
+            try:
+                module: Any = self._import_or_reload(module_name)
+            except Exception as e:
+                raise ModuleImportError(
+                    f"Failed to import module {module_name}: {e}")
 
             for func_name, func in inspect.getmembers(module, inspect.isfunction):
                 if func_name.endswith("_cmd"):
-                    command_name = func_name[:-4]
-
+                    command_name: str = func_name[:-4]
                     module_commands.append(command_name)
+                    self._register_command(client, command_name, func, name)
 
-                    self._register_command(
-                        client, command_name, func, name)
-
-            for obj_name, obj in vars(module).items():
-                handlers = getattr(obj, "handlers", [])
-                if not isinstance(handlers, list):
-                    continue
-
-                for handler, group in handlers:
-                    client.add_handler(handler, group)
+            self._process_module_handlers(module, client)
 
         modules[name] = module_commands
+        self._loaded_modules.add(name)
 
         if not startup:
-            await client.dispatcher.stop(clear_handlers=False)
-            await client.dispatcher.start()
+            await self._restart_dispatcher(client)
 
         return True
 
-    def _register_command(self, client: Client, command_name: str, func, module_name: str):
-        wrapper = CommandWrapper(client, func)
+    def _import_or_reload(self, module_name: str) -> Any:
+        if module_name in sys.modules:
+            return importlib.reload(sys.modules[module_name])
+        return importlib.import_module(module_name)
 
-        async def wrapped_command(_, message: Message):
+    def _process_module_handlers(self, module: Any, client: Client) -> None:
+        """register handlers from module"""
+        for obj in vars(module).values():
+            handlers: List[Tuple[Any, int]] = getattr(obj, "handlers", [])
+            if isinstance(handlers, list):
+                for handler, group in handlers:
+                    client.add_handler(handler, group)
+
+    async def _restart_dispatcher(self, client: Client) -> None:
+        await client.dispatcher.stop(clear_handlers=False)
+        await client.dispatcher.start()
+
+    def _register_command(self, client: Client, command_name: str,
+                          func: Callable[..., Any], module_name: str) -> None:
+        """register command"""
+        wrapper: CommandWrapper = CommandWrapper(client, func)
+
+        async def wrapped_command(_: Any, message: Message) -> None:
             await wrapper(message)
 
-        commands = [command_name]
-
-        handler = MessageHandler(
+        handler: MessageHandler = MessageHandler(
             wrapped_command,
-            filters.command(commands, ".") & filters.me
+            filters.command([command_name], ".") & filters.me
         )
         client.add_handler(handler)
 
-        if module_name not in self.command_handlers:
-            self.command_handlers[module_name] = []
-        self.command_handlers[module_name].append(handler)
+        handlers_list: List[MessageHandler] = self.command_handlers.setdefault(
+            module_name, [])
+        handlers_list.append(handler)
 
     async def unload(self, name: str, client: Client) -> bool:
+        """unload moduleby name"""
         if name not in self.command_handlers:
             return False
 
-        for handler in self.command_handlers[name]:
+        handlers: List[MessageHandler] = self.command_handlers[name]
+        for handler in handlers:
             client.remove_handler(handler)
 
         del self.command_handlers[name]
+        self._loaded_modules.discard(name)
 
-        for module in list(sys.modules):
-            if module.startswith(f"{__package__}.modules.{name}."):
-                del sys.modules[module]
+        prefix: str = f"{self._package_prefix}{name}."
+        modules_to_delete: List[str] = [
+            module for module in sys.modules.keys()
+            if module.startswith(prefix)
+        ]
+
+        for module in modules_to_delete:
+            del sys.modules[module]
+
+        if name in modules:
+            del modules[name]
 
         return True
 
     async def load_all(self, client: Client) -> None:
-        for module in self.modules_path.iterdir():
-            if module.is_dir() and not module.name.endswith("_"):
-                try:
-                    await self.load(module.name, client, startup=True)
-                except Exception as error:
-                    logging.error(
-                        f"Error loading module '{module.name}': {error}")
+        """load all modules"""
+        modules_to_load: List[Path] = [
+            module for module in self.modules_path.iterdir()
+            if module.is_dir() and not module.name.endswith("_")
+        ]
 
-        await client.dispatcher.stop(clear_handlers=False)
-        await client.dispatcher.start()
+        for module in modules_to_load:
+            try:
+                await self.load(module.name, client, startup=True)
+            except ModuleImportError as error:
+                logging.error(
+                    f"Import error in module '{module.name}': {error}")
+            except ModuleNotFoundError as error:
+                logging.error(f"Module '{module.name}' not found: {error}")
+            except Exception as error:
+                logging.error(
+                    f"Unexpected error loading module '{module.name}': {error}")
+
+        await self._restart_dispatcher(client)
+
+    def get_loaded_modules(self) -> List[str]:
+        """all loaded modules"""
+        return list(self._loaded_modules)
+
+    def is_module_loaded(self, name: str) -> bool:
+        """module is loaded?"""
+        return name in self._loaded_modules
+
+    def get_module_commands(self, name: str) -> List[str]:
+        """all module command list"""
+        return modules.get(name, [])
+
+    def get_all_commands(self) -> Dict[str, List[str]]:
+        """all commands and modules"""
+        return modules.copy()
