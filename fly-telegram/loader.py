@@ -30,7 +30,7 @@ modules = {}
 class CommandWrapper:
     def __init__(self, client: Client, func):
         self.client = client
-        
+
         self.func = func
         self.filters = filters
         self.message = None
@@ -66,7 +66,7 @@ class Loader:
         self.core_modules = ("help", "loader", "core", "executor")
         self.command_handlers = {}
 
-    async def load(self, name: str, client: Client) -> bool:
+    async def load(self, name: str, client: Client, startup: bool = False) -> bool:
         path = self.modules_path / name
 
         if not path.exists():
@@ -105,9 +105,9 @@ class Loader:
 
         modules[name] = module_commands
 
-        # restart dispatcher.
-        await client.dispatcher.stop(clear_handlers=False)
-        await client.dispatcher.start()
+        if not startup:
+            await client.dispatcher.stop(clear_handlers=False)
+            await client.dispatcher.start()
 
         return True
 
@@ -148,7 +148,10 @@ class Loader:
         for module in self.modules_path.iterdir():
             if module.is_dir() and not module.name.endswith("_"):
                 try:
-                    await self.load(module.name, client)
+                    await self.load(module.name, client, startup=True)
                 except Exception as error:
                     logging.error(
                         f"Error loading module '{module.name}': {error}")
+
+        await client.dispatcher.stop(clear_handlers=False)
+        await client.dispatcher.start()

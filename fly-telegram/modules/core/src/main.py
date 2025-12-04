@@ -11,6 +11,7 @@
 
 from time import perf_counter
 
+
 async def ping_cmd(self):
     """The ping command"""
 

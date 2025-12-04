@@ -20,6 +20,7 @@ from pyrogram.enums import ParseMode
 from .web import Web
 from .utils import SESSION_FILE
 
+
 class Auth:
     def __init__(self):
         self.config = self._load_config("config.json")

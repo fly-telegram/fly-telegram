@@ -29,6 +29,6 @@ async def command_cmd(self):
 
 
 # register handler. callback_data: str = function name
-@inline.handler(callback_data="example") 
+@inline.handler(callback_data="example")
 async def bot_reply(call: InlineCall):
     await call.answer("inline is easy!")             # return answer

@@ -14,5 +14,5 @@ from .main import Inline
 
 handlers_manager = HandlersManager()
 
-inline = Inline("...") # botmanager
+inline = Inline("...")  # botmanager
 inline.handler = handlers_manager.handler
