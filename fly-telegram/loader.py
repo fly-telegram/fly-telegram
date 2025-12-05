@@ -64,21 +64,35 @@ class CommandWrapper:
         self.command = message.command[0] if message.command else ""
         self.args = message.command[1:] if message.command else []
 
-        arguments: List[str] = inspect.getfullargspec(self.func).args
+        try:
+            await self._process_command()
+        except ArgumentsError as e:
+            await self.message.edit(f"❌ <b>Arguments Error: {e}</b>")
+        except Exception as e:
+            await self.message.edit(f"❌ <b>Error: {e}</b>")
 
+    async def _process_command(self) -> None:
+        arguments: List[str] = inspect.getfullargspec(self.func).args
+        
         if 'self' in arguments:
             arguments.remove('self')
 
-        if len(self.args) < len(arguments):
-            missing_args: str = ", ".join(arguments)
-            raise ArgumentsError(f"Command arguments required: {missing_args}")
+        if not arguments:
+            return await self.func(self)
 
-        try:
-            await self.func(self, *self.args)
-        except ArgumentsError as e:
-            await message.edit(f"❌ <b>Arguments Error: {e}</b>")
-        except Exception as e:
-            await message.edit(f"❌ <b>Error: {e}</b>")
+        if len(self.args) < len(arguments):
+            missing = ", ".join(arguments[len(self.args):])
+            raise ArgumentsError(f"Required arguments: {missing}")
+        
+        multiarg: List[str] = []
+        
+        if len(arguments) == 1:
+            multiarg.append(' '.join(self.args))
+        else:
+            for i in range(len(arguments) - 1):
+                multiarg.append(self.args[i])
+            multiarg.append(' '.join(self.args[len(arguments) - 1:]))
+        await self.func(self, *multiarg)
 
     def __getattr__(self, name: str) -> Any:
         return getattr(self.client, name)
