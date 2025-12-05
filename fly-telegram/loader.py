@@ -62,7 +62,13 @@ class CommandWrapper:
     async def __call__(self, message: Message) -> None:
         self.message = message
         self.command = message.command[0] if message.command else ""
-        self.args = message.command[1:] if message.command else []
+        
+        full = message.text.strip() if message.text else ""
+        if full.startswith(f".{self.command}"):
+            args_text = full[len(self.command) + 1:].lstrip()
+            self.args = args_text.split() if args_text else []
+        else:
+            self.args = []
 
         try:
             await self._process_command()
@@ -72,32 +78,43 @@ class CommandWrapper:
             await self.message.edit(f"❌ <b>Error: {e}</b>")
     
     async def _process_command(self) -> None:
-        func_args = inspect.getfullargspec(self.func).args
-        exargs = [arg for arg in func_args if arg != 'self']
+        arguments = inspect.getfullargspec(self.func).args
+        exp_args = [arg for arg in arguments if arg != 'self']
     
-        if not exargs:
+        if not exp_args:
             return await self.func(self)
     
-        text = self.message.text[len(self.command):].strip() if self.message.text else ""
+        full = self.message.text.strip() if self.message.text else ""
+        if full.startswith(f".{self.command}"):
+            text = full[len(self.command) + 1:].lstrip()
+        else:
+            text = ""
     
-        if len(exargs) == 1:
+        if len(exp_args) == 1:
             return await self.func(self, text)
         
-        spltted = text.split()
+        splitted = text.split(maxsplit=len(exp_args) - 1)
     
-        if len(spltted) < len(exargs) - 1:
-            missing = ", ".join(exargs[len(spltted):])
+        if len(splitted) < len(exp_args) - 1:
+            missing = ", ".join(exp_args[len(splitted):])
             raise ArgumentsError(f"Required arguments: {missing}")
 
-        args = spltted[:len(exargs) - 1]
-        last = len(' '.join(args)) + 1 if args else 0
-        args.append(text[last:].strip())
+        args = splitted[:len(exp_args) - 1]
+        
+        if len(splitted) == len(exp_args) - 1:
+            last = ""
+        elif len(splitted) == len(exp_args):
+            args.append(splitted[-1])
+            return await self.func(self, *args)
+        else:
+            start = len(' '.join(args)) + 1 if args else 0
+            last = text[start:].strip()
+            args.append(last)
     
         await self.func(self, *args)
 
     def __getattr__(self, name: str) -> Any:
         return getattr(self.client, name)
-
 
 class Loader:
     """fly-telegram modules loader"""
