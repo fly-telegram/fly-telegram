@@ -14,5 +14,7 @@ from .main import Inline
 
 handlers_manager = HandlersManager()
 
-inline = Inline("...")  # botmanager
+import os
+
+inline = Inline(os.environ["INLINE_TOKEN"])  # botmanager, temp solution
 inline.handler = handlers_manager.handler
