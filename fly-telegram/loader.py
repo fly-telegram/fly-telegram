@@ -70,29 +70,30 @@ class CommandWrapper:
             await self.message.edit(f"❌ <b>Arguments Error: {e}</b>")
         except Exception as e:
             await self.message.edit(f"❌ <b>Error: {e}</b>")
-
+    
     async def _process_command(self) -> None:
-        arguments: List[str] = inspect.getfullargspec(self.func).args
-        
-        if 'self' in arguments:
-            arguments.remove('self')
-
-        if not arguments:
+        func_args = inspect.getfullargspec(self.func).args
+        exargs = [arg for arg in func_args if arg != 'self']
+    
+        if not exargs:
             return await self.func(self)
-
-        if len(self.args) < len(arguments):
-            missing = ", ".join(arguments[len(self.args):])
+    
+        text = self.message.text[len(self.command):].strip() if self.message.text else ""
+    
+        if len(exargs) == 1:
+            return await self.func(self, text)
+        
+        spltted = text.split()
+    
+        if len(spltted) < len(exargs) - 1:
+            missing = ", ".join(exargs[len(spltted):])
             raise ArgumentsError(f"Required arguments: {missing}")
-        
-        multiarg: List[str] = []
-        
-        if len(arguments) == 1:
-            multiarg.append(' '.join(self.args))
-        else:
-            for i in range(len(arguments) - 1):
-                multiarg.append(self.args[i])
-            multiarg.append(' '.join(self.args[len(arguments) - 1:]))
-        await self.func(self, *multiarg)
+
+        args = spltted[:len(exargs) - 1]
+        last = len(' '.join(args)) + 1 if args else 0
+        args.append(text[last:].strip())
+    
+        await self.func(self, *args)
 
     def __getattr__(self, name: str) -> Any:
         return getattr(self.client, name)

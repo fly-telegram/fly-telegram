@@ -41,7 +41,7 @@ class Userbot:
             "warning": logging.WARNING
         }
 
-    async def amain(self):
+    async def amain(self) -> bool:
         """
         async userbot process
         for setting client, loader and etc.
@@ -63,7 +63,7 @@ class Userbot:
         await idle()
         return True
 
-    def main(self, level: str = "info"):
+    def main(self, level: str = "info") -> None:
         """
         sync userbot process
         for logo, logger and start async
