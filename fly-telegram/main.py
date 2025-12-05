@@ -17,8 +17,8 @@ from pyrogram import idle
 from .auth import Auth
 from .inline import inline
 from .loader import Loader
-from .logger import load
 from .utils import logo
+from . import logger
 
 try:
     import uvloop
