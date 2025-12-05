@@ -15,7 +15,6 @@ from inline import InlineCall, inline, make_keyboard  # /fly-telegram/inline
 # _cmd is required for command functions
 async def command_cmd(self):
     await self.client.unblock_user("spambot")        # use pyrogram client
-    await self.tl_client.get_entity("durov")         # use telethon client
     await inline.bot.send_message(                   # inline example usage
         self.client.me.id,                           # get user id from pyrogram client
         "hi",                                        # message
