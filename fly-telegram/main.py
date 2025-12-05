@@ -17,6 +17,7 @@ from pyrogram import idle
 from .auth import Auth
 from .inline import inline
 from .loader import Loader
+from .logger import load
 from .utils import logo
 
 try:
@@ -69,7 +70,7 @@ class Userbot:
         """
 
         print(logo)
-        logging.basicConfig(level=self.levels[level])
+        logger.load(self.levels.get(level))
 
         try:
             self.loop.run_until_complete(self.amain())

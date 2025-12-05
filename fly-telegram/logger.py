@@ -19,7 +19,7 @@ class InlineHandler(logging.StreamHandler):
         ...
 
 
-def load(level) -> logging.Logger:
+def load(level: logging.NOTSET) -> logging.Logger:
     format = logging.Formatter(
         "%(asctime)s [%(levelname)s] %(funcName)s: %(lineno)d - %(message)s",
         "%m-%d %H:%M:%S")
