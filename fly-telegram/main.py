@@ -13,14 +13,11 @@ import sys
 import uvicorn
 
 from pyrogram import idle
-from rich.traceback import install
 
 from .auth import Auth
 from .inline import inline
 from .loader import Loader
 from .utils import logo
-
-install(show_locals=True)
 
 try:
     import uvloop

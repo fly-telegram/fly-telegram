@@ -12,7 +12,6 @@ import threading
 
 from pyrogram import Client
 from pyrogram.errors import exceptions
-from rich.logging import RichHandler
 
 
 class InlineHandler(logging.StreamHandler):
@@ -26,8 +25,12 @@ def load(level) -> logging.Logger:
         "%m-%d %H:%M:%S")
 
     logger = logging.getLogger()
-    logger.handlers = [RichHandler()]
+    logger.handlers = []
     logger.setLevel(level)
+
+    console = logging.StreamHandler()
+    console.setFormatter(format)
+    logger.addHandler(console)
 
     # telegram_handler = InlineHandler(client)
     # logger.addHandler(telegram_handler)
