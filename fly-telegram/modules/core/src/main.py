@@ -21,4 +21,4 @@ async def ping_cmd(self):
     delay = perf_counter() - start
     emoji = "⚡" if delay < 0.3 else "✨" if delay < 1 else "🐢"
 
-    await message.edit(f"{emoji} <b>Pong! {delay:.3f} ms</b>")
+    await message.edit(f"{emoji} <b>Pong! {delay:.3f} s</b>")
