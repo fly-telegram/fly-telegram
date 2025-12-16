@@ -29,8 +29,7 @@ THE_DIR = Path(__file__).parent
 if str(THE_DIR) not in sys.path:
     sys.path.append(str(THE_DIR))
 
-modules: Dict[str, List[str]] = {}
-
+modules: dict = {}
 
 class LoaderError(Exception):
     pass
@@ -115,7 +114,7 @@ class CommandWrapper:
 
     def __getattr__(self, name: str) -> Any:
         return getattr(self.client, name)
-
+    
 class Loader:
     """fly-telegram modules loader"""
 
@@ -125,9 +124,6 @@ class Loader:
             "help", "loader", "core", "executor")
         self.command_handlers: Dict[str, List[MessageHandler]] = {}
         self._package_prefix: str = f"{__package__}.modules." if __package__ else "modules."
-
-        self._loaded_modules: List[str] = []
-        self.modules = modules
 
     async def load(self, name: str, client: Client, startup: bool = False) -> bool:
         """load module by name"""
@@ -158,6 +154,8 @@ class Loader:
                     self._register_command(client, command_name, func, name)
 
             self._process_module_handlers(module, client)
+        
+        modules[name] = module_commands
 
         if not startup:
             await self._restart_dispatcher(client)
@@ -209,6 +207,7 @@ class Loader:
             client.remove_handler(handler)
 
         del self.command_handlers[name]
+        del modules[name]
 
         prefix: str = f"{self._package_prefix}{name}."
         modules_to_delete: List[str] = [
@@ -241,5 +240,8 @@ class Loader:
                     f"Unexpected error loading module '{module.name}': {error}")
 
         await self._restart_dispatcher(client)
+
+    def get_modules(self):
+        return modules.keys()
 
 loader = Loader()
