@@ -25,12 +25,12 @@ from pyrogram import Client, filters
 from pyrogram.handlers import MessageHandler
 from pyrogram.types import Message
 
-from modmgr import manager
+from .modmgr import manager
 
 THE_DIR = Path(__file__).parent
 if str(THE_DIR) not in sys.path:
     sys.path.append(str(THE_DIR))
-    
+
 class LoaderError(Exception):
     pass
 
