@@ -152,10 +152,9 @@ class Loader:
                     command_name: str = func_name[:-4]
                     module_commands.append(command_name)
                     self._register_command(client, command_name, func, name)
-
+            
+            manager.add_module(name, module_commands)
             self._process_module_handlers(module, client)
-        
-        manager.add_module(name, module_commands)
 
         if not startup:
             await self._restart_dispatcher(client)
