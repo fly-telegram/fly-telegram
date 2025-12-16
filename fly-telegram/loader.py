@@ -126,7 +126,7 @@ class Loader:
         self.command_handlers: Dict[str, List[MessageHandler]] = {}
         self._package_prefix: str = f"{__package__}.modules." if __package__ else "modules."
 
-        self._loaded_modules = _loaded_modules
+        self._loaded_modules: List[str] = []
         self.modules = modules
 
     async def load(self, name: str, client: Client, startup: bool = False) -> bool:
