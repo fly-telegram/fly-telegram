@@ -25,12 +25,12 @@ from pyrogram import Client, filters
 from pyrogram.handlers import MessageHandler
 from pyrogram.types import Message
 
+from modmgr import manager
+
 THE_DIR = Path(__file__).parent
 if str(THE_DIR) not in sys.path:
     sys.path.append(str(THE_DIR))
-
-modules: dict = {}
-
+    
 class LoaderError(Exception):
     pass
 
@@ -155,7 +155,7 @@ class Loader:
 
             self._process_module_handlers(module, client)
         
-        modules[name] = module_commands
+        manager.add_module(name, module_commands)
 
         if not startup:
             await self._restart_dispatcher(client)
@@ -207,7 +207,7 @@ class Loader:
             client.remove_handler(handler)
 
         del self.command_handlers[name]
-        del modules[name]
+        manager.remove_module(name)
 
         prefix: str = f"{self._package_prefix}{name}."
         modules_to_delete: List[str] = [
@@ -240,6 +240,3 @@ class Loader:
                     f"Unexpected error loading module '{module.name}': {error}")
 
         await self._restart_dispatcher(client)
-
-    def get_modules(self):
-        return modules.keys()
