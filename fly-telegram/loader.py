@@ -264,3 +264,5 @@ class Loader:
     def get_all_commands(self) -> Dict[str, List[str]]:
         """all commands and modules"""
         return self.modules.copy()
+
+loader = Loader()
