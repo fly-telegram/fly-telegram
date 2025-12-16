@@ -125,7 +125,7 @@ class Loader:
             "help", "loader", "core", "executor")
         self.command_handlers: Dict[str, List[MessageHandler]] = {}
         self._package_prefix: str = f"{__package__}.modules." if __package__ else "modules."
-        self._loaded_modules: Set[str] = set()
+        self._loaded_modules: List[str] = []
 
     async def load(self, name: str, client: Client, startup: bool = False) -> bool:
         """load module by name"""
@@ -158,7 +158,7 @@ class Loader:
             self._process_module_handlers(module, client)
 
         modules[name] = module_commands
-        self._loaded_modules.add(name)
+        self._loaded_modules.append(name)
 
         if not startup:
             await self._restart_dispatcher(client)
@@ -210,7 +210,7 @@ class Loader:
             client.remove_handler(handler)
 
         del self.command_handlers[name]
-        self._loaded_modules.discard(name)
+        self._loaded_modules.remove(name)
 
         prefix: str = f"{self._package_prefix}{name}."
         modules_to_delete: List[str] = [
@@ -249,7 +249,7 @@ class Loader:
 
     def get_loaded_modules(self) -> List[str]:
         """all loaded modules"""
-        return list(self._loaded_modules)
+        return self._loaded_modules
 
     def is_module_loaded(self, name: str) -> bool:
         """module is loaded?"""
