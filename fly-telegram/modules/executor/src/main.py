@@ -44,7 +44,8 @@ async def eval_cmd(self, code):
             "app": self.client,
             "bot": inline.bot,
             "message": self.message,
-            "pyrogram": __import__("pyrogram")
+            "pyrogram": __import__("pyrogram"),
+            "sys": __import__("sys")
         }
     )
 
