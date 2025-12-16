@@ -9,7 +9,7 @@
 
 import os
 import asyncio
-from typing import Any, Callable, Union
+from typing import Union
 
 version = "2.0.0 beta"
 logo = r"""
@@ -53,17 +53,3 @@ async def aioterminal(command: Union[bytes, str]) -> str:
             return out.decode()
         except UnicodeDecodeError:
             return f"Unicode decode error: {out}"
-
-
-def singleton(cls: Any) -> Callable[..., Any]:
-    """
-    Singleton decorator
-    """
-    instances = {}
-
-    def get_instance(*args, **kwargs):
-        if cls not in instances:
-            instances[cls] = cls(*args, **kwargs)
-        return instances[cls]
-    
-    return get_instance

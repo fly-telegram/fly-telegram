@@ -25,8 +25,6 @@ from pyrogram import Client, filters
 from pyrogram.handlers import MessageHandler
 from pyrogram.types import Message
 
-from .utils import singleton
-
 THE_DIR = Path(__file__).parent
 if str(THE_DIR) not in sys.path:
     sys.path.append(str(THE_DIR))
@@ -118,7 +116,6 @@ class CommandWrapper:
     def __getattr__(self, name: str) -> Any:
         return getattr(self.client, name)
 
-@singleton
 class Loader:
     """fly-telegram modules loader"""
 
@@ -161,9 +158,6 @@ class Loader:
                     self._register_command(client, command_name, func, name)
 
             self._process_module_handlers(module, client)
-
-        self.modules[name] = module_commands
-        self._loaded_modules.append(name)
 
         if not startup:
             await self._restart_dispatcher(client)
@@ -215,7 +209,6 @@ class Loader:
             client.remove_handler(handler)
 
         del self.command_handlers[name]
-        self._loaded_modules.remove(name)
 
         prefix: str = f"{self._package_prefix}{name}."
         modules_to_delete: List[str] = [
@@ -225,9 +218,6 @@ class Loader:
 
         for module in modules_to_delete:
             del sys.modules[module]
-
-        if name in self.modules:
-            del self.modules[name]
 
         return True
 
@@ -251,21 +241,5 @@ class Loader:
                     f"Unexpected error loading module '{module.name}': {error}")
 
         await self._restart_dispatcher(client)
-
-    def get_loaded_modules(self) -> List[str]:
-        """all loaded modules"""
-        return self._loaded_modules
-
-    def is_module_loaded(self, name: str) -> bool:
-        """module is loaded?"""
-        return name in self._loaded_modules
-
-    def get_module_commands(self, name: str) -> List[str]:
-        """all module command list"""
-        return self.modules.get(name, [])
-
-    def get_all_commands(self) -> Dict[str, List[str]]:
-        """all commands and modules"""
-        return self.modules.copy()
 
 loader = Loader()
