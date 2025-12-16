@@ -243,5 +243,3 @@ class Loader:
 
     def get_modules(self):
         return modules.keys()
-
-loader = Loader()

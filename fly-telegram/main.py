@@ -16,7 +16,7 @@ from pyrogram import idle
 
 from .auth import Auth
 from .inline import inline
-from .loader import loader
+from .loader import Loader
 from .utils import logo
 from . import logger
 
@@ -31,6 +31,7 @@ except Exception:
 class Userbot:
     def __init__(self):
         self.auth = Auth()
+        self.loader = Loader()
         self.loop = asyncio.get_event_loop()
 
         self.levels = {
@@ -57,7 +58,7 @@ class Userbot:
 
         await inline.start()
 
-        await loader.load_all(client)
+        await self.loader.load_all(client)
 
         await idle()
         return True
