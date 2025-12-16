@@ -25,12 +25,14 @@ from pyrogram import Client, filters
 from pyrogram.handlers import MessageHandler
 from pyrogram.types import Message
 
+from .utils import singleton
+
 THE_DIR = Path(__file__).parent
 if str(THE_DIR) not in sys.path:
     sys.path.append(str(THE_DIR))
 
 modules: Dict[str, List[str]] = {}
-_loaded_modules: List[str] = []
+
 
 class LoaderError(Exception):
     pass
@@ -116,6 +118,7 @@ class CommandWrapper:
     def __getattr__(self, name: str) -> Any:
         return getattr(self.client, name)
 
+@singleton
 class Loader:
     """fly-telegram modules loader"""
 
