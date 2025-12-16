@@ -126,6 +126,9 @@ class Loader:
         self.command_handlers: Dict[str, List[MessageHandler]] = {}
         self._package_prefix: str = f"{__package__}.modules." if __package__ else "modules."
 
+        self._loaded_modules = _loaded_modules
+        self.modules = modules
+
     async def load(self, name: str, client: Client, startup: bool = False) -> bool:
         """load module by name"""
         path: Path = self.modules_path / name
@@ -156,8 +159,8 @@ class Loader:
 
             self._process_module_handlers(module, client)
 
-        modules[name] = module_commands
-        _loaded_modules.append(name)
+        self.modules[name] = module_commands
+        self._loaded_modules.append(name)
 
         if not startup:
             await self._restart_dispatcher(client)
@@ -200,7 +203,7 @@ class Loader:
         handlers_list.append(handler)
 
     async def unload(self, name: str, client: Client) -> bool:
-        """unload moduleby name"""
+        """unload module by name"""
         if name not in self.command_handlers:
             return False
 
@@ -209,7 +212,7 @@ class Loader:
             client.remove_handler(handler)
 
         del self.command_handlers[name]
-        _loaded_modules.remove(name)
+        self._loaded_modules.remove(name)
 
         prefix: str = f"{self._package_prefix}{name}."
         modules_to_delete: List[str] = [
@@ -220,8 +223,8 @@ class Loader:
         for module in modules_to_delete:
             del sys.modules[module]
 
-        if name in modules:
-            del modules[name]
+        if name in self.modules:
+            del self.modules[name]
 
         return True
 
@@ -248,16 +251,16 @@ class Loader:
 
     def get_loaded_modules(self) -> List[str]:
         """all loaded modules"""
-        return _loaded_modules
+        return self._loaded_modules
 
     def is_module_loaded(self, name: str) -> bool:
         """module is loaded?"""
-        return name in _loaded_modules
+        return name in self._loaded_modules
 
     def get_module_commands(self, name: str) -> List[str]:
         """all module command list"""
-        return modules.get(name, [])
+        return self.modules.get(name, [])
 
     def get_all_commands(self) -> Dict[str, List[str]]:
         """all commands and modules"""
-        return modules.copy()
+        return self.modules.copy()
