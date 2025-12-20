@@ -16,7 +16,7 @@ class Manager:
 
     def add_module(self, name: str, commands: List[str]) -> dict:
         self.modules[name] = commands
-        return modules
+        return self.modules
     
     def remove_module(self, name: str) -> dict:
         del self.modules[name]
