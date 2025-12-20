@@ -9,20 +9,20 @@
 
 from typing import List, Optional
 
-modules: dict = {}
-
 class Manager:
     """modules varible manager"""
-    
+    def __init__(self) -> None:
+        self.modules: dict = {}
+
     def add_module(self, name: str, commands: List[str]) -> dict:
-        modules[name] = commands
+        self.modules[name] = commands
         return modules
     
     def remove_module(self, name: str) -> dict:
-        del modules[name]
-        return modules
+        del self.modules[name]
+        return self.modules
     
     def get_modules(self) -> dict:
-        return modules
+        return self.modules
 
 manager = Manager()
