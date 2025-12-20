@@ -25,7 +25,6 @@ from pyrogram import Client, filters
 from pyrogram.handlers import MessageHandler
 from pyrogram.types import Message
 
-from . import modmgr
 
 THE_DIR = Path(__file__).parent
 if str(THE_DIR) not in sys.path:
@@ -152,8 +151,7 @@ class Loader:
                     command_name: str = func_name[:-4]
                     module_commands.append(command_name)
                     self._register_command(client, command_name, func, name)
-            
-            modmgr.add_module(name, module_commands)
+
             self._process_module_handlers(module, client)
 
         if not startup:
@@ -206,7 +204,6 @@ class Loader:
             client.remove_handler(handler)
 
         del self.command_handlers[name]
-        modmgr.remove_module(name)
 
         prefix: str = f"{self._package_prefix}{name}."
         modules_to_delete: List[str] = [
