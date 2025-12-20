@@ -7,33 +7,14 @@
 #              🔒 Licensed under the СС-by-NC
 #           creativecommons.org/licenses/by-nc/4.0/
 
-from typing import List, Optional
+from typing import List
 
-class Manager:
-    """modules varible manager"""
-    _inst = None
-    _modules = {}
+modules: dict = {}
 
-    def __new__(cls) -> None:
-        if cls._inst is None:
-            cls._inst = super().__new__(cls)
-        return cls._inst
-    
-    @classmethod
-    def get_instance(cls):
-        if cls._inst is None:
-            cls._inst = cls()
-        return cls._inst
+def add_module(name: str, commands: List[str]) -> dict:
+    modules[name] = commands
+    return modules
 
-    def add_module(self, name: str, commands: List[str]) -> dict:
-        self._modules[name] = commands
-        return self._modules
-    
-    def remove_module(self, name: str) -> dict:
-        del self._modules[name]
-        return self._modules
-    
-    def get_modules(self) -> dict:
-        return self._modules.copy()
-
-manager = Manager.get_instance()
+def remove_module(name: str) -> dict:
+    del modules[name]
+    return modules
