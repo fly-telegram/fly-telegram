@@ -22,7 +22,7 @@ class Manager:
     @classmethod
     def get_instance(cls):
         if cls._inst is None:
-            cls._inst = Manager()
+            cls._inst = cls()
         return cls._inst
 
     def add_module(self, name: str, commands: List[str]) -> dict:
