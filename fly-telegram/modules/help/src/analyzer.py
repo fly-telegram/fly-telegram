@@ -1,0 +1,87 @@
+#         _______  _____   ___ ___  _______  _______
+#        |    ___||     |_|   |   ||_     _||     __|
+#        |    ___||       |\     /   |   |  |    |  |
+#        |___|    |_______| |___|    |___|  |_______|
+#                      t.me/FLYTG_UB
+#
+#            🔒 Licensed under the GNU-APGL 3.0
+#             www.gnu.org/licenses/agpl-3.0.html
+
+# eto takoi govnokod...
+
+import ast
+from pathlib import Path
+from typing import List, Dict, Optional
+
+class ModuleAnalyzer:
+    """extract commands from file"""
+
+    def __init__(self, modules_path: Path) -> None:
+        self.modules_path = modules_path
+
+    def get_modules(self) -> List[str]:
+        """get all available modules"""
+        modules: List[str] = []
+
+        if not self.modules_path.exists():
+            return modules
+        
+        for item in self.modules_path.iterdir():
+            if (item.is_dir and
+                not item.name.startswith("_") and
+                not item.name.startswith(".")):
+
+                src_path = item / "src"
+                if src_path.exists() and any(src_path.glob("*.py")):
+                    modules.append(item.name)
+
+        return sorted(modules)
+    
+    def cmd_info(self, file: Path) -> List[Dict]:
+        """extract info from command"""
+        commands: List[Dict] = []
+
+        try:
+            with open(file, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            tree = ast.parse(content)
+
+            for node in ast.walk(tree):
+                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                    if node.name.endswith("_cmd"):
+                        name: str = node.name[:-4] # _cmd
+
+                        docstring: str = ast.get_docstring(node) or ""
+
+                        args: List[str] = []
+                        for arg in node.args.args:
+                            arg_name: str = arg.arg
+                            if not arg_name == "self":
+                                args.append(arg_name)
+                        
+                        commands.append({
+                            'name': name,
+                            'docstring': docstring,
+                            'arguments': args,
+                            'file': file.name,
+                            'module': file.parent.parent.name
+                        })
+        except Exception:
+            pass
+
+        return commands
+    
+    def module_commands(self, name: str) -> List[Dict]:
+        """get all commands from module"""
+        commands: List[Dict] = []
+        dir: Path = self.modules_path / name / "src"
+
+        if not dir.exists():
+            return commands
+        
+        for file in dir.glob("*.py"):
+            file_cmds: List[Dict] = self.cmd_info(file)
+            commands.extend(file_cmds)
+        
+        return commands

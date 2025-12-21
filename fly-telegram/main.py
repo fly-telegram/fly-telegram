@@ -55,7 +55,9 @@ class Userbot:
 
         if not client.me:
             client.me = me
-
+        
+        client.loader = self.loader
+        
         await inline.start()
 
         await self.loader.load_all(client)
