@@ -30,7 +30,7 @@
 
 <h2>✨ Channels</h2>
 <ul>
-    <li><a href="https://t.me/flyTG_UB">Updates</a></li>
+    <li><a href="https://t.me/fly_ub">Updates</a></li>
     <li><a href="https://t.me/flyTG_support">Support chat</a></li>
 </ul>
 
@@ -41,3 +41,4 @@
     <li><a href="https://github.com/Dragon-Userbot/Dragon-Userbot">Dragon-Userbot</li>
     <li><a href="https://github.com/GeekTG/Friendly-Telegram">Friendly-Telegram</li>
 </ul>
+
