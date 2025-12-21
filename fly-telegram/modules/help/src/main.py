@@ -20,17 +20,19 @@ async def help_cmd(self):
         await self.message.edit("<b>modules not found</b>")
         return
     
-    text = "📚 <b>All modules:<b>\n"
-
+    items = []
     for module in modules:
         get_commands = analyzer.module_commands(module)
-        commands = []
-
-        for command in get_commands:
-            commands.append(command.get('name'))
+        commands = [command.get('name') for command in get_commands]
+        if commands:
+            items.append((module, commands))
         
-        formatted = ", ".join(commands)
+        items.sort(key=lambda x: (len(x[1]), x[0]))
 
-        text += f"* <b>{module}<b>: ({formatted})\n"
-
-    await self.message.edit(text)
+        all_commands = "\n".join(
+        f"├─ 📦 <b>{module}</b>: [ <code>{', '.join(commands)}</code> ]" if i < len(items) - 1 else
+        f"└─ 📦 <b>{module}</b>: [ <code>{', '.join(commands)}</code> ]"
+        for i, (module, commands) in enumerate(items)
+    )
+    
+    await self.message.edit(f"🕊 <b>All commands</b>\n{all_commands}")
