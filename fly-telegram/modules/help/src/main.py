@@ -27,7 +27,7 @@ async def help_cmd(self):
         commands = []
 
         for command in get_commands:
-            commands.append(command.name)
+            commands.append(command.get('name'))
         
         formatted = ", ".join(commands)
 
