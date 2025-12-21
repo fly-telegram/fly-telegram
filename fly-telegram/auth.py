@@ -30,7 +30,6 @@ class Auth:
             **{k: self.config[k] for k in ("api_id", "api_hash")},
             device_model=self.config.get("device_model", " fly-telegram"),
         )
-        self.tl_client = None
 
         self.web = Web(self.client)
 
@@ -99,3 +98,4 @@ class Auth:
             sys.exit(64)
 
         return self.client, me
+
