@@ -36,3 +36,10 @@ async def help_cmd(self):
     )
     
     await self.message.edit(f"🕊 <b>All commands</b>\n{all_commands}")
+
+async def support_cmd(self):
+    await self.client.join_chat("t.me/flyTG_support")
+    await self.message.edit(
+        '🕊<b>Joined to</b> ' + 
+        '<a href="https://t.me/flyTG_support">support chat</a>'
+    )
