@@ -17,7 +17,7 @@ async def help_cmd(self):
     modules = analyzer.get_modules()
 
     if not modules:
-        await self.message.edit("<b>modules not found</b>")
+        await self.message.edit("❌ <b>modules not found</b>")
         return
     
     items = []
