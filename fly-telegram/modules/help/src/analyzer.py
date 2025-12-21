@@ -11,7 +11,7 @@
 
 import ast
 from pathlib import Path
-from typing import List, Dict, Optional
+from typing import List, Dict
 
 class ModuleAnalyzer:
     """extract commands from file"""
