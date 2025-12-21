@@ -23,7 +23,14 @@ async def help_cmd(self):
     text = "📚 <b>All modules:<b>\n"
 
     for module in modules:
-        commands = ", ".join(analyzer.module_commands(module))
-        text += f"* <b>{module}<b>: ({commands})\n"
+        get_commands = analyzer.module_commands(module)
+        commands = []
+
+        for command in get_commands:
+            commands.append(command.name)
+        
+        formatted = ", ".join(commands)
+
+        text += f"* <b>{module}<b>: ({formatted})\n"
 
     await self.message.edit(text)
