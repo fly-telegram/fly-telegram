@@ -81,6 +81,3 @@ class Userbot:
 
 
 userbot = Userbot()
-
-if __name__ == "__main__":
-    userbot.main()
