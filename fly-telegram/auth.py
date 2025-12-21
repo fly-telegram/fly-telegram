@@ -7,7 +7,6 @@
 #              🔒 Licensed under the СС-by-NC
 #           creativecommons.org/licenses/by-nc/4.0/
 
-import base64
 import json
 import logging
 import os
@@ -98,4 +97,5 @@ class Auth:
             sys.exit(64)
 
         return self.client, me
+
 
