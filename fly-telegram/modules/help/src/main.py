@@ -8,11 +8,11 @@
 #             www.gnu.org/licenses/agpl-3.0.html
 
 """The help command"""
-from .modules.help.src import analyzer
+from .modules.help.src.analyzer import ModuleAnalyzer
 
 async def help_cmd(self):
     """get all modules and commands"""
-    analyzer = analyzer.ModuleAnalyzer(self.client.loader.modules_path)
+    analyzer = ModuleAnalyzer(self.client.loader.modules_path)
 
     modules = analyzer.get_modules()
 
