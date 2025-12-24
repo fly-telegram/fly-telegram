@@ -8,11 +8,9 @@
 #           creativecommons.org/licenses/by-nc/4.0/
 
 from .call import InlineCall
-from .handlers import HandlersManager, register_handlers
+from .handlers import handlers_manager, register_handlers
 from .keyboards import make_keyboard
 from .main import Inline
-
-handlers_manager = HandlersManager()
 
 import os
 
