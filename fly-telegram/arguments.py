@@ -29,11 +29,6 @@ def parser() -> argparse.Namespace:
         help="Disable python version check.",
     )
     parser.add_argument(
-        "--no-tl",
-        action="store_true",
-        help="Disable telethon client running and converting.",
-    )
-    parser.add_argument(
         "--log-level",
         action="store",
         type=str,
