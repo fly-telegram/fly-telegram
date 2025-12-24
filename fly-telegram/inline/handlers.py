@@ -38,7 +38,7 @@ class HandlersManager:
                          handler_name, func.__name__)
             logging.debug("Function details: %s", func)
 
-            if handler_name in loaded_handlers:
+            if handler_name in self.storage.handlers:
                 logging.debug(
                     "Handler '%s' is already registered. Overwriting it.", handler_name)
 
