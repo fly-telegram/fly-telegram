@@ -4,7 +4,7 @@
   "version": [1, 0, "beta"],
   "author": {
     "name": "fly-telegram",
-    "link": "https://t.me/flyub"
+    "link": "https://t.me/fly_ub"
   },
-  "license": "cc-by-nc"
+  "license": "GNU-APGL 3.0"
 }

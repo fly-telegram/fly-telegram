@@ -1,10 +1,10 @@
 {
   "name": "executor", 
-  "description": "The Fly Telegram Module for executing",
+  "description": "The Fly Telegram Module for executing.",
   "version": [1, 0, "beta"],
   "author": {
     "name": "fly-telegram",
-    "link": "https://t.me/hotdrify"
+    "link": "https://t.me/fly_ub"
   },
-  "license": "MIT"
+  "license": "GNU-APGL 3.0"
 }

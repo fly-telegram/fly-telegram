@@ -2,7 +2,7 @@
 #        |    ___||     |_|   |   ||_     _||     __|
 #        |    ___||       |\     /   |   |  |    |  |
 #        |___|    |_______| |___|    |___|  |_______|
-#                      t.me/FLYTG_UB
+#                      t.me/FLY_UB
 #
 #            🔒 Licensed under the GNU-APGL 3.0
 #             www.gnu.org/licenses/agpl-3.0.html

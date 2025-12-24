@@ -2,9 +2,9 @@
 #        |    ___||     |_|   |   ||_     _||     __|
 #        |    ___||       |\     /   |   |  |    |  |
 #        |___|    |_______| |___|    |___|  |_______|
-#                      t.me/FLYTG_UB
+#                      t.me/FLY_UB
 #
-#               Licensed under the -by-NC
+#              🔒 Licensed under the CC-by-NC
 #           creativecommons.org/licenses/by-nc/4.0/
 
 import asyncio
