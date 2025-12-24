@@ -35,10 +35,6 @@ class HandlersManager:
             return func
         return decorator
 
-
-handlers_manager = HandlersManager()
-
-
 async def process_callback(callback_query: types.CallbackQuery):
     start_time = datetime.now()
     logging.debug("Callback query received. Data: %s", callback_query.data)
