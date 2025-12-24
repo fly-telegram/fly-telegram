@@ -16,7 +16,7 @@ class Storage:
     _instance = None
     handlers = {}
 
-    def __new__(cls) -> Self:
+    def __new__(cls) -> None:
         if cls._instance is None:
             cls._instance = super(Storage, cls).__new__(cls)
             cls._instance.handlers = {}
