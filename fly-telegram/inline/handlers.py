@@ -12,19 +12,9 @@ from aiogram import Dispatcher, types
 from .call import InlineCall
 from datetime import datetime
 
+loaded_handlers = {}
 
 class HandlersManager:
-    _instance = None
-
-    def __new__(cls):
-        if cls._instance is None:
-            logging.debug("Initializing HandlersManager singleton instance")
-            cls._instance = super(HandlersManager, cls).__new__(cls)
-            cls._instance.loaded_handlers = {}
-            logging.debug("HandlersManager initialized. Loaded handlers: %s",
-                         cls._instance.loaded_handlers)
-        return cls._instance
-
     def handler(self, callback_data: str = None):
         logging.debug(
             "Starting handler registration. Callback data provided: %s", callback_data)
@@ -35,13 +25,13 @@ class HandlersManager:
                          handler_name, func.__name__)
             logging.debug("Function details: %s", func)
 
-            if handler_name in self.loaded_handlers:
+            if handler_name in loaded_handlers:
                 logging.debug(
                     "Handler '%s' is already registered. Overwriting it.", handler_name)
 
-            self.loaded_handlers[handler_name] = func
+            loaded_handlers[handler_name] = func
             logging.debug("Handler '%s' successfully registered. Current handlers: %s",
-                         handler_name, list(self.loaded_handlers.keys()))
+                         handler_name, list(loaded_handlers.keys()))
             return func
         return decorator
 
@@ -58,10 +48,10 @@ async def process_callback(callback_query: types.CallbackQuery):
     logging.debug(
         "Processing callback query with handler name: %s", handler_name)
     logging.debug("Available handlers: %s", list(
-        handlers_manager.loaded_handlers.keys()))
+        loaded_handlers.keys()))
 
     try:
-        if handler_name in handlers_manager.loaded_handlers:
+        if handler_name in loaded_handlers:
             logging.debug(
                 "Handler '%s' found. Preparing to execute.", handler_name)
             call = InlineCall(callback_query)
@@ -69,7 +59,7 @@ async def process_callback(callback_query: types.CallbackQuery):
             logging.debug("InlineCall details: %s", call.__dict__)
 
             logging.debug("Executing handler '%s'...", handler_name)
-            await handlers_manager.loaded_handlers[handler_name](call)
+            await loaded_handlers[handler_name](call)
             logging.debug("Handler '%s' executed successfully.", handler_name)
         else:
             logging.debug(
