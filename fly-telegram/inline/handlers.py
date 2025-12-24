@@ -12,9 +12,22 @@ from aiogram import Dispatcher, types
 from .call import InlineCall
 from datetime import datetime
 
-loaded_handlers = {}
+class Storage:
+    _instance = None
+    handlers = {}
+
+    def __new__(cls) -> Self:
+        if cls._instance is None:
+            cls._instance = super(Storage, cls).__new__(cls)
+            cls._instance.handlers = {}
+        return cls._instance
+
+handlers_storage = Storage()
 
 class HandlersManager:
+    def __init__(self) -> None:
+        self.storage = handlers_storage
+
     def handler(self, callback_data: str = None):
         logging.debug(
             "Starting handler registration. Callback data provided: %s", callback_data)
@@ -29,9 +42,9 @@ class HandlersManager:
                 logging.debug(
                     "Handler '%s' is already registered. Overwriting it.", handler_name)
 
-            loaded_handlers[handler_name] = func
+            self.storage.handlers[handler_name] = func
             logging.debug("Handler '%s' successfully registered. Current handlers: %s",
-                         handler_name, list(loaded_handlers.keys()))
+                         handler_name, list(self.storage.handlers.keys()))
             return func
         return decorator
 
@@ -44,10 +57,10 @@ async def process_callback(callback_query: types.CallbackQuery):
     logging.debug(
         "Processing callback query with handler name: %s", handler_name)
     logging.debug("Available handlers: %s", list(
-        loaded_handlers.keys()))
+        handlers_storage.handlers.keys()))
 
     try:
-        if handler_name in loaded_handlers:
+        if handler_name in handlers_storage.handlers:
             logging.debug(
                 "Handler '%s' found. Preparing to execute.", handler_name)
             call = InlineCall(callback_query)
@@ -55,7 +68,7 @@ async def process_callback(callback_query: types.CallbackQuery):
             logging.debug("InlineCall details: %s", call.__dict__)
 
             logging.debug("Executing handler '%s'...", handler_name)
-            await loaded_handlers[handler_name](call)
+            await handlers_storage.handlers[handler_name](call)
             logging.debug("Handler '%s' executed successfully.", handler_name)
         else:
             logging.debug(
