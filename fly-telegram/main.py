@@ -49,9 +49,7 @@ class Userbot:
         """
         client, me = await self.auth.load(web=False)
 
-        watcher = FilesWatcher(client)
-        await watcher.watch()
-
+        
         await client.initialize()
         await client.dispatcher.start()
 
@@ -65,6 +63,9 @@ class Userbot:
         await inline.start()
 
         await self.loader.load_all(client)
+
+        watcher = FilesWatcher(client)
+        task = asyncio.create_task(watcher.watch())
 
         await idle()
         return True
