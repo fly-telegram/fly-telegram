@@ -10,45 +10,56 @@
 import asyncio
 import logging
 from pathlib import Path
-
-from watchfiles import awatch
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler, FileModifiedEvent
 
 from .loader import Loader
 
+class ModuleHandler(FileSystemEventHandler):
+    def __init__(self, reload_callback, loop):
+        self.callback = reload_callback
+        self.loop = loop
+
+    def on_modified(self, event):
+        if not event.is_directory and event.src_path.endswitch(".py"):
+            mod_path = Path(event.src_path)
+            if mod_path.parent.name != "__pycache__":
+                mod_name = mod_path.parent.name
+                mod_file = mod_path.name
+
+                asyncio.run_coroutine_threadsafe(
+                    self.callback(mod_name),
+                    self.loop
+                )
+
+                logging.info(f"Module '{mod_name}' file '{mod_file}' was modified.")
 
 class FilesWatcher:
     def __init__(self, client):
         self.client = client
         self.loader = Loader()
+        self.observer = None
+        self.loop = asyncio.get_event_loop()
 
     async def watch(self):
-        path = Path(f"./{__package__}/modules")
+        path = Path(f"{__package__}/modules")
         logging.info("FilesWatcher is loaded.")
 
-        try:
-            async for changes in awatch(path):
-                tasks = []
-                for change in changes:
-                    if change[1].endswith(".py"):
-                        module_name = Path(change[1]).parent.parent.name
-                        file_name = Path(change[1]).name
+        handler = ModuleHandler(self.reload, self.loop)
 
-                        tasks.append(self.reload(module_name))
-                        logging.info(
-                            f"Module '{module_name}' file '{file_name}' was modified.")
+        self.observer = Observer()
+        self.observer.schedule(handler, str(path), recursive=True)
 
-                await asyncio.gather(*tasks)
-        except asyncio.CancelledError:
+    async def stop(self):
+        if self.observer:
+            self.observer.stop()
+            self.observer.join()
             logging.info("FilesWatcher stopped.")
 
-    async def reload(self, module_name):
-        print(f"Reloading module {module_name}")
-        await self.loader.unload(module_name, self.client)
-        print(f"Unloaded module {module_name}")
-        await self.loader.load(module_name, self.client)
-        print(f"Loaded module {module_name}")
-
-
-async def load(client):
-    watcher = FilesWatcher(client)
-    await watcher.watch()
+    async def reload(self, mod_name: str):
+        try:
+            logging.info(f"Reloading module '{mod_name}'...")
+            await self.loader.unload(mod_name, self.client)
+            await self.loader.load(mod_name, self.client)
+        except Exception as err:
+            logging.error(f"Failed to reload module '{mod_name}'.")

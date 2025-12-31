@@ -50,7 +50,7 @@ class Userbot:
         client, me = await self.auth.load(web=False)
 
         watcher = FilesWatcher(client)
-        asyncio.create_task(watcher.watch())
+        await watcher.watch()
 
         await client.initialize()
         await client.dispatcher.start()
