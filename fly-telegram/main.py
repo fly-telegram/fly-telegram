@@ -17,6 +17,7 @@ from pyrogram import idle
 from .auth import Auth
 from .inline import inline
 from .loader import Loader
+from .fileswatcher import FilesWatcher
 from .utils import logo
 from . import logger
 
@@ -47,6 +48,10 @@ class Userbot:
         for setting client, loader and etc.
         """
         client, me = await self.auth.load(web=False)
+
+        watcher = FilesWatcher(client)
+
+        await watcher.watch()
 
         await client.initialize()
         await client.dispatcher.start()
