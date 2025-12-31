@@ -60,7 +60,7 @@ class Userbot:
         
         client.loader = self.loader
         
-        watcher = FilesWatcher(self.client)
+        watcher = FilesWatcher(client)
         await watcher.watch()
 
         await inline.start()
