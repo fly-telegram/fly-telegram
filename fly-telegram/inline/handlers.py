@@ -20,6 +20,7 @@ def handler(callback_data: str = None):
 
     def decorator(func):
         handler_name = callback_data or func.__name__
+        logging.debug("ID dict: %s", id(handlers))
         logging.debug("Registering handler '%s' for function '%s'",
                      handler_name, func.__name__)
         logging.debug("Function details: %s", func)
