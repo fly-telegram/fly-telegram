@@ -14,7 +14,7 @@ from datetime import datetime
 
 handlers = {}
 
-def handler(self, callback_data: str = None):
+def handler(callback_data: str = None):
     logging.debug(
         "Starting handler registration. Callback data provided: %s", callback_data)
 
