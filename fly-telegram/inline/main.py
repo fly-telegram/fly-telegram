@@ -22,7 +22,7 @@ class Inline:
     def __init__(self, token: str):
         self.bot = Bot(token=token)
         self.dp = Dispatcher(self.bot)
-        self.handlers = self.handlers
+        self.handlers = handlers
         logging.debug("New instance: %s", id(self))
 
     def handler(self, callback_data: str = None):
