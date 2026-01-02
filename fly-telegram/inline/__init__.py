@@ -8,7 +8,7 @@
 #           creativecommons.org/licenses/by-nc/4.0/
 
 from .call import InlineCall
-from .handlers import HandlersManager, register_handlers
+from .handlers import handler, register_handlers
 from .keyboards import make_keyboard
 from .main import Inline
 
@@ -16,5 +16,4 @@ import os
 
 inline = Inline(os.environ["INLINE_TOKEN"])  # botmanager, temp solution
 
-manager = HandlersManager()
-inline.handler = manager.handler
+inline.handler = handler

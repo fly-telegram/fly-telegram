@@ -12,41 +12,27 @@ from aiogram import Dispatcher, types
 from .call import InlineCall
 from datetime import datetime
 
-class Storage:
-    _instance = None
-    handlers = {}
+handlers = {}
 
-    def __new__(cls) -> None:
-        if cls._instance is None:
-            cls._instance = super(Storage, cls).__new__(cls)
-            cls._instance.handlers = {}
-        return cls._instance
+def handler(self, callback_data: str = None):
+    logging.debug(
+        "Starting handler registration. Callback data provided: %s", callback_data)
 
-handlers_storage = Storage()
+    def decorator(func):
+        handler_name = callback_data or func.__name__
+        logging.debug("Registering handler '%s' for function '%s'",
+                     handler_name, func.__name__)
+        logging.debug("Function details: %s", func)
 
-class HandlersManager:
-    def __init__(self) -> None:
-        self.storage = handlers_storage
+        if handler_name in handlers:
+            logging.debug(
+                "Handler '%s' is already registered. Overwriting it.", handler_name)
 
-    def handler(self, callback_data: str = None):
-        logging.debug(
-            "Starting handler registration. Callback data provided: %s", callback_data)
-
-        def decorator(func):
-            handler_name = callback_data or func.__name__
-            logging.debug("Registering handler '%s' for function '%s'",
-                         handler_name, func.__name__)
-            logging.debug("Function details: %s", func)
-
-            if handler_name in self.storage.handlers:
-                logging.debug(
-                    "Handler '%s' is already registered. Overwriting it.", handler_name)
-
-            self.storage.handlers[handler_name] = func
-            logging.debug("Handler '%s' successfully registered. Current handlers: %s",
-                         handler_name, list(self.storage.handlers.keys()))
-            return func
-        return decorator
+        handlers[handler_name] = func
+        logging.debug("Handler '%s' successfully registered. Current handlers: %s",
+                         handler_name, list(handlers.keys()))
+        return func
+    return decorator
 
 async def process_callback(callback_query: types.CallbackQuery):
     start_time = datetime.now()
@@ -57,10 +43,10 @@ async def process_callback(callback_query: types.CallbackQuery):
     logging.debug(
         "Processing callback query with handler name: %s", handler_name)
     logging.debug("Available handlers: %s", list(
-        handlers_storage.handlers.keys()))
+        handlers.keys()))
 
     try:
-        if handler_name in handlers_storage.handlers:
+        if handler_name in handlers:
             logging.debug(
                 "Handler '%s' found. Preparing to execute.", handler_name)
             call = InlineCall(callback_query)
@@ -68,7 +54,7 @@ async def process_callback(callback_query: types.CallbackQuery):
             logging.debug("InlineCall details: %s", call.__dict__)
 
             logging.debug("Executing handler '%s'...", handler_name)
-            await handlers_storage.handlers[handler_name](call)
+            await handlers[handler_name](call)
             logging.debug("Handler '%s' executed successfully.", handler_name)
         else:
             logging.debug(
