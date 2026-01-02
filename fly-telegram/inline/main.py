@@ -10,17 +10,20 @@
 import asyncio
 import logging
 
+from typing import Dict, Callable
 from aiogram import Bot, Dispatcher, types
 from aiogram.utils import executor
 
 from .call import InlineCall
 
-handlers = {}
+handlers: Dict[str, Callable] = {}
 
 class Inline:
     def __init__(self, token: str):
         self.bot = Bot(token=token)
         self.dp = Dispatcher(self.bot)
+        self.handlers = self.handlers
+        logging.debug("New instance: %s", id(self))
 
     def handler(self, callback_data: str = None):
         logging.debug(
@@ -28,18 +31,17 @@ class Inline:
 
         def decorator(func):
             handler_name = callback_data or func.__name__
-            logging.debug("ID dict: %s", id(handlers))
             logging.debug("Registering handler '%s' for function '%s'",
                          handler_name, func.__name__)
             logging.debug("Function details: %s", func)
 
-            if handler_name in handlers:
+            if handler_name in self.handlers:
                 logging.debug(
                     "Handler '%s' is already registered. Overwriting it.", handler_name)
 
-            handlers[handler_name] = func
+            self.handlers[handler_name] = func
             logging.debug("Handler '%s' successfully registered. Current handlers: %s",
-                             handler_name, list(handlers.keys()))
+                             handler_name, list(self.handlers.keys()))
             return func
         return decorator
 
@@ -52,10 +54,10 @@ class Inline:
         logging.debug(
             "Processing callback query with handler name: %s", handler_name)
         logging.debug("Available handlers: %s", list(
-            handlers.keys()))
+            self.handlers.keys()))
 
         try:
-            if handler_name in handlers:
+            if handler_name in self.handlers:
                 logging.debug(
                     "Handler '%s' found. Preparing to execute.", handler_name)
                 call = InlineCall(callback_query)
@@ -63,7 +65,7 @@ class Inline:
                 logging.debug("InlineCall details: %s", call.__dict__)
 
                 logging.debug("Executing handler '%s'...", handler_name)
-                await handlers[handler_name](call)
+                await self.handlers[handler_name](call)
                 logging.debug("Handler '%s' executed successfully.", handler_name)
             else:
                 logging.debug(
