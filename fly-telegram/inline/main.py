@@ -81,7 +81,7 @@ class Inline:
         logging.debug("Starting registration of callback query handler.")
         logging.debug("Dispatcher object: %s", self.dp)
 
-        dp.register_callback_query_handler(self.process_callback, lambda c: True)
+        self.dp.register_callback_query_handler(self.process_callback, lambda c: True)
         logging.debug("Callback query handler registered successfully.")
         logging.debug("Current registered handlers in dispatcher: %s",
                      self.dp.message_handlers.handlers)
