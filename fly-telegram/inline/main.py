@@ -33,7 +33,7 @@ class Inline:
                          handler_name, func.__name__)
             logging.debug("Function details: %s", func)
 
-            if handler_name in self.handlers:
+            if handler_name in handlers:
                 logging.debug(
                     "Handler '%s' is already registered. Overwriting it.", handler_name)
 
