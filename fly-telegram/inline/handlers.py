@@ -36,6 +36,7 @@ def handler(callback_data: str = None):
     return decorator
 
 async def process_callback(callback_query: types.CallbackQuery):
+    logging.debug("ID dict: %s", id(handlers))
     start_time = datetime.now()
     logging.debug("Callback query received. Data: %s", callback_query.data)
     logging.debug("Full callback query object: %s", callback_query)
