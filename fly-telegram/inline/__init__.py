@@ -8,7 +8,6 @@
 #           creativecommons.org/licenses/by-nc/4.0/
 
 from .call import InlineCall
-from .handlers import handler, register_handlers
 from .keyboards import make_keyboard
 from .main import Inline
 
