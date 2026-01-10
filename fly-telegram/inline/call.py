@@ -16,7 +16,6 @@ class InlineCall:
         self.inline_message_id = callback_query.inline_message_id
         self.data = callback_query.data
         self.from_user = callback_query.from_user
-        print(f"Callback data: {self.data}")
 
     async def answer(self, text: str = None, show_alert: bool = False):
         await self.callback_query.answer(text, show_alert=show_alert)
