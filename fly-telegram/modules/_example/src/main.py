@@ -17,14 +17,15 @@ async def command_cmd(self):
     await self.client.unblock_user("spambot")        # use pyrogram client
     await inline.bot.send_message(                   # inline example usage
         self.client.me.id,                           # get user id from pyrogram client
-        "hi",                                        # message
+        "🔥 WOW! click for magic",                   # message
         reply_markup=make_keyboard([                 # make_keyboard return InlineKeyboardMarkup
             {
-                "text": "button",                    # button name
+                "text": "click",                     # button name
                 "callback": "example"                # callback data
             }
         ])
     )
+    await self.message.edit("🔥 <b>Inline command is sended. check DM</b>")
 
 
 # register handler. callback_data: str = function name
