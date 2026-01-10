@@ -16,13 +16,10 @@ from aiogram.utils import executor
 
 from .call import InlineCall
 
-handlers: Dict[str, Callable] = {}
-
 class Inline:
     def __init__(self, token: str):
         self.bot = Bot(token=token)
         self.dp = Dispatcher(self.bot)
-        self.handlers = handlers
         logging.debug("New instance: %s", id(self))
 
     def handler(self, callback_data: str = None):
@@ -35,13 +32,13 @@ class Inline:
                          handler_name, func.__name__)
             logging.debug("Function details: %s", func)
 
-            if handler_name in self.handlers:
+            if handler_name in self.bot.handlers:
                 logging.debug(
                     "Handler '%s' is already registered. Overwriting it.", handler_name)
 
-            self.handlers[handler_name] = func
+            self.bot.handlers[handler_name] = func
             logging.debug("Handler '%s' successfully registered. Current handlers: %s",
-                             handler_name, list(self.handlers.keys()))
+                             handler_name, list(self.bot.handlers.keys()))
             return func
         return decorator
 
@@ -54,10 +51,10 @@ class Inline:
         logging.debug(
             "Processing callback query with handler name: %s", handler_name)
         logging.debug("Available handlers: %s", list(
-            self.handlers.keys()))
+            self.bot.handlers.keys()))
 
         try:
-            if handler_name in self.handlers:
+            if handler_name in self.bot.handlers:
                 logging.debug(
                     "Handler '%s' found. Preparing to execute.", handler_name)
                 call = InlineCall(callback_query)
