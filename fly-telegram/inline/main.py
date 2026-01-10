@@ -44,7 +44,7 @@ class Inline:
             func._is_handler = True
             func._handler_name = handler_name
 
-            if handler_name in self.bot.handlers:
+            if handler_name in self.handlers:
                 logging.debug(
                     "Handler '%s' is already registered. Overwriting it.", handler_name)
 
