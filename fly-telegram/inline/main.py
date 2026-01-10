@@ -15,13 +15,21 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.utils import executor
 
 from .call import InlineCall
+import sys
 
 class Inline:
     def __init__(self, token: str):
         self.bot = Bot(token=token)
-        self.bot.handlers = {}
         self.dp = Dispatcher(self.bot)
         logging.debug("New instance: %s", id(self))
+
+        # suka, takoi govnokod nize, no ia zaebalsa. kto pofixit eto - pull request pls. ia ne znay chto delat....
+        if '_inline' not in sys.modules:
+            sys.modules['_inline'] = {'handlers': {}}
+        elif 'handlers' not in sys.modules['_inline']:
+            sys.modules['_inline']['handlers'] = {}
+
+        self.handlers = sys.modules['_inline']['handlers']
 
     def handler(self, callback_data: str = None):
         logging.debug(
@@ -33,13 +41,16 @@ class Inline:
                          handler_name, func.__name__)
             logging.debug("Function details: %s", func)
 
+            func._is_handler = True
+            func._handler_name = handler_name
+
             if handler_name in self.bot.handlers:
                 logging.debug(
                     "Handler '%s' is already registered. Overwriting it.", handler_name)
 
-            self.bot.handlers[handler_name] = func
+            self.handlers[handler_name] = func
             logging.debug("Handler '%s' successfully registered. Current handlers: %s",
-                             handler_name, list(self.bot.handlers.keys()))
+                             handler_name, list(self.handlers.keys()))
             return func
         return decorator
 
@@ -52,10 +63,10 @@ class Inline:
         logging.debug(
             "Processing callback query with handler name: %s", handler_name)
         logging.debug("Available handlers: %s", list(
-            self.bot.handlers.keys()))
+            self.handlers.keys()))
 
         try:
-            if handler_name in self.bot.handlers:
+            if handler_name in self.handlers:
                 logging.debug(
                     "Handler '%s' found. Preparing to execute.", handler_name)
                 call = InlineCall(callback_query)
