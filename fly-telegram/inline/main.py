@@ -19,6 +19,7 @@ from .call import InlineCall
 class Inline:
     def __init__(self, token: str):
         self.bot = Bot(token=token)
+        self.bot.handlers: Dict = {}
         self.dp = Dispatcher(self.bot)
         logging.debug("New instance: %s", id(self))
 
