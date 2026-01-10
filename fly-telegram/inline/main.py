@@ -19,7 +19,6 @@ from .call import InlineCall
 class Inline:
     def __init__(self, token: str):
         self.bot = Bot(token=token)
-        self.bot.handlers: Dict = {}
         self.dp = Dispatcher(self.bot)
         logging.debug("New instance: %s", id(self))
 
@@ -87,6 +86,7 @@ class Inline:
     async def start(self):
         self.register_handlers(self.dp)
         logging.info("Inline bot is loaded.")
+        self.bot.handlers = {}
         asyncio.ensure_future(self.dp.start_polling())
 
     async def stop(self):
