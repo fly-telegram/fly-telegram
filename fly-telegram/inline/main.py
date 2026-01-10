@@ -98,7 +98,6 @@ class Inline:
     async def start(self):
         self.register_handlers(self.dp)
         logging.info("Inline bot is loaded.")
-        logging.debug("dict object: %s", self.bot.handlers)
         asyncio.ensure_future(self.dp.start_polling())
 
     async def stop(self):
