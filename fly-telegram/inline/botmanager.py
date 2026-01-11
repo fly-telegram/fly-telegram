@@ -51,6 +51,10 @@ class BotManager:
                     await conv.send(message)
                     response = await conv.response(limit=2)
                     match = re.search(token_pattern, response.text)
+                    
+                    if match:
+                        token = match.group(1)
+
                     if any(error in response.text for error in self.errors_texts):
                         raise Exception(
                             f"Failed to create inline bot. Botfather response: {response.text}")
