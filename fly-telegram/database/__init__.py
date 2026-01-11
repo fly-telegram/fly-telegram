@@ -6,3 +6,7 @@
 #
 #              🔒 Licensed under the СС-by-NC
 #           creativecommons.org/licenses/by-nc/4.0/
+
+from . import backend
+
+database = backend.Database()

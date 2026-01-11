@@ -25,7 +25,7 @@ try:
     import uvloop
 
     uvloop.install()
-except Exception:
+except ModuleNotFoundError:
     pass
 
 
@@ -63,7 +63,7 @@ class Userbot:
         watcher = FilesWatcher(client)
         await watcher.watch()
 
-        await inline.start()
+        await inline.start(client)
 
         await self.loader.load_all(client)
 

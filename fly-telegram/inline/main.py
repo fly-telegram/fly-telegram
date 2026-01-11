@@ -12,15 +12,20 @@ import logging
 
 from typing import Dict, Callable
 from aiogram import Bot, Dispatcher, types
-from aiogram.utils import executor
+from aiogram.exceptions import TelegramUnauthorizedError
+
+from pyrogram import Client
 
 from .call import InlineCall
+from .botmanager import BotManager
+from database import database
 import sys
 
 class Inline:
-    def __init__(self, token: str):
-        self.bot = Bot(token=token)
-        self.dp = Dispatcher(self.bot)
+    def __init__(self):
+        self.bot = None
+        self.dp = None
+        self.botmanager = BotManager()
         logging.debug("New instance: %s", id(self))
 
         # suka, takoi govnokod nize, no ia zaebalsa. kto pofixit eto - pull request pls. ia ne znay chto delat....
@@ -95,7 +100,24 @@ class Inline:
         logging.debug("Current registered handlers in dispatcher: %s",
                      self.dp.message_handlers.handlers)
 
-    async def start(self):
+    async def start(self, client: Client):
+        token = database.get('inline_token')
+
+        if not token:
+            inline_token = await self.botmanager.create(client)
+            if not inline_token:
+                raise ValueError("Failed to create inline bot!")
+            else:
+                database.set('inline_token', inline_token)
+        
+        try:
+            self.bot = Bot(token=inline_token)
+        except TelegramUnauthorizedError:
+            database.set("inline_token", None)
+            return
+        
+        self.dp = Dispatcher(self.bot)
+
         self.register_handlers(self.dp)
         logging.info("Inline bot is loaded.")
         asyncio.ensure_future(self.dp.start_polling())
