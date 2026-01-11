@@ -10,6 +10,7 @@ const twoFaPasswordInput = document.getElementById('twofa-password');
 const twoFaSubmitButton = document.getElementById('twofa-submit');
 
 export async function handleLogin(event) {
+  event.preventDefault();
   console.log("ok");
 
   if (!validateInputs()) {

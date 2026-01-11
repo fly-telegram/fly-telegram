@@ -28,4 +28,9 @@ function changeButtonText(text) {
 }
 
 loginButton.addEventListener('click', animateButtonAndShowForm);
-form.addEventListener('submit', handleLogin);
+loginButton.addEventListener('click', function(event) {
+    if (formContainer.classList.contains('show')) {
+        event.preventDefault();
+        handleLogin(event);
+    }
+});
