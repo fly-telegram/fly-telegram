@@ -8,7 +8,11 @@
 #           creativecommons.org/licenses/by-nc/4.0/
 
 from pyrogram import errors, Client
-from ..conversation import Conversation
+
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from conversation import Conversation
 
 import asyncio
 import random

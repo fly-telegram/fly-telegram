@@ -7,6 +7,10 @@
 #              🔒 Licensed under the СС-by-NC
 #           creativecommons.org/licenses/by-nc/4.0/
 
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import asyncio
 import logging
 
@@ -17,8 +21,7 @@ from pyrogram import Client
 
 from .call import InlineCall
 from .botmanager import BotManager
-from ..database import database
-import sys
+from database import database
 
 class Inline:
     def __init__(self):
