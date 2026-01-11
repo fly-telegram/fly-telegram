@@ -12,7 +12,7 @@ import logging
 
 from typing import Dict, Callable
 from aiogram import Bot, Dispatcher, types
-from aiogram.utils.exceptions import TelegramUnauthorizedError
+from aiogram.utils.exceptions import Unauthorized
 
 from pyrogram import Client
 
@@ -112,7 +112,7 @@ class Inline:
         
         try:
             self.bot = Bot(token=inline_token)
-        except TelegramUnauthorizedError:
+        except Unauthorized:
             database.set("inline_token", None)
             return
         
