@@ -7,7 +7,7 @@
   --transition: opacity 0.5s;
   --popup-bg-color: #1a1a1a;
   --popup-text-color: #fff;
-  --popup-input-bg: rgba(255, 255, 255, 0.1);
+  --popup-input-bg: rgba(0, 0, 0, 0.5);
 }
 
 body {
