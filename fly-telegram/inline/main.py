@@ -10,7 +10,6 @@
 import asyncio
 import logging
 
-from typing import Dict, Callable
 from aiogram import Bot, Dispatcher, types
 from aiogram.utils.exceptions import Unauthorized
 
@@ -108,10 +107,10 @@ class Inline:
             if not inline_token:
                 raise ValueError("Failed to create inline bot!")
             else:
-                database.set('inline_token', inline_token)
+                token = database.set('inline_token', inline_token)
         
         try:
-            self.bot = Bot(token=inline_token)
+            self.bot = Bot(token=token)
         except Unauthorized:
             database.set("inline_token", None)
             return

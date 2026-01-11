@@ -84,3 +84,5 @@ class Database(dict):
 
         self[key] = value
         self.save()
+
+        return self[key]
