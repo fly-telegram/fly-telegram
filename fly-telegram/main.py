@@ -25,7 +25,7 @@ try:
     import uvloop
 
     uvloop.install()
-except ModuleNotFoundError:
+except Exception:
     pass
 
 
