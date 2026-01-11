@@ -46,7 +46,7 @@ class BotManager:
 
         async with Conversation(client, botfather, True) as conv:
             for message in messages:
-                await asyncio.sleep(0.3)
+                await asyncio.sleep(0.5)
                 try:
                     await conv.send(message)
                     response = await conv.response(limit=2)
