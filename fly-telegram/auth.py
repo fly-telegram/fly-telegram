@@ -77,7 +77,7 @@ class Auth:
             except errors.BadRequest:
                 logging.error("Invalid 2FA password. Try again")
 
-    async def load(self, web=False) -> Tuple[Client, types.User]:
+    async def load(self, web=True) -> Tuple[Client, types.User]:
         await self.client.connect()
 
         try:

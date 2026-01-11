@@ -47,7 +47,7 @@ class Userbot:
         async userbot process
         for setting client, loader and etc.
         """
-        client, me = await self.auth.load(web=False)
+        client, me = await self.auth.load()
 
         
         await client.initialize()

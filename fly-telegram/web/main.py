@@ -19,7 +19,7 @@ import asyncio
 
 
 class Web:
-    def __init__(self, client):
+    def __init__(self, client: Client):
         self.app = FastAPI()
         self._setup_web()
         self.client = client
