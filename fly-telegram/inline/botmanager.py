@@ -26,7 +26,7 @@ class BotManager:
                      botfather: str = "@BotFather") -> str:
         id = "".join(random.choice(string.ascii_letters + string.digits)
                      for _ in range(5))
-        username = "flyTG_{id}_bot"
+        username = f"flyTG_{id}_bot"
         display_name = f"🕊 Fly-telegram of {client.me.first_name}"
 
         messages = [
