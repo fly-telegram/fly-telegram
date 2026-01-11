@@ -44,6 +44,8 @@ export async function handleLogin(event) {
 function showPopup(codeHash) {
   popupContainer.style.display = 'flex';
   loginInput.setAttribute('data-code-hash', codeHash);
+  loginInput.focus();
+  loginInput.addEventListener('keypress', handleConfirmationCodeInput);
 }
 
 function validateInputs() {
@@ -81,12 +83,16 @@ async function handleConfirmationCodeInput(event) {
     }
 
     try {
-      const response = await sendRequest('/sign_in', { phone: phoneNumber, code_hash: codeHash, code: code });
+      const response = await sendRequest('/sign_in', { 
+        phone: phoneNumber, 
+        code_hash: codeHash, 
+        code: code 
+      });
 
       if (!response.ok) {
         const errorData = await response.json();
         if (errorData.status === '2fa_required') {
-          showtwofaPopup();
+          showTwoFaPopup();
         } else {
           showNotification(errorData.detail || 'Failed to sign in');
         }
@@ -102,22 +108,28 @@ async function handleConfirmationCodeInput(event) {
   }
 }
 
-function showtwofaPopup() {
+function showTwoFaPopup() {
   twoFaPopup.style.display = 'block';
-  twoFaSubmitButton.addEventListener('click', handletwofaSubmit);
+  twoFaPasswordInput.focus();
+
+  twoFaSubmitButton.removeEventListener('click', handleTwoFaSubmit);
+  twoFaSubmitButton.addEventListener('click', handleTwoFaSubmit);
 }
 
-async function handletwofaSubmit() {
+async function handleTwoFaSubmit() {
   const password = twoFaPasswordInput.value.trim();
   const phoneNumber = phoneNumberInput.value.trim();
 
   if (!password) {
-    showNotification('Please enter your 2fa password.');
+    showNotification('Please enter your 2FA password.');
     return;
   }
 
   try {
-    const response = await sendRequest('/sign_in', { phone: phoneNumber, password: password });
+    const response = await sendRequest('/sign_in', { 
+      phone: phoneNumber, 
+      password: password 
+    });
 
     if (!response.ok) {
       const errorData = await response.json();
@@ -140,5 +152,13 @@ async function sendRequest(url, body) {
       'Content-Type': 'application/x-www-form-urlencoded',
     },
     body: new URLSearchParams(body),
+  });
+}
+
+const codePopup = document.getElementById('code-popup');
+if (codePopup) {
+  codePopup.addEventListener('submit', function(event) {
+    event.preventDefault();
+    handleConfirmationCodeInput({ key: 'Enter' });
   });
 }
