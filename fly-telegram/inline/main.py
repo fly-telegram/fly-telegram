@@ -12,7 +12,7 @@ import logging
 
 from typing import Dict, Callable
 from aiogram import Bot, Dispatcher, types
-from aiogram.exceptions import TelegramUnauthorizedError
+from aiogram.utils.exceptions import TelegramUnauthorizedError
 
 from pyrogram import Client
 
