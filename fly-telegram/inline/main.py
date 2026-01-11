@@ -18,7 +18,7 @@ from pyrogram import Client
 
 from .call import InlineCall
 from .botmanager import BotManager
-from database import database
+from ..database import database
 import sys
 
 class Inline:
