@@ -9,6 +9,8 @@
 
 from pyrogram import errors, Client
 from ..conversation import Conversation
+
+import asyncio
 import random
 import string
 import re
@@ -44,6 +46,7 @@ class BotManager:
 
         async with Conversation(client, botfather, True) as conv:
             for message in messages:
+                await asyncio.sleep(0.3)
                 try:
                     await conv.send(message)
                     response = await conv.response(limit=2)
