@@ -11,6 +11,4 @@ from .call import InlineCall
 from .keyboards import make_keyboard
 from .main import Inline
 
-import os
-
-inline = Inline(os.environ["INLINE_TOKEN"])  # botmanager, temp solution
+inline = Inline()

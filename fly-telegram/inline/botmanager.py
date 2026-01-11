@@ -8,7 +8,7 @@
 #           creativecommons.org/licenses/by-nc/4.0/
 
 from pyrogram import errors, Client
-from conversation import Conversation
+from ..conversation import Conversation
 import random
 import string
 import re
