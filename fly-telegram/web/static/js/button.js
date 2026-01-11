@@ -2,35 +2,34 @@ import { handleLogin } from './auth.js';
 
 const loginButton = document.querySelector('#login-button');
 const formContainer = document.querySelector('.form-container');
-const form = document.querySelector('form');
+const loginForm = document.querySelector('#login-form');
+
+let isSetupMode = true;
 
 function animateButtonAndShowForm(event) {
-  event.preventDefault();
-  loginButton.classList.add('animate');
-  setTimeout(() => {
-    formContainer.classList.add('show');
-    changeButtonText('LOGIN');
-    loginButton.removeEventListener('click', animateButtonAndShowForm);
-  }, 500);
+    event.preventDefault();
+    
+    if (isSetupMode) {
+        loginButton.classList.add('animate');
+        setTimeout(() => {
+            formContainer.classList.add('show');
+            changeButtonText('LOGIN');
+            isSetupMode = false;
+        }, 500);
+    } else {
+        handleLogin(event);
+    }
 }
 
 function changeButtonText(text) {
-  const textArray = text.split('');
-  let i = 0;
-  const interval = setInterval(() => {
-    if (i < textArray.length) {
-      loginButton.textContent = textArray.slice(0, i + 1).join('');
-      i++;
-    } else {
-      clearInterval(interval);
-    }
-  }, 100);
+    loginButton.textContent = text;
 }
 
 loginButton.addEventListener('click', animateButtonAndShowForm);
-loginButton.addEventListener('click', function(event) {
-    if (formContainer.classList.contains('show')) {
-        event.preventDefault();
+
+loginForm.addEventListener('submit', function(event) {
+    event.preventDefault();
+    if (!isSetupMode) {
         handleLogin(event);
     }
 });
