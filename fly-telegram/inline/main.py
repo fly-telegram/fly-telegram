@@ -114,6 +114,8 @@ class Inline:
         
         try:
             self.bot = Bot(token=token)
+            logging.debug("BOT method id: %s", id(self.bot))
+            logging.debug("BOT value: %s", self.bot)
         except Unauthorized:
             database.set("inline_token", None)
             raise ValueError("Invalid token! restart the userbot.")
