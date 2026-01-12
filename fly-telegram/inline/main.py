@@ -27,7 +27,6 @@ class Inline:
     def __init__(self):
         self.bot = None
         self.dp = None
-        self.botmanager = BotManager()
         logging.debug("New instance: %s", id(self))
 
         # suka, takoi govnokod nize, no ia zaebalsa. kto pofixit eto - pull request pls. ia ne znay chto delat....
@@ -103,17 +102,18 @@ class Inline:
                      self.dp.message_handlers.handlers)
 
     async def start(self, client: Client):
+        botmanager = BotManager()
         token = database.get('inline_token')
 
         if not token:
-            inline_token = await self.botmanager.create(client)
+            inline_token = await botmanager.create(client)
             if not inline_token:
                 raise ValueError("Failed to create inline bot!")
             else:
                 inline_token = database.set('inline_token', inline_token)
         
         try:
-            self.bot = Bot(token=inline_token)
+            self.bot = Bot(token=token)
         except Unauthorized:
             database.set("inline_token", None)
             raise ValueError("Invalid token! restart the userbot.")
