@@ -116,7 +116,7 @@ class Inline:
             self.bot = Bot(token=token)
         except Unauthorized:
             database.set("inline_token", None)
-            return
+            raise ValueError("Invalid token! restart the userbot.")
         
         self.dp = Dispatcher(self.bot)
 
