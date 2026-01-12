@@ -110,10 +110,10 @@ class Inline:
             if not inline_token:
                 raise ValueError("Failed to create inline bot!")
             else:
-                token = database.set('inline_token', inline_token)
+                inline_token = database.set('inline_token', inline_token)
         
         try:
-            self.bot = Bot(token=token)
+            self.bot = Bot(token=inline_token)
         except Unauthorized:
             database.set("inline_token", None)
             raise ValueError("Invalid token! restart the userbot.")
