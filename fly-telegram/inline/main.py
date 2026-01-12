@@ -25,7 +25,7 @@ from database import database
 
 class Inline:
     def __init__(self):
-        self.bot = None
+        self._bot = None
         self.dp = None
         logging.debug("New instance: %s", id(self))
 
@@ -113,18 +113,20 @@ class Inline:
                 inline_token = database.set('inline_token', inline_token)
         
         try:
-            self.bot = Bot(token=token)
-            logging.debug("BOT method id: %s", id(self.bot))
-            logging.debug("BOT value: %s", self.bot)
+            self._bot = Bot(token=token)
+            Bot.set_current(self._bot)
+
+            logging.debug("BOT method id: %s", id(self._bot))
+            logging.debug("BOT value: %s", self._bot)
         except Unauthorized:
             database.set("inline_token", None)
             raise ValueError("Invalid token! restart the userbot.")
         
-        self.dp = Dispatcher(self.bot)
+        self.dp = Dispatcher(self._bot)
 
         self.register_handlers(self.dp)
         logging.info("Inline bot is loaded.")
         asyncio.ensure_future(self.dp.start_polling())
 
     async def stop(self):
-        await self.bot.close()
+        await self._bot.close()

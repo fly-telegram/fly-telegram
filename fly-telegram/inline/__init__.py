@@ -11,4 +11,7 @@ from .call import InlineCall
 from .keyboards import make_keyboard
 from .main import Inline
 
+from aiogram import Bot
+
 inline = Inline()
+inline.bot = Bot.get_current()
