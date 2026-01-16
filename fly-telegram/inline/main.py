@@ -13,9 +13,18 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import asyncio
 import logging
+from typing import Union, Optional, List, Dict, Any, Callable
+from uuid import uuid4
 
 from aiogram import Bot, Dispatcher, types
 from aiogram.utils.exceptions import Unauthorized
+from aiogram.types import (
+    InlineQuery,
+    InlineQueryResultArticle,
+    InputTextMessageContent,
+    InlineKeyboardMarkup,
+    InlineKeyboardButton
+)
 
 from pyrogram import Client
 
@@ -23,10 +32,88 @@ from .call import InlineCall
 from .botmanager import BotManager
 from database import database
 
+class Via:
+    def __init__(self) -> None:
+        self.active: Dict[str, Dict[str, Any]] = {}
+        self.results: Dict[str, types.InlineQueryResult] = {}
+
+    def add(
+        self,
+        text: str,
+        buttons: Optional[List[List[Dict]]] = None,
+        descripton: str = "Fly-Telegram system result.",
+    ):
+        query_id = str(uuid4())
+        input_text = InputTextMessageContent(
+            message_text=text,
+        )
+
+        reply_markup = []
+        if buttons:
+            keyboard = []
+
+            for brow in buttons:
+                row = []
+                for btn in brow:
+                    row.append(
+                        InlineKeyboardButton(
+                            text=btn.get("text", "button"),
+                            callback_data=btn.get("callback", f"via_{query_id}_{len(keyboard)}")
+                        )
+                    )
+                keyboard.append(row)
+            reply_markup = InlineKeyboardMarkup(inline_keyboard=buttons)
+
+        result = InlineQueryResultArticle(
+            id=f"via_{query_id}",
+            title="🕊️ fly telegram v2",
+            descripton=descripton,
+            input_message_content=input_text,
+            reply_markup=reply_markup
+        )
+
+        self.active[query_id] = {
+            "text": text,
+            "reply_markup": buttons,
+        }
+
+        self.results[query_id] = result
+
+        return query_id
+    
+    def get_result(self, id: str):
+        return self.results[id]
+    
+    def update(self, id: str, **kwargs):
+        if id in self.active:
+            self.active[id].update(kwargs)
+            if id in self.results:
+                result = self.results[id]
+                if "text" in kwargs:
+                    result.input_message_content.message_text = kwargs["text"]
+                if "buttons" in kwargs:
+                    if kwargs["buttons"]:
+                        keyboard = []
+                        for brow in kwargs["buttons"]:
+                            row = []
+                            for btn in brow:
+                                row.append(
+                                    InlineKeyboardButton(
+                                        text=btn.get("text", "button"),
+                                        callback_data=btn.get("callback", f"via_{id}_{len(keyboard)}")
+                                    )
+                                )
+                                keyboard.append(row)
+                        result.reply_markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
+                    else:
+                        result.reply_markup = None
+
+
 class Inline:
     def __init__(self):
         self._bot = None
         self.dp = None
+        self.viamanager = Via()
         logging.debug("New instance: %s", id(self))
 
         # suka, takoi govnokod nize, no ia zaebalsa. kto pofixit eto - pull request pls. ia ne znay chto delat....
@@ -36,6 +123,57 @@ class Inline:
             sys.modules['_inline']['handlers'] = {}
 
         self.handlers = sys.modules['_inline']['handlers']
+
+    def via(
+        self,
+        text: str,
+        buttons = None,
+        description: str = "🕊️ fly telegram v2"
+    ):
+        return self.viamanager.register_via(text, buttons, description)
+    
+    def update_via(self, id: str, **kwargs):
+        self.viamanager.update(id, **kwargs)
+
+    async def process_query(self, query: InlineQuery):
+        q = query.strip()
+        logging.debug("new inline query: %s", q)
+
+        results = []
+        if q.startswith("via_"):
+            query_id = q.split("via_")[-1]
+            if query_id in self.viamanager.results:
+                result = self.viamanager.get_result(query_id)
+                if result:
+                    results.append(result)
+
+        if results:
+            await self._bot.answer_inline_query(
+                inline_query_id=query.id,
+                results=results,
+                cache_time=300,
+                is_personal=True
+            )
+        else:
+            result = InlineQueryResultArticle(
+                id="default",
+                title="🕊️ fly telegram v2",
+                description="Use via_ID for results.",
+                input_message_content=InputTextMessageContent(
+                    message_text=(
+                        "<b>🕊️ fly telegram v2</b>\n",
+                        "<b>Please, use via_(ID) for results.</b>"
+                    ),
+                    parse_mode="html"
+                )
+            )
+
+            await self._bot.answer_inline_query(
+                inline_query_id=query.id,
+                results=[result],
+                cache_time=300
+            )
+
 
     def handler(self, callback_data: str = None):
         logging.debug(
