@@ -142,6 +142,7 @@ class Inline:
         results = []
         if q.startswith("via_"):
             query_id = q.split("via_")[-1]
+            logging.debug("found new via! ID: %s", query_id)
             if query_id in self.viamanager.results:
                 result = self.viamanager.get_result(query_id)
                 if result:
@@ -158,11 +159,11 @@ class Inline:
             result = InlineQueryResultArticle(
                 id="default",
                 title="🕊️ fly telegram v2",
-                description="Use via_ID for results.",
+                description="Not found!",
                 input_message_content=InputTextMessageContent(
                     message_text=(
                         "<b>🕊️ fly telegram v2</b>\n"
-                        "<b>Please, use via_(ID) for results.</b>"
+                        "<b>The query is not found</b>"
                     ),
                     parse_mode="html"
                 )
