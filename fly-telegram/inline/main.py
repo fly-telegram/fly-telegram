@@ -136,7 +136,7 @@ class Inline:
         self.viamanager.update(id, **kwargs)
 
     async def process_query(self, query: InlineQuery):
-        q = query.strip()
+        q = query.query
         logging.debug("new inline query: %s", q)
 
         results = []
