@@ -238,6 +238,8 @@ class Inline:
         logging.debug("Callback query handler registered successfully.")
         logging.debug("Current registered handlers in dispatcher: %s",
                      self.dp.message_handlers.handlers)
+        
+        self.dp.register_inline_handler(self.process_query, lambda q: True)
 
     async def start(self, client: Client):
         botmanager = BotManager()
