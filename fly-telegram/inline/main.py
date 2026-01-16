@@ -130,7 +130,7 @@ class Inline:
         buttons = None,
         description: str = "🕊️ fly telegram v2"
     ):
-        return self.viamanager.register_via(text, buttons, description)
+        return self.viamanager.add(text, buttons, description)
     
     def update_via(self, id: str, **kwargs):
         self.viamanager.update(id, **kwargs)
