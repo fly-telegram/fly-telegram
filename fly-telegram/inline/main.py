@@ -82,6 +82,7 @@ class Via:
         return query_id
     
     def get_result(self, id: str):
+        logging.debug(self.results)
         return self.results[id]
     
     def update(self, id: str, **kwargs):
