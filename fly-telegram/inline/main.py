@@ -41,7 +41,7 @@ class Via:
         self,
         text: str,
         buttons: Optional[List[List[Dict]]] = None,
-        descripton: str = "Fly-Telegram system result.",
+        description: str = "Fly-Telegram system result.",
     ):
         query_id = str(uuid4())
         input_text = InputTextMessageContent(
@@ -67,7 +67,7 @@ class Via:
         result = InlineQueryResultArticle(
             id=f"via_{query_id}",
             title="🕊️ fly telegram v2",
-            descripton=descripton,
+            description=description,
             input_message_content=input_text,
             reply_markup=reply_markup
         )
