@@ -161,7 +161,7 @@ class Inline:
                 description="Use via_ID for results.",
                 input_message_content=InputTextMessageContent(
                     message_text=(
-                        "<b>🕊️ fly telegram v2</b>\n",
+                        "<b>🕊️ fly telegram v2</b>\n"
                         "<b>Please, use via_(ID) for results.</b>"
                     ),
                     parse_mode="html"
