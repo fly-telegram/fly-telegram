@@ -54,6 +54,7 @@ class Via:
         reply_markup = None
         if buttons:
             keyboard = []
+            count = 0
 
             for brow in buttons:
                 row = []
@@ -61,9 +62,10 @@ class Via:
                     row.append(
                         InlineKeyboardButton(
                             text=btn.get("text", "button"),
-                            callback_data=btn.get("callback", f"via_{query_id}_{len(keyboard)}")
+                            callback_data=btn.get("callback", f"via_{query_id}_{count}")
                         )
                     )
+                    count += 1
                 keyboard.append(row)
             reply_markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
 
@@ -98,6 +100,8 @@ class Via:
                 if "buttons" in kwargs:
                     if kwargs["buttons"]:
                         keyboard = []
+                        count = 0
+
                         for brow in kwargs["buttons"]:
                             row = []
                             for btn in brow:
@@ -107,6 +111,7 @@ class Via:
                                         callback_data=btn.get("callback", f"via_{id}_{len(keyboard)}")
                                     )
                                 )
+                                count += 1
                                 keyboard.append(row)
                         result.reply_markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
                     else:
