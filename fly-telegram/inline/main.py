@@ -51,7 +51,7 @@ class Via:
             message_text=text,
         )
 
-        reply_markup = []
+        reply_markup = None
         if buttons:
             keyboard = []
 
