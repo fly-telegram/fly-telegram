@@ -13,7 +13,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import asyncio
 import logging
-from typing import Union, Optional, List, Dict, Any, Callable
+from typing import Optional, List, Dict, Any
 from uuid import uuid4
 
 from aiogram import Bot, Dispatcher, types
@@ -34,8 +34,11 @@ from database import database
 
 class Via:
     def __init__(self) -> None:
-        self.active: Dict[str, Dict[str, Any]] = {}
-        self.results: Dict[str, types.InlineQueryResult] = {}
+        if '_via' not in sys.modules:
+            sys.modules['_via'] = {'active': {}, 'results': {}}
+
+        self.active = sys.modules['_via']['active']
+        self.results = sys.modules['_via']['results']
 
     def add(
         self,
