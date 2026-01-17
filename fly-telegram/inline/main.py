@@ -65,7 +65,7 @@ class Via:
                         )
                     )
                 keyboard.append(row)
-            reply_markup = InlineKeyboardMarkup(inline_keyboard=buttons)
+            reply_markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
 
         result = InlineQueryResultArticle(
             id=f"via_{query_id}",
