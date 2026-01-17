@@ -39,4 +39,4 @@ def check():
 
 if __name__ == "__main__":
     check()
-    main.userbot.main(LOG_LEVEL, args.web)
+    main.userbot.main(LOG_LEVEL, args.no_web)
