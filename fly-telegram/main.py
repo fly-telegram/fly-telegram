@@ -42,12 +42,12 @@ class Userbot:
             "warning": logging.WARNING
         }
 
-    async def amain(self) -> bool:
+    async def amain(self, web: bool = True) -> bool:
         """
         async userbot process
         for setting client, loader and etc.
         """
-        client, me = await self.auth.load()
+        client, me = await self.auth.load(web)
 
         
         await client.initialize()
@@ -70,7 +70,7 @@ class Userbot:
         await idle()
         return True
 
-    def main(self, level: str = "info") -> None:
+    def main(self, level: str = "info", web: bool = True) -> None:
         """
         sync userbot process
         for logo, logger and start async
@@ -80,7 +80,7 @@ class Userbot:
         logger.load(self.levels.get(level))
 
         try:
-            self.loop.run_until_complete(self.amain())
+            self.loop.run_until_complete(self.amain(web))
         except KeyboardInterrupt:
             print("stopping...")
 

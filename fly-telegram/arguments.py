@@ -35,5 +35,10 @@ def parser() -> argparse.Namespace:
         help="Logging level.",
         required=False,
     )
+    parser.add_argument(
+        "--no-web",
+        action="store_true",
+        help="Disable webUI for login. Using CLI interface"
+    )
 
     return parser.parse_args()

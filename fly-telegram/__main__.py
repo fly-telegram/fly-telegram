@@ -15,10 +15,9 @@ from . import arguments
 PYTHON_VERSION = (3, 9, 0)
 LOG_LEVEL = "info"
 
+args = arguments.parser()
 
 def check():
-    args = arguments.parser()
-
     if args.log_level:
         LOG_LEVEL = args.log_level
 
@@ -40,4 +39,4 @@ def check():
 
 if __name__ == "__main__":
     check()
-    main.userbot.main(LOG_LEVEL)
+    main.userbot.main(LOG_LEVEL, args.web)
