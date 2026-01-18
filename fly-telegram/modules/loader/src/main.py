@@ -39,13 +39,13 @@ async def lm_cmd(self):
         await self.message.edit("❌ <b>A reply or a document is needed!</b>")
         return
     
-    if not file.endswith(".zip"):
-        await self.message.edit("❌ <b>Invalid file format!</b>")
-        return
-    
     filename = file.document.file_name
     module_name = filename.split(".zip")[0]
 
+    if not filename.endswith(".zip"):
+        await self.message.edit("❌ <b>Invalid file format!</b>")
+        return
+    
     await self.message.edit(
         "🕊 <b>{module_name}</b>\n"
         "<code>Downloading module...</code>"
