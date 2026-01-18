@@ -57,12 +57,6 @@ async def lm_cmd(self):
         
         with zipfile.ZipFile(temp_path, "r") as archive:
             archive.extractall(os.path.join(path, module_name))
-
-    with open(
-        os.path.join(path, module_name, "src", "meta.json"),
-        'r') as file:
-        meta = json.load(file)
-        # soon
     
     try:
         await loader.load(module_name, self.client)
