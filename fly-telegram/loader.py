@@ -68,7 +68,7 @@ class CommandWrapper:
         else:
             self.args = []
 
-        command_task = asyncio.create_task(self._process_command())
+        command_task = await asyncio.create_task(self._process_command())
 
         try:
             asyncio.wait_for(command_task, timeout=10)
