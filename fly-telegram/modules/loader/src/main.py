@@ -47,7 +47,7 @@ async def lm_cmd(self):
         return
     
     await self.message.edit(
-        "🕊 <b>{module_name}</b>\n"
+        f"🕊 <b>{module_name}</b>\n"
         "<code>Downloading module...</code>"
     )
 
