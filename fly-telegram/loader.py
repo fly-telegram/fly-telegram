@@ -68,10 +68,10 @@ class CommandWrapper:
         else:
             self.args = []
 
-        command_task = await asyncio.create_task(self._process_command())
+        command_task = asyncio.create_task(self._process_command())
 
         try:
-            asyncio.wait_for(command_task, timeout=10)
+            await asyncio.wait_for(command_task, timeout=10)
         except asyncio.TimeoutError:
             await self.message.edit("❌ <b>Command TimeOut error</b>")
         except ArgumentsError as e:
