@@ -33,7 +33,7 @@ async def lm_cmd(self):
         else None
     )
 
-    path = os.path.join("fly-telegram", "modules")
+    path = loader.modules_path
 
     if not file:
         await self.message.edit("❌ <b>A reply or a document is needed!</b>")
@@ -56,7 +56,7 @@ async def lm_cmd(self):
         await file.download(temp_path)
         
         with zipfile.ZipFile(temp_path, "r") as archive:
-            archive.extractall(os.path.join(path, module_name))
+            archive.extractall(path / module_name)
     
     try:
         await loader.load(module_name, self.client)
