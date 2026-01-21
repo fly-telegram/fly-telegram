@@ -55,8 +55,12 @@ async def lm_cmd(self):
         temp_path = os.path.join(temp_dir, filename)
         await file.download(temp_path)
         
-        with zipfile.ZipFile(temp_path, "r") as archive:
-            archive.extractall(path / module_name)
+        try:
+            with zipfile.ZipFile(temp_path, "r") as archive:
+                archive.extractall(path / module_name)
+        except zipfile.BadZipFile:
+            await self.message.edit(f"❌ <b>{module_name} is not a valid zip file!</b>")
+            return
     
     try:
         await loader.load(module_name, self.client)
