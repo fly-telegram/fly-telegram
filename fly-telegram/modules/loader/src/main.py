@@ -24,6 +24,7 @@ from loader import Loader
 
 loader = Loader()
 
+@loader.no_timeout
 async def lm_cmd(self):
     reply = self.message.reply_to_message
     file = (

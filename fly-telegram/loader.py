@@ -57,6 +57,9 @@ class CommandWrapper:
         self.command: Optional[str] = None
         self.args: List[str] = []
 
+        self.timeout: int =  getattr(func, 'timeout', 30)
+        self.no_timeout: bool = getattr(func, 'no_timeout', False)
+
     async def __call__(self, message: Message) -> None:
         self.message = message
         self.command = message.command[0] if message.command else ""
@@ -71,7 +74,7 @@ class CommandWrapper:
         command_task = asyncio.create_task(self._process_command())
 
         try:
-            await asyncio.wait_for(command_task, timeout=10)
+            await asyncio.wait_for(command_task, timeout=self.timeout)
         except asyncio.CancelledError:
             await self.message.edit("❌ <b>Command Cancelled</b>")
         except asyncio.TimeoutError:
@@ -129,6 +132,18 @@ class Loader:
             "help", "loader", "core", "executor")
         self.command_handlers: Dict[str, List[MessageHandler]] = {}
         self._package_prefix: str = f"{__package__}.modules." if __package__ else "modules."
+
+    @staticmethod
+    def timeout(seconds: int):
+        def decorator(func: Callable):
+            func.timeout = seconds
+            return func
+        return decorator
+    
+    @staticmethod
+    def no_timeout(func: Callable):
+        func.no_timeout = True
+        return func
 
     async def load(self, name: str, client: Client, startup: bool = False) -> bool:
         """load module by name"""
