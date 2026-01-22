@@ -137,15 +137,15 @@ class Loader:
         self._package_prefix: str = f"{__package__}.modules." if __package__ else "modules."
 
     @staticmethod
-    def timeout(seconds: int):
-        def decorator(func: Callable):
-            func.timeout = seconds
+    def timeout(seconds: int) -> Callable:
+        def decorator(func: Callable) -> Callable:
+            func.timeout: int = seconds
             return func
         return decorator
     
     @staticmethod
-    def no_timeout(func: Callable):
-        func.no_timeout = True
+    def no_timeout(func: Callable) -> Callable:
+        func.no_timeout: bool = True
         return func
 
     async def load(self, name: str, client: Client, startup: bool = False) -> bool:

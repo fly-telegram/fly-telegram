@@ -24,8 +24,8 @@ from loader import Loader
 
 loader = Loader()
 
-@loader.no_timeout
 async def lm_cmd(self):
+    """The loader module command"""
     reply = self.message.reply_to_message
     file = (
         self.message if self.message.document
@@ -47,33 +47,80 @@ async def lm_cmd(self):
         await self.message.edit("❌ <b>Invalid file format!</b>")
         return
     
-    await self.message.edit(
+    message = await self.message.edit(
         f"🕊 <b>{module_name}</b>\n"
         "<code>Downloading module...</code>"
     )
 
-    with tempfile.TemporaryDirectory() as temp_dir:
-        temp_path = os.path.join(temp_dir, filename)
-        await file.download(temp_path)
-        
-        try:
-            with zipfile.ZipFile(temp_path, "r") as archive:
-                archive.extractall(path / module_name)
-        except zipfile.BadZipFile:
-            await self.message.edit(f"❌ <b>{module_name} is not a valid zip file!</b>")
-            return
+    temp_dir = tempfile.mkdtemp()
+    temp_path = os.path.join(temp_dir, filename)
     
     try:
-        await loader.load(module_name, self.client)
+        await file.download(temp_path)
+        
+        await message.edit(
+            f"🕊 <b>{module_name}</b>\n"
+            "<code>Extracting module...</code>"
+        )
+        
+        module_path = path / module_name
+        
+        if module_path.exists():
+            def rmexists():
+                shutil.rmtree(module_path, ignore_errors=True)
+            await asyncio.to_thread(rmexists)
+        
+        def extract():
+            try:
+                with zipfile.ZipFile(temp_path, "r") as archive:
+                    archive.extractall(module_path)
+                return True, None
+            except zipfile.BadZipFile as e:
+                return False, f"{module_name} is not a valid zip file!"
+            except Exception as e:
+                return False, str(e)
+        
+        ex_result, ex_error = await asyncio.to_thread(extract)
+        
+        if not ex_result:
+            await message.edit(f"❌ <b>{ex_error}</b>")
+            return
+        
+        await message.edit(
+            f"🕊 <b>{module_name}</b>\n"
+            "<code>Installing module...</code>"
+        )
+        
+        try:
+            await loader.load(module_name, self.client)
+        except Exception as error:
+            await message.edit(
+                f"❌ <b>{module_name} installing error</b>\n"
+                f"<code>{error}</code>"
+            )
+            def rm_mod():
+                if module_path.exists():
+                    shutil.rmtree(module_path, ignore_errors=True)
+            await asyncio.to_thread(rm_mod)
+            return
+        
+        await message.edit(
+            f"🕊 <b>{module_name} is loaded!</b>"
+        )
+        
     except Exception as error:
-        await self.message.edit(
-            f"❌ <b>{module_name} installing error</b>\n"
+        await message.edit(
+            f"❌ <b>Unexpected error:</b>\n"
             f"<code>{error}</code>"
         )
-        shutil.rmtree(os.path.join(path, module_name))
-        return
-    
-    await self.message.edit(
-        f"🕊 <b>{module_name} is loaded!</b>"
-    )
-    
+    finally:
+        def clean():
+            try:
+                if os.path.exists(temp_path):
+                    os.unlink(temp_path)
+                if os.path.exists(temp_dir):
+                    os.rmdir(temp_dir)
+            except:
+                pass
+        
+        await asyncio.to_thread(clean)
