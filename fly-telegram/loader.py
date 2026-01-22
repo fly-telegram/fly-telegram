@@ -139,13 +139,13 @@ class Loader:
     @staticmethod
     def timeout(seconds: int) -> Callable:
         def decorator(func: Callable) -> Callable:
-            func.timeout: int = seconds
+            func.timeout = seconds
             return func
         return decorator
     
     @staticmethod
     def no_timeout(func: Callable) -> Callable:
-        func.no_timeout: bool = True
+        func.no_timeout = True
         return func
 
     async def load(self, name: str, client: Client, startup: bool = False) -> bool:
