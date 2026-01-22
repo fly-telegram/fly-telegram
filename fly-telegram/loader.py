@@ -74,7 +74,10 @@ class CommandWrapper:
         command_task = asyncio.create_task(self._process_command())
 
         try:
-            await asyncio.wait_for(command_task, timeout=self.timeout)
+            if not self.no_timeout:
+                await asyncio.wait_for(command_task, timeout=self.timeout)
+            else:
+                await command_task
         except asyncio.CancelledError:
             await self.message.edit("❌ <b>Command Cancelled</b>")
         except asyncio.TimeoutError:
