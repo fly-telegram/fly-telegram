@@ -47,7 +47,7 @@ class ModuleImportError(LoaderError):
 
 
 class CommandWrapper:
-    __slots__ = ('client', 'func', 'filters', 'message', 'command', 'args')
+    __slots__ = ('client', 'func', 'filters', 'message', 'command', 'args', 'no_timeout', 'timeout')
 
     def __init__(self, client: Client, func: Callable[..., Any]) -> None:
         self.client: Client = client
