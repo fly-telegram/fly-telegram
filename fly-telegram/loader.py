@@ -129,11 +129,18 @@ class Loader:
     """fly-telegram modules loader"""
 
     def __init__(self) -> None:
-        self.modules_path: Path = Path(f"./{__package__}/modules")
+        self.modules_path: Path = (
+            Path(f"./{__package__}/modules") if __package__
+            else Path("./fly-telegram/modules")
+        )
+
         self.core_modules: Tuple[str, ...] = (
             "help", "loader", "core", "executor")
         self.command_handlers: Dict[str, List[MessageHandler]] = {}
-        self._package_prefix: str = f"{__package__}.modules." if __package__ else "modules."
+        self._package_prefix: str = (
+            f"{__package__}.modules." if __package__
+            else "fly-telegram.modules."
+        )
 
     @staticmethod
     def timeout(seconds: int) -> Callable:

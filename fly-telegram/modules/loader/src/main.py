@@ -24,7 +24,9 @@ from loader import Loader
 loader = Loader()
 
 
-async def lm_cmd(self):
+async def lm_cmd(self, flags: str):
+    splitted_flags = flags.split()
+
     reply = self.message.reply_to_message
     file = (
         self.message if self.message.document
@@ -81,7 +83,9 @@ async def lm_cmd(self):
             f"❌ <b>{module_name} installing error</b>\n"
             f"<code>{error}</code>"
         )
-        shutil.rmtree(os.path.join(modules_path, module_name))
+
+        if not "no-delete" in splitted_flags:
+            shutil.rmtree(os.path.join(modules_path, module_name))
         return
 
     await self.message.edit(
