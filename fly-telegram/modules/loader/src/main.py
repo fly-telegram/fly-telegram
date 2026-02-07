@@ -33,8 +33,8 @@ async def lm_cmd(self):
         else None
     )
 
-    runned = Path(__package__).parent / "fly-telegram"
-    path = runned / "modules"
+    # fly-telegram/fly-telegram/modules
+    modules_path = Path(__file__).parent.parent.parent
 
     if not file:
         await self.message.edit("❌ <b>A reply or a document is needed!</b>")
@@ -63,7 +63,8 @@ async def lm_cmd(self):
 
         try:
             with zipfile.ZipFile(temp_path, "r") as archive:
-                archive.extractall(path / module_name)
+                archive.extractall(modules_path / module_name)
+
         except zipfile.BadZipFile:
             await self.message.edit(f"❌ <b>{module_name} is not a valid zip file!</b>")
             return
@@ -80,7 +81,7 @@ async def lm_cmd(self):
             f"❌ <b>{module_name} installing error</b>\n"
             f"<code>{error}</code>"
         )
-        shutil.rmtree(os.path.join(path, module_name))
+        shutil.rmtree(os.path.join(modules_path, module_name))
         return
 
     await self.message.edit(
