@@ -7,30 +7,26 @@
 #              🔒 Licensed under the СС-by-NC
 #           creativecommons.org/licenses/by-nc/4.0/
 
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 import asyncio
 import logging
-from typing import Optional, List, Dict, Any
+import os
+import sys
+from typing import Dict, List, Optional
 from uuid import uuid4
 
 from aiogram import Bot, Dispatcher, types
+from aiogram.types import (InlineKeyboardButton, InlineKeyboardMarkup,
+                           InlineQuery, InlineQueryResultArticle,
+                           InputTextMessageContent)
 from aiogram.utils.exceptions import Unauthorized
-from aiogram.types import (
-    InlineQuery,
-    InlineQueryResultArticle,
-    InputTextMessageContent,
-    InlineKeyboardMarkup,
-    InlineKeyboardButton
-)
-
+from database import database
 from pyrogram import Client
 
-from .call import InlineCall
 from .botmanager import BotManager
-from database import database
+from .call import InlineCall
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 
 class Via:
     def __init__(self) -> None:
@@ -62,7 +58,8 @@ class Via:
                     row.append(
                         InlineKeyboardButton(
                             text=btn.get("text", "button"),
-                            callback_data=btn.get("callback", f"via_{query_id}_{count}")
+                            callback_data=btn.get(
+                                "callback", f"via_{query_id}_{count}")
                         )
                     )
                     count += 1
@@ -85,11 +82,11 @@ class Via:
         self.results[query_id] = result
 
         return query_id
-    
+
     def get_result(self, id: str):
         logging.debug(self.results)
         return self.results[id]
-    
+
     def update(self, id: str, **kwargs):
         if id in self.active:
             self.active[id].update(kwargs)
@@ -108,12 +105,14 @@ class Via:
                                 row.append(
                                     InlineKeyboardButton(
                                         text=btn.get("text", "button"),
-                                        callback_data=btn.get("callback", f"via_{id}_{len(keyboard)}")
+                                        callback_data=btn.get(
+                                            "callback", f"via_{id}_{len(keyboard)}")
                                     )
                                 )
                                 count += 1
                                 keyboard.append(row)
-                        result.reply_markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
+                        result.reply_markup = InlineKeyboardMarkup(
+                            inline_keyboard=keyboard)
                     else:
                         result.reply_markup = None
 
@@ -136,11 +135,11 @@ class Inline:
     def via(
         self,
         text: str,
-        buttons = None,
+        buttons=None,
         description: str = "🕊️ fly telegram v2"
     ):
         return self.viamanager.add(text, buttons, description)
-    
+
     def update_via(self, id: str, **kwargs):
         self.viamanager.update(id, **kwargs)
 
@@ -184,15 +183,14 @@ class Inline:
                 cache_time=300
             )
 
-
     def handler(self, callback_data: str = None):
         logging.debug(
-        "Starting handler registration. Callback data provided: %s", callback_data)
+            "Starting handler registration. Callback data provided: %s", callback_data)
 
         def decorator(func):
             handler_name = callback_data or func.__name__
             logging.debug("Registering handler '%s' for function '%s'",
-                         handler_name, func.__name__)
+                          handler_name, func.__name__)
             logging.debug("Function details: %s", func)
 
             func._is_handler = True
@@ -204,11 +202,10 @@ class Inline:
 
             self.handlers[handler_name] = func
             logging.debug("Handler '%s' successfully registered. Current handlers: %s",
-                             handler_name, list(self.handlers.keys()))
+                          handler_name, list(self.handlers.keys()))
             return func
         return decorator
 
-    
     async def process_callback(self, callback_query: types.CallbackQuery):
         logging.debug("Callback query received. Data: %s", callback_query.data)
         logging.debug("Full callback query object: %s", callback_query)
@@ -229,7 +226,8 @@ class Inline:
 
                 logging.debug("Executing handler '%s'...", handler_name)
                 await self.handlers[handler_name](call)
-                logging.debug("Handler '%s' executed successfully.", handler_name)
+                logging.debug(
+                    "Handler '%s' executed successfully.", handler_name)
             else:
                 logging.debug(
                     "No handler found for callback data: %s", handler_name)
@@ -239,16 +237,16 @@ class Inline:
                           handler_name, str(e), exc_info=True)
             raise
 
-    
     def register_handlers(self, dp: Dispatcher):
         logging.debug("Starting registration of callback query handler.")
         logging.debug("Dispatcher object: %s", self.dp)
 
-        self.dp.register_callback_query_handler(self.process_callback, lambda c: True)
+        self.dp.register_callback_query_handler(
+            self.process_callback, lambda c: True)
         logging.debug("Callback query handler registered successfully.")
         logging.debug("Current registered handlers in dispatcher: %s",
-                     self.dp.message_handlers.handlers)
-        
+                      self.dp.message_handlers.handlers)
+
         self.dp.register_inline_handler(self.process_query, lambda q: True)
 
     async def start(self, client: Client):
@@ -261,7 +259,7 @@ class Inline:
                 raise ValueError("Failed to create inline bot!")
             else:
                 inline_token = database.set('inline_token', inline_token)
-        
+
         try:
             self._bot = Bot(token=token)
             Bot.set_current(self._bot)
@@ -271,7 +269,7 @@ class Inline:
         except Unauthorized:
             database.set("inline_token", None)
             raise ValueError("Invalid token! restart the userbot.")
-        
+
         self.dp = Dispatcher(self._bot)
 
         self.register_handlers(self.dp)

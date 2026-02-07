@@ -8,10 +8,8 @@
 #           creativecommons.org/licenses/by-nc/4.0/
 
 import logging
-import threading
 
 from pyrogram import Client
-from pyrogram.errors import exceptions
 
 
 class InlineHandler(logging.StreamHandler):
@@ -19,7 +17,7 @@ class InlineHandler(logging.StreamHandler):
         ...
 
 
-def load(level: logging.NOTSET) -> logging.Logger: # type: ignore
+def load(level: logging.NOTSET) -> logging.Logger:  # type: ignore
     format = logging.Formatter(
         "%(asctime)s [%(levelname)s] %(funcName)s: %(lineno)d - %(message)s",
         "%m-%d %H:%M:%S")

@@ -13,22 +13,19 @@ import inspect
 import logging
 import sys
 from pathlib import Path
-from typing import (
-    List, Optional, Dict, Any, Set, Callable, Tuple, Type, Union,
-    TYPE_CHECKING
-)
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
 if TYPE_CHECKING:
-    from pyrogram.handlers import Handler
+    pass
 
 from pyrogram import Client, filters
 from pyrogram.handlers import MessageHandler
 from pyrogram.types import Message
 
-
 THE_DIR = Path(__file__).parent
 if str(THE_DIR) not in sys.path:
     sys.path.append(str(THE_DIR))
+
 
 class LoaderError(Exception):
     pass
@@ -47,7 +44,8 @@ class ModuleImportError(LoaderError):
 
 
 class CommandWrapper:
-    __slots__ = ('client', 'func', 'filters', 'message', 'command', 'args', 'no_timeout', 'timeout')
+    __slots__ = ('client', 'func', 'filters', 'message',
+                 'command', 'args', 'no_timeout', 'timeout')
 
     def __init__(self, client: Client, func: Callable[..., Any]) -> None:
         self.client: Client = client
@@ -57,13 +55,13 @@ class CommandWrapper:
         self.command: Optional[str] = None
         self.args: List[str] = []
 
-        self.timeout: int =  getattr(func, 'timeout', 30)
+        self.timeout: int = getattr(func, 'timeout', 30)
         self.no_timeout: bool = getattr(func, 'no_timeout', False)
 
     async def __call__(self, message: Message) -> None:
         self.message = message
         self.command = message.command[0] if message.command else ""
-        
+
         full = message.text.strip() if message.text else ""
         if full.startswith(f".{self.command}"):
             args_text = full[len(self.command) + 1:].lstrip()
@@ -86,31 +84,31 @@ class CommandWrapper:
             await self.message.edit(f"❌ <b>Arguments Error: {e}</b>")
         except Exception as e:
             await self.message.edit(f"❌ <b>Error: {e}</b>")
-    
+
     async def _process_command(self) -> None:
         arguments = inspect.getfullargspec(self.func).args
         exp_args = [arg for arg in arguments if arg != 'self']
-    
+
         if not exp_args:
             return await self.func(self)
-    
+
         full = self.message.text.strip() if self.message.text else ""
         if full.startswith(f".{self.command}"):
             text = full[len(self.command) + 1:].lstrip()
         else:
             text = ""
-    
+
         if len(exp_args) == 1:
             return await self.func(self, text)
-        
+
         splitted = text.split(maxsplit=len(exp_args) - 1)
-    
+
         if len(splitted) < len(exp_args) - 1:
             missing = ", ".join(exp_args[len(splitted):])
             raise ArgumentsError(f"Required arguments: {missing}")
 
         args = splitted[:len(exp_args) - 1]
-        
+
         if len(splitted) == len(exp_args) - 1:
             last = ""
         elif len(splitted) == len(exp_args):
@@ -120,12 +118,13 @@ class CommandWrapper:
             start = len(' '.join(args)) + 1 if args else 0
             last = text[start:].strip()
             args.append(last)
-    
+
         await self.func(self, *args)
 
     def __getattr__(self, name: str) -> Any:
         return getattr(self.client, name)
-    
+
+
 class Loader:
     """fly-telegram modules loader"""
 
@@ -142,7 +141,7 @@ class Loader:
             func.timeout = seconds
             return func
         return decorator
-    
+
     @staticmethod
     def no_timeout(func: Callable) -> Callable:
         func.no_timeout = True

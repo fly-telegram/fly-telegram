@@ -7,8 +7,8 @@
 #              🔒 Licensed under the CC-by-NC
 #           creativecommons.org/licenses/by-nc/4.0/
 
-import os
 import asyncio
+import os
 from typing import Union
 
 version = "2.0.0 beta"

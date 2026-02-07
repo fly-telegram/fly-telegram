@@ -9,17 +9,15 @@
 
 import asyncio
 import logging
-import sys
-import uvicorn
 
 from pyrogram import idle
 
+from . import logger
 from .auth import Auth
+from .fileswatcher import FilesWatcher
 from .inline import inline
 from .loader import Loader
-from .fileswatcher import FilesWatcher
 from .utils import logo
-from . import logger
 
 try:
     import uvloop
@@ -49,7 +47,6 @@ class Userbot:
         """
         client, me = await self.auth.load(web)
 
-        
         await client.initialize()
         await client.dispatcher.start()
 
@@ -57,9 +54,9 @@ class Userbot:
 
         if not client.me:
             client.me = me
-        
+
         client.loader = self.loader
-        
+
         watcher = FilesWatcher(client)
         await watcher.watch()
 

@@ -7,15 +7,14 @@
 #              🔒 Licensed under the CC-by-NC
 #           creativecommons.org/licenses/by-nc/4.0/
 
-from fastapi import FastAPI, Request, Form, HTTPException
-from fastapi.staticfiles import StaticFiles
+
+import uvicorn
+from fastapi import FastAPI, Form, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-
 from pyrogram import Client, errors
-import uvicorn
-import asyncio
 
 
 class Web:

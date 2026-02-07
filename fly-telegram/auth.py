@@ -16,8 +16,8 @@ from typing import Optional, Tuple
 from pyrogram import Client, errors, types
 from pyrogram.enums import ParseMode
 
-from .web import Web
 from .utils import SESSION_FILE
+from .web import Web
 
 
 class Auth:
@@ -97,5 +97,3 @@ class Auth:
             sys.exit(64)
 
         return self.client, me
-
-

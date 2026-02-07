@@ -8,7 +8,9 @@
 #             www.gnu.org/licenses/agpl-3.0.html
 
 import ast
+
 from inline import inline
+
 
 def insert_returns(body):
     if isinstance(body[-1], ast.Expr):
@@ -19,6 +21,7 @@ def insert_returns(body):
             insert_returns(body[-1].orelse)
         if isinstance(body[-1], ast.With):
             insert_returns(body[-1].body)
+
 
 async def run_code(code, env={}):
     try:
@@ -33,7 +36,8 @@ async def run_code(code, env={}):
         return await eval(f"{fn_name}()", env)
     except Exception as error:
         return error
-    
+
+
 async def eval_cmd(self, code):
     """The eval command for execute python code."""
     result = await run_code(
@@ -55,7 +59,7 @@ async def eval_cmd(self, code):
             result = str(result.stringify())
         except:  # noqa: E722
             pass
-    
+
     await self.message.edit(
         "<b>🐍 Python code:</b>\n"
         f"<pre language='python'>{code}</pre>\n"

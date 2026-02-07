@@ -8,21 +8,20 @@
 #             www.gnu.org/licenses/agpl-3.0.html
 
 """The loader module"""
-import asyncio
-import aiohttp
+import os
+import shutil
 import tempfile
 import zipfile
-import shutil
-import sys
-import os
+
 try:
     import ujson as json
 except ModuleNotFoundError:
-    import json
+    pass
 
 from loader import Loader
 
 loader = Loader()
+
 
 async def lm_cmd(self):
     reply = self.message.reply_to_message
@@ -38,14 +37,14 @@ async def lm_cmd(self):
     if not file:
         await self.message.edit("❌ <b>A reply or a document is needed!</b>")
         return
-    
+
     filename = file.document.file_name
     module_name = filename.split(".zip")[0]
 
     if not filename.endswith(".zip"):
         await self.message.edit("❌ <b>Invalid file format!</b>")
         return
-    
+
     message = await self.message.edit(
         f"🕊 <b>{module_name}</b>\n"
         "<code>Downloading module...</code>"
@@ -54,7 +53,7 @@ async def lm_cmd(self):
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_path = os.path.join(temp_dir, filename)
         await file.download(temp_path)
-        
+
         await message.edit(
             f"🕊 <b>{module_name}</b>\n"
             "<code>Extracting module...</code>"
@@ -66,7 +65,7 @@ async def lm_cmd(self):
         except zipfile.BadZipFile:
             await self.message.edit(f"❌ <b>{module_name} is not a valid zip file!</b>")
             return
-    
+
     await message.edit(
         f"🕊 <b>{module_name}</b>\n"
         "<code>Loading module...</code>"
@@ -81,8 +80,7 @@ async def lm_cmd(self):
         )
         shutil.rmtree(os.path.join(path, module_name))
         return
-    
+
     await self.message.edit(
         f"🕊 <b>{module_name} is loaded!</b>"
     )
-    

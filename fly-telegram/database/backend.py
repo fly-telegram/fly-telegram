@@ -17,6 +17,7 @@ except ModuleNotFoundError:
 from pathlib import Path
 from typing import Any, Dict
 
+
 class Database(dict):
     def __init__(self, location: str = "database.json"):
         """

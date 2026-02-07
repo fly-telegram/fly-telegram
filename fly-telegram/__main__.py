@@ -7,15 +7,16 @@
 #              🔒 Licensed under the СС-by-NC
 #           creativecommons.org/licenses/by-nc/4.0/
 
-import sys
 import getpass
-from . import main
-from . import arguments
+import sys
+
+from . import arguments, main
 
 PYTHON_VERSION = (3, 9, 0)
 LOG_LEVEL = "info"
 
 args = arguments.parser()
+
 
 def check():
     if args.log_level:

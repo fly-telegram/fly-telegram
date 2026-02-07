@@ -7,17 +7,18 @@
 #              🔒 Licensed under the СС-by-NC
 #           creativecommons.org/licenses/by-nc/4.0/
 
-from pyrogram import errors, Client
-
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from conversation import Conversation
-
 import asyncio
+import os
 import random
-import string
 import re
+import string
+import sys
+
+from conversation import Conversation
+from pyrogram import Client, errors
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 
 class BotManager:
     def __init__(self) -> None:
@@ -27,7 +28,7 @@ class BotManager:
             "too many attempts",
             "Unfortunately, you cannot create new bots at this time."
         ]
-    
+
     async def create(self, client: Client,
                      botfather: str = "@BotFather") -> str:
         id = "".join(random.choice(string.ascii_letters + string.digits)
@@ -55,7 +56,7 @@ class BotManager:
                     await conv.send(message)
                     response = await conv.response(limit=2)
                     match = re.search(token_pattern, response.text)
-                    
+
                     if match:
                         token = match.group(1)
 
@@ -67,5 +68,5 @@ class BotManager:
 
             async with Conversation(client, f"@{username}", True) as conv:
                 await conv.send("/start")
-            
+
         return token

@@ -11,7 +11,8 @@
 
 import ast
 from pathlib import Path
-from typing import List, Dict
+from typing import Dict, List
+
 
 class ModuleAnalyzer:
     """extract commands from file"""
@@ -25,18 +26,18 @@ class ModuleAnalyzer:
 
         if not self.modules_path.exists():
             return modules
-        
+
         for item in self.modules_path.iterdir():
             if (item.is_dir and
                 not item.name.startswith("_") and
-                not item.name.startswith(".")):
+                    not item.name.startswith(".")):
 
                 src_path = item / "src"
                 if src_path.exists() and any(src_path.glob("*.py")):
                     modules.append(item.name)
 
         return sorted(modules)
-    
+
     def cmd_info(self, file: Path) -> List[Dict]:
         """extract info from command"""
         commands: List[Dict] = []
@@ -44,13 +45,13 @@ class ModuleAnalyzer:
         try:
             with open(file, 'r', encoding='utf-8') as f:
                 content = f.read()
-            
+
             tree = ast.parse(content)
 
             for node in ast.walk(tree):
                 if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                     if node.name.endswith("_cmd"):
-                        name: str = node.name[:-4] # _cmd
+                        name: str = node.name[:-4]  # _cmd
 
                         docstring: str = ast.get_docstring(node) or ""
 
@@ -59,7 +60,7 @@ class ModuleAnalyzer:
                             arg_name: str = arg.arg
                             if not arg_name == "self":
                                 args.append(arg_name)
-                        
+
                         commands.append({
                             'name': name,
                             'docstring': docstring,
@@ -71,7 +72,7 @@ class ModuleAnalyzer:
             pass
 
         return commands
-    
+
     def module_commands(self, name: str) -> List[Dict]:
         """get all commands from module"""
         commands: List[Dict] = []
@@ -79,9 +80,9 @@ class ModuleAnalyzer:
 
         if not dir.exists():
             return commands
-        
+
         for file in dir.glob("*.py"):
             file_cmds: List[Dict] = self.cmd_info(file)
             commands.extend(file_cmds)
-        
+
         return commands

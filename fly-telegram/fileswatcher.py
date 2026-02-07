@@ -10,10 +10,12 @@
 import asyncio
 import logging
 from pathlib import Path
+
+from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler, FileModifiedEvent
 
 from .loader import Loader
+
 
 class ModuleHandler(FileSystemEventHandler):
     def __init__(self, reload_callback, loop):
@@ -32,7 +34,9 @@ class ModuleHandler(FileSystemEventHandler):
                     self.loop
                 )
 
-                logging.info(f"Module '{mod_name}' file '{mod_file}' was modified.")
+                logging.info(
+                    f"Module '{mod_name}' file '{mod_file}' was modified.")
+
 
 class FilesWatcher:
     def __init__(self, client):
@@ -61,5 +65,5 @@ class FilesWatcher:
             logging.info(f"Reloading module '{mod_name}'...")
             await self.loader.unload(mod_name, self.client)
             await self.loader.load(mod_name, self.client)
-        except Exception as err:
+        except Exception:
             logging.error(f"Failed to reload module '{mod_name}'.")
