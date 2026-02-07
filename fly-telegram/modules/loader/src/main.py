@@ -33,7 +33,9 @@ async def lm_cmd(self):
         else None
     )
 
-    path = Path("fly-telegram/modules")
+    path = Path(os.path.join(
+        __package__, "fly-telegram", "modules"
+    ))
 
     if not file:
         await self.message.edit("❌ <b>A reply or a document is needed!</b>")

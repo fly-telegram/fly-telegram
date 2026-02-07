@@ -14,6 +14,6 @@ from .keyboards import make_keyboard
 from .main import Inline
 
 inline = Inline()
-inline.bot = Bot.get_current() # type: ignore
+inline.bot = Bot.get_current()  # type: ignore
 
 __all__ = ["InlineCall", "make_keyboard"]
