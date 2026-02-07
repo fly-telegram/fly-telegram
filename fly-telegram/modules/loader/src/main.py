@@ -25,7 +25,7 @@ loader = Loader()
 
 
 async def lm_cmd(self, flags: str):
-    splitted_flags = flags.split()
+    splitted_flags = flags.split() # .lm no-delete
 
     reply = self.message.reply_to_message
     file = (

@@ -132,7 +132,7 @@ class Loader:
         self.modules_path: Path = (
             Path(f"./{__package__}/modules") if __package__
             else Path("./fly-telegram/modules")
-        )
+        ) # if not package - many path
 
         self.core_modules: Tuple[str, ...] = (
             "help", "loader", "core", "executor")
@@ -140,7 +140,7 @@ class Loader:
         self._package_prefix: str = (
             f"{__package__}.modules." if __package__
             else "fly-telegram.modules."
-        )
+        ) # # if not package - many path
 
     @staticmethod
     def timeout(seconds: int) -> Callable:
