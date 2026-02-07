@@ -73,6 +73,7 @@ venv.bak/
 .dmypy.json
 dmypy.json
 .pyre/
+.ruff_cache/
 
 # fly-telegram
 fly-telegram/logs/

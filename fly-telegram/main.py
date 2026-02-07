@@ -55,7 +55,7 @@ class Userbot:
         if not client.me:
             client.me = me
 
-        client.loader = self.loader
+        client.loader = self.loader # type: ignore
 
         watcher = FilesWatcher(client)
         await watcher.watch()
