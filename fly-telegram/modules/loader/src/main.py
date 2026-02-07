@@ -12,6 +12,7 @@ import os
 import shutil
 import tempfile
 import zipfile
+from pathlib import Path
 
 try:
     import ujson as json
@@ -32,7 +33,7 @@ async def lm_cmd(self):
         else None
     )
 
-    path = loader.modules_path
+    path = Path("fly-telegram/modules")
 
     if not file:
         await self.message.edit("❌ <b>A reply or a document is needed!</b>")
