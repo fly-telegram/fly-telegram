@@ -23,7 +23,7 @@ from loader import Loader
 
 loader = Loader()
 
-
+@loader.no_timeout
 async def lm_cmd(self, flags: str):
     splitted_flags = flags.split() # .lm no-delete
 
