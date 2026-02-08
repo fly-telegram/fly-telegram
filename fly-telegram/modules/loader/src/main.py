@@ -23,7 +23,6 @@ from loader import Loader
 
 loader = Loader()
 
-@loader.no_timeout
 async def lm_cmd(self, flags: str):
     splitted_flags = flags.split() # .lm no-delete
 
@@ -88,6 +87,6 @@ async def lm_cmd(self, flags: str):
             shutil.rmtree(os.path.join(modules_path, module_name))
         return
 
-    await self.message.edit(
+    await message.edit(
         f"🕊 <b>{module_name} is loaded!</b>"
     )
