@@ -87,7 +87,7 @@ async def lm_cmd(self, flags: str):
         if "no-delete" not in splitted_flags:
             shutil.rmtree(os.path.join(modules_path, module_name))
         return
-
+    
     await message.edit(
         f"🕊 <b>{module_name} is loaded!</b>"
     )
