@@ -74,7 +74,7 @@ class Userbot:
         """
 
         print(logo)
-        logger.load(self.levels.get(level))
+        logger.load(self.levels.get(level.lower()))
 
         try:
             self.loop.run_until_complete(self.amain(web))

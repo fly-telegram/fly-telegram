@@ -23,8 +23,9 @@ from loader import Loader
 
 loader = Loader()
 
+
 async def lm_cmd(self, flags: str):
-    splitted_flags = flags.split() # .lm no-delete
+    splitted_flags = flags.split()  # .lm no-delete
 
     reply = self.message.reply_to_message
     file = (
@@ -83,7 +84,7 @@ async def lm_cmd(self, flags: str):
             f"<code>{error}</code>"
         )
 
-        if not "no-delete" in splitted_flags:
+        if "no-delete" not in splitted_flags:
             shutil.rmtree(os.path.join(modules_path, module_name))
         return
 

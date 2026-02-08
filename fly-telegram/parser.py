@@ -28,5 +28,12 @@ def args() -> argparse.Namespace:
         action="store_true",
         help="Ignore root error",
     )
+    parser.add_argument(
+        "--log-level",
+        type=str.lower,
+        choices=["debug", "info", "warning", "error"],
+        default="info",
+        help="Run Fly-Telegram with log level"
+    )
 
     return parser.parse_args()

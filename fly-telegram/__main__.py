@@ -13,14 +13,11 @@ import sys
 from . import arguments, main
 
 PYTHON_VERSION = (3, 9, 0)
-LOG_LEVEL = "info"
 
 args = arguments.parser()
 
 
 def check():
-    if args.log_level:
-        LOG_LEVEL = args.log_level
 
     if getpass.getuser() == "root" and not args.root:
         print('Running the userbot with root access can be dangerous!')
@@ -40,4 +37,6 @@ def check():
 
 if __name__ == "__main__":
     check()
-    main.userbot.main(LOG_LEVEL, args.no_web)
+    level = args.log_level if hasattr(
+        args, 'log_level') and args.log_level else "info"
+    main.userbot.main(level, args.no_web)
