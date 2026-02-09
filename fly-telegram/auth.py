@@ -11,7 +11,7 @@ import json
 import logging
 import os
 import sys
-from typing import Optional, Tuple
+from typing import Optional
 
 from pyrogram import Client, errors, types
 from pyrogram.enums import ParseMode

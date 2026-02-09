@@ -15,7 +15,7 @@ except ModuleNotFoundError:
     import json
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 
 class Database(dict):

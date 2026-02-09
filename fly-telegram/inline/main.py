@@ -12,7 +12,7 @@ import logging
 import os
 import re
 import sys
-from typing import Optional, Union, Any
+from typing import Optional, Union
 from uuid import uuid4
 
 from aiogram import Bot, Dispatcher, types
@@ -123,8 +123,9 @@ class Via:
 
 class Inline:
     def __init__(self):
-        self._bot = None
-        self.dp = None
+        self.client = None
+        self._bot: Bot = None
+        self.dp: Dispatcher = None
         self.viamanager = Via()
         logging.debug("New instance: %s", id(self))
 
@@ -144,7 +145,7 @@ class Inline:
         prefix: str = "via_",
         buttons: Optional[list[list[dict]]] = None,
         description: str = "🕊️ fly telegram v2",
-    ) -> Any:
+    ) -> str:
         uuid = self.viamanager.add(text, prefix, buttons, description)
 
         me = await self.bot.get_me()
@@ -153,11 +154,12 @@ class Inline:
             f"{prefix}{uuid}"
         )
 
-        return await client.send_inline_bot_result(
+        await client.send_inline_bot_result(
             chat_id,
             results.query_id,
             results.results[0].id
         )
+        return uuid
 
     def via(
         self,
@@ -173,16 +175,39 @@ class Inline:
 
     async def process_query(self, query: InlineQuery):
         q = query.query
-        logging.debug("new inline query: %s", q)
+        me = self.client.me
+
+        if query.from_user.id != me.id:
+            notprems = InlineQueryResultArticle(
+                id="notprems",
+                title="🕊️ fly telegram v2",
+                description="Not available",
+                input_message_content=InputTextMessageContent(
+                    message_text=(
+                        "<b>🕊️ fly telegram v2</b>\n"
+                        "<b>Not available for you</b>"
+                    ),
+                    parse_mode="html"
+                )
+            )
+
+            await self._bot.answer_inline_query(
+                inline_query_id=query.id,
+                results=[notprems],
+                cache_time=20
+            )
+            return
 
         results = []
+
         if "_" in q:
             query_id = q.split("_")[-1]
             logging.debug("found new via! ID: %s", query_id)
+
             if query_id in self.viamanager.results:
-                result = self.viamanager.get_result(query_id)
-                if result:
-                    results.append(result)
+                default = self.viamanager.get_result(query_id)
+                if default:
+                    results.append(default)
 
         if results:
             await self._bot.answer_inline_query(
@@ -191,25 +216,27 @@ class Inline:
                 cache_time=20,
                 is_personal=True
             )
-        else:
-            result = InlineQueryResultArticle(
-                id="default",
-                title="🕊️ fly telegram v2",
-                description="Not found!",
-                input_message_content=InputTextMessageContent(
-                    message_text=(
-                        "<b>🕊️ fly telegram v2</b>\n"
-                        "<b>The query is not found</b>"
-                    ),
-                    parse_mode="html"
-                )
-            )
+            return
 
-            await self._bot.answer_inline_query(
-                inline_query_id=query.id,
-                results=[result],
-                cache_time=300
+        default = InlineQueryResultArticle(
+            id="default",
+            title="🕊️ fly telegram v2",
+            description="Not found!",
+            input_message_content=InputTextMessageContent(
+                message_text=(
+                    "<b>🕊️ fly telegram v2</b>\n"
+                    "<b>The query is not found</b>"
+                ),
+                parse_mode="html"
             )
+        )
+
+        await self._bot.answer_inline_query(
+            inline_query_id=query.id,
+            results=[default],
+            cache_time=20,
+            is_personal=True
+        )
 
     def handler(self, callback_data: str = None):
         logging.debug(
@@ -240,6 +267,11 @@ class Inline:
     async def process_callback(self, callback_query: types.CallbackQuery):
         handler_name = callback_query.data
         call = InlineCall(callback_query)
+        me = self.client.me
+
+        if call.from_user.id != me.id:
+            await call.answer("❌ Not available for you")
+            return
 
         for pattern, func in self.handlers.items():
             if pattern.match(handler_name):
@@ -282,6 +314,7 @@ class Inline:
             raise ValueError("Invalid token! restart the userbot.")
 
         self.dp = Dispatcher(self._bot)
+        self.client = client
 
         self.register_handlers(self.dp)
         logging.info("Inline bot is loaded.")

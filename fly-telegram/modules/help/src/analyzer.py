@@ -11,7 +11,6 @@
 
 import ast
 from pathlib import Path
-from typing import Dict, List
 
 
 class ModuleAnalyzer:
