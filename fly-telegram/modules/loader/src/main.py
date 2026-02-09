@@ -8,8 +8,10 @@
 #             www.gnu.org/licenses/agpl-3.0.html
 
 """The loader module"""
+import asyncio
 import os
 import shutil
+import sys
 import tempfile
 import zipfile
 from pathlib import Path
@@ -17,7 +19,7 @@ from pathlib import Path
 try:
     import ujson as json
 except ModuleNotFoundError:
-    pass
+    import json
 
 from loader import Loader
 
@@ -70,17 +72,53 @@ async def lm_cmd(self, flags: str):
         except zipfile.BadZipFile:
             await self.message.edit(f"❌ <b>{module_name} is not a valid zip file!</b>")
             return
+        
+
+    # meta.json logic
+    meta_path = modules_path / module_name / "meta.json"
+
+    with open(meta_path, 'r') as file:
+        meta = json.load(file)
+
+    name = meta.get("name", module_name)
+    deps = meta.get("deps", None)
+
+    if deps:
+        formatted = "\n".join(
+            f"├─ {requirement}" if i < len(
+                deps) - 1 else f"└─ {requirement}"
+            for i, requirement in enumerate(deps)
+        )
+        await message.edit(
+            f"🕊 <b>{name}</b>\n"
+            "<code>Installing required libs...</code>\n"
+            formatted
+        )
+        pip = await asyncio.create_subprocess_exec(
+            sys.executable, "-m", "pip", "install", "-q", *deps
+        )
+        output = await pip.wait()
+
+        if output != 0:
+            await self.message.edit(
+                f"❌ <b>{name} installing error</b>\n"
+                f"<code>Failed to install libs.</code>"
+            )
+
+            if "no-delete" not in splitted_flags:
+                shutil.rmtree(os.path.join(modules_path, module_name))
+            return
 
     await message.edit(
-        f"🕊 <b>{module_name}</b>\n"
+        f"🕊 <b>{name}</b>\n"
         "<code>Loading module...</code>"
     )
 
     try:
-        await loader.load(module_name, self.client)
+        await loader.load(module_name, self.client, startup=True)
     except Exception as error:
         await self.message.edit(
-            f"❌ <b>{module_name} installing error</b>\n"
+            f"❌ <b>{name} installing error</b>\n"
             f"<code>{error}</code>"
         )
 
@@ -89,5 +127,5 @@ async def lm_cmd(self, flags: str):
         return
     
     await message.edit(
-        f"🕊 <b>{module_name} is loaded!</b>"
+        f"🕊 <b>{name} is loaded!</b>"
     )
