@@ -92,7 +92,7 @@ async def lm_cmd(self, flags: str):
         await message.edit(
             f"🕊 <b>{name}</b>\n"
             "<code>Installing required libs...</code>\n"
-            formatted
+            f"{formatted}"
         )
         pip = await asyncio.create_subprocess_exec(
             sys.executable, "-m", "pip", "install", "-q", *deps
