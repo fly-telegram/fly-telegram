@@ -12,7 +12,7 @@ import logging
 import os
 import re
 import sys
-from typing import Dict, List, Optional
+from typing import Optional, Union, Any
 from uuid import uuid4
 
 from aiogram import Bot, Dispatcher, types
@@ -135,6 +135,29 @@ class Inline:
             sys.modules['_inline']['handlers'] = {}
 
         self.handlers = sys.modules['_inline']['handlers']
+
+    async def say(
+        self,
+        client: Client,
+        chat_id: Union[int, str],
+        text: str,
+        prefix: str = "via_",
+        buttons: Optional[list[list[dict]]] = None,
+        description: str = "🕊️ fly telegram v2",
+    ) -> Any:
+        uuid = self.viamanager.add(text, prefix, buttons, description)
+
+        me = await self.bot.get_me()
+        results = await client.get_inline_bot_results(
+            me.username,
+            f"{prefix}{uuid}"
+        )
+
+        return await client.send_inline_bot_result(
+            chat_id,
+            results.query_id,
+            results.results[0].id
+        )
 
     def via(
         self,
