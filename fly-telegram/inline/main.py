@@ -47,6 +47,7 @@ class Via:
         query_id = str(uuid4())
         input_text = InputTextMessageContent(
             message_text=text,
+            parse_mode="HTML"
         )
 
         reply_markup = None
@@ -73,7 +74,7 @@ class Via:
             title="🕊️ fly telegram v2",
             description=description,
             input_message_content=input_text,
-            reply_markup=reply_markup
+            reply_markup=reply_markup,
         )
 
         self.active[query_id] = {
@@ -266,7 +267,7 @@ class Inline:
 
     async def process_callback(self, callback_query: types.CallbackQuery):
         handler_name = callback_query.data
-        call = InlineCall(callback_query)
+        call = InlineCall(callback_query, self.client, self._bot)
         me = self.client.me
 
         if call.from_user.id != me.id:

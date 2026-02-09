@@ -9,6 +9,7 @@
 
 """The help command"""
 from .analyzer import ModuleAnalyzer
+from inline import inline, InlineCall
 
 
 async def help_cmd(self):
@@ -40,8 +41,35 @@ async def help_cmd(self):
 
 
 async def support_cmd(self):
-    await self.client.join_chat("t.me/flyTG_support")
-    await self.message.edit(
-        '🕊 <b>Joined to</b> ' +
-        '<a href="https://t.me/flyTG_support">support chat</a>'
+    await self.message.delete()
+    await inline.say(
+        self.client,
+        self.message.chat.id,
+        "🕊 <b>Do you want to join the support chat?</b>",
+        prefix="help_support_",
+        buttons=[
+            [{"text": "✅ Yes"}],
+            [{"text": "❌ No"}]
+        ]
+    )
+
+
+@inline.handler(r"help_support_(.+)_0")
+async def yes(call: InlineCall):
+    await call.client.join_chat("t.me/flyTG_support")
+    await call.bot.edit_message_text(
+        text=(
+            '🕊 <b>Joined to</b> ' +
+            '<a href="https://t.me/flyTG_support">support chat</a>'
+        ),
+        parse_mode="HTML",
+        inline_message_id=call.inline_message_id
+    )
+
+@inline.handler(r"help_support_(.+)_1")
+async def no(call: InlineCall):
+    await call.bot.edit_message_text(
+        text='❌ <b>Cancelled</b>',
+        parse_mode="HTML",
+        inline_message_id=call.inline_message_id
     )
