@@ -12,8 +12,8 @@ from pyrogram import Client
 
 
 class InlineCall:
-    def __init__(self, callback_query: CallbackQuery, 
-                 client: Client = None, bot = None):
+    def __init__(self, callback_query: CallbackQuery,
+                 client: Client = None, bot=None):
         self.callback_query = callback_query
         self.inline_message_id = callback_query.inline_message_id
         self.message = callback_query.message

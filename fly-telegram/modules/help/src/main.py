@@ -8,8 +8,9 @@
 #             www.gnu.org/licenses/agpl-3.0.html
 
 """The help command"""
+from inline import InlineCall, inline
+
 from .analyzer import ModuleAnalyzer
-from inline import inline, InlineCall
 
 
 async def help_cmd(self):
@@ -65,6 +66,7 @@ async def yes(call: InlineCall):
         parse_mode="HTML",
         inline_message_id=call.inline_message_id
     )
+
 
 @inline.handler(r"help_support_(.+)_1")
 async def no(call: InlineCall):
