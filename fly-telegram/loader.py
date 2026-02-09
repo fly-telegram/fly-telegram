@@ -53,7 +53,7 @@ class CommandWrapper:
         self.filters: Any = filters
         self.message: Optional[Message] = None
         self.command: Optional[str] = None
-        self.args: List[str] = []
+        self.args: list[str] = []
 
         self.timeout: int = getattr(func, 'timeout', 30)
         self.no_timeout: bool = getattr(func, 'no_timeout', False)
@@ -134,9 +134,9 @@ class Loader:
             else Path("./fly-telegram/modules")
         )  # if not package - many path
 
-        self.core_modules: Tuple[str, ...] = (
+        self.core_modules: tuple[str, ...] = (
             "help", "loader", "core", "executor")
-        self.command_handlers: Dict[str, List[MessageHandler]] = {}
+        self.command_handlers: dict[str, list[MessageHandler]] = {}
         self._package_prefix: str = (
             f"{__package__}.modules." if __package__
             else "fly-telegram.modules."
@@ -165,7 +165,7 @@ class Loader:
             await self.unload(name, client)
 
         sources: Path = path / "src"
-        module_commands: List[str] = []
+        module_commands: list[str] = []
         module_prefix: str = f"{self._package_prefix}{name}.src."
 
         for file in sources.glob('*.py'):
@@ -197,7 +197,7 @@ class Loader:
     def _process_module_handlers(self, module: Any, client: Client) -> None:
         """register handlers from module"""
         for obj in vars(module).values():
-            handlers: List[Tuple[Any, int]] = getattr(obj, "handlers", [])
+            handlers: list[tuple[Any, int]] = getattr(obj, "handlers", [])
             if isinstance(handlers, list):
                 for handler, group in handlers:
                     client.add_handler(handler, group)
@@ -220,7 +220,7 @@ class Loader:
         )
         client.add_handler(handler)
 
-        handlers_list: List[MessageHandler] = self.command_handlers.setdefault(
+        handlers_list: list[MessageHandler] = self.command_handlers.setdefault(
             module_name, [])
         handlers_list.append(handler)
 
@@ -229,14 +229,14 @@ class Loader:
         if name not in self.command_handlers:
             return False
 
-        handlers: List[MessageHandler] = self.command_handlers[name]
+        handlers: list[MessageHandler] = self.command_handlers[name]
         for handler in handlers:
             client.remove_handler(handler)
 
         del self.command_handlers[name]
 
         prefix: str = f"{self._package_prefix}{name}."
-        modules_to_delete: List[str] = [
+        modules_to_delete: list[str] = [
             module for module in sys.modules.keys()
             if module.startswith(prefix)
         ]
@@ -248,7 +248,7 @@ class Loader:
 
     async def load_all(self, client: Client) -> None:
         """load all modules"""
-        modules_to_load: List[Path] = [
+        modules_to_load: list[Path] = [
             module for module in self.modules_path.iterdir()
             if module.is_dir() and not module.name.endswith("_")
         ]

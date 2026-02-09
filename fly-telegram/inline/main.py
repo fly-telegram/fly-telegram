@@ -10,6 +10,7 @@
 import asyncio
 import logging
 import os
+import re
 import sys
 from typing import Dict, List, Optional
 from uuid import uuid4
@@ -39,7 +40,8 @@ class Via:
     def add(
         self,
         text: str,
-        buttons: Optional[List[List[Dict]]] = None,
+        prefix: str = "via_",
+        buttons: Optional[list[list[dict]]] = None,
         description: str = "Fly-Telegram system result.",
     ):
         query_id = str(uuid4())
@@ -59,7 +61,7 @@ class Via:
                         InlineKeyboardButton(
                             text=btn.get("text", "button"),
                             callback_data=btn.get(
-                                "callback", f"via_{query_id}_{count}")
+                                "callback", f"{prefix}{query_id}_{count}")
                         )
                     )
                     count += 1
@@ -67,7 +69,7 @@ class Via:
             reply_markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
 
         result = InlineQueryResultArticle(
-            id=f"via_{query_id}",
+            id=f"{prefix}{query_id}",
             title="🕊️ fly telegram v2",
             description=description,
             input_message_content=input_text,
@@ -77,6 +79,7 @@ class Via:
         self.active[query_id] = {
             "text": text,
             "reply_markup": buttons,
+            "prefix": prefix
         }
 
         self.results[query_id] = result
@@ -90,6 +93,7 @@ class Via:
     def update(self, id: str, **kwargs):
         if id in self.active:
             self.active[id].update(kwargs)
+            prefix = self.results[id].get("prefix")
             if id in self.results:
                 result = self.results[id]
                 if "text" in kwargs:
@@ -106,7 +110,7 @@ class Via:
                                     InlineKeyboardButton(
                                         text=btn.get("text", "button"),
                                         callback_data=btn.get(
-                                            "callback", f"via_{id}_{len(keyboard)}")
+                                            "callback", f"{prefix}{id}_{len(keyboard)}")
                                     )
                                 )
                                 count += 1
@@ -135,10 +139,11 @@ class Inline:
     def via(
         self,
         text: str,
-        buttons=None,
-        description: str = "🕊️ fly telegram v2"
+        prefix: str = "via_",
+        buttons: Optional[list[list[dict]]] = None,
+        description: str = "🕊️ fly telegram v2",
     ):
-        return self.viamanager.add(text, buttons, description)
+        return self.viamanager.add(text, prefix, buttons, description)
 
     def update_via(self, id: str, **kwargs):
         self.viamanager.update(id, **kwargs)
@@ -148,8 +153,8 @@ class Inline:
         logging.debug("new inline query: %s", q)
 
         results = []
-        if q.startswith("via_"):
-            query_id = q.split("via_")[-1]
+        if "_" in q:
+            query_id = q.split("_")[-1]
             logging.debug("found new via! ID: %s", query_id)
             if query_id in self.viamanager.results:
                 result = self.viamanager.get_result(query_id)
@@ -160,7 +165,7 @@ class Inline:
             await self._bot.answer_inline_query(
                 inline_query_id=query.id,
                 results=results,
-                cache_time=300,
+                cache_time=20,
                 is_personal=True
             )
         else:
@@ -189,6 +194,13 @@ class Inline:
 
         def decorator(func):
             handler_name = callback_data or func.__name__
+
+            pattern = (
+                f"^{handler_name}$"
+                if not handler_name.startswith('^')
+                else handler_name
+            )
+
             logging.debug("Registering handler '%s' for function '%s'",
                           handler_name, func.__name__)
             logging.debug("Function details: %s", func)
@@ -196,46 +208,22 @@ class Inline:
             func._is_handler = True
             func._handler_name = handler_name
 
-            if handler_name in self.handlers:
-                logging.debug(
-                    "Handler '%s' is already registered. Overwriting it.", handler_name)
-
-            self.handlers[handler_name] = func
+            self.handlers[re.compile(pattern)] = func
             logging.debug("Handler '%s' successfully registered. Current handlers: %s",
                           handler_name, list(self.handlers.keys()))
             return func
         return decorator
 
     async def process_callback(self, callback_query: types.CallbackQuery):
-        logging.debug("Callback query received. Data: %s", callback_query.data)
-        logging.debug("Full callback query object: %s", callback_query)
-
         handler_name = callback_query.data
-        logging.debug(
-            "Processing callback query with handler name: %s", handler_name)
-        logging.debug("Available handlers: %s", list(
-            self.handlers.keys()))
+        call = InlineCall(callback_query)
 
-        try:
-            if handler_name in self.handlers:
-                logging.debug(
-                    "Handler '%s' found. Preparing to execute.", handler_name)
-                call = InlineCall(callback_query)
-                logging.debug("InlineCall object created: %s", call)
-                logging.debug("InlineCall details: %s", call.__dict__)
+        for pattern, func in self.handlers.items():
+            if pattern.match(handler_name):
+                await func(call)
+                return
 
-                logging.debug("Executing handler '%s'...", handler_name)
-                await self.handlers[handler_name](call)
-                logging.debug(
-                    "Handler '%s' executed successfully.", handler_name)
-            else:
-                logging.debug(
-                    "No handler found for callback data: %s", handler_name)
-
-        except Exception as e:
-            logging.error("Error processing callback '%s': %s",
-                          handler_name, str(e), exc_info=True)
-            raise
+        logging.debug("no regex match for: %s", handler_name)
 
     def register_handlers(self, dp: Dispatcher):
         logging.debug("Starting registration of callback query handler.")

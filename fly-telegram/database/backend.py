@@ -29,7 +29,7 @@ class Database(dict):
         self.location = Path(location)
         self.update(**self.load(self.location))
 
-    def load(self, location: Path) -> Dict[str, Any]:
+    def load(self, location: Path) -> dict[str, Any]:
         """
         Loads the database from the JSON file.
 

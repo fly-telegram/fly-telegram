@@ -20,9 +20,9 @@ class ModuleAnalyzer:
     def __init__(self, modules_path: Path) -> None:
         self.modules_path = modules_path
 
-    def get_modules(self) -> List[str]:
+    def get_modules(self) -> list[str]:
         """get all available modules"""
-        modules: List[str] = []
+        modules: list[str] = []
 
         if not self.modules_path.exists():
             return modules
@@ -38,12 +38,12 @@ class ModuleAnalyzer:
 
         return sorted(modules)
 
-    def cmd_info(self, file: Path) -> List[Dict]:
+    def cmd_info(self, file: Path) -> list[dict]:
         """extract info from command"""
-        commands: List[Dict] = []
+        commands: list[dict] = []
 
         try:
-            with open(file, 'r', encoding='utf-8') as f:
+            with open(file, encoding='utf-8') as f:
                 content = f.read()
 
             tree = ast.parse(content)
@@ -55,7 +55,7 @@ class ModuleAnalyzer:
 
                         docstring: str = ast.get_docstring(node) or ""
 
-                        args: List[str] = []
+                        args: list[str] = []
                         for arg in node.args.args:
                             arg_name: str = arg.arg
                             if not arg_name == "self":
@@ -73,16 +73,16 @@ class ModuleAnalyzer:
 
         return commands
 
-    def module_commands(self, name: str) -> List[Dict]:
+    def module_commands(self, name: str) -> list[dict]:
         """get all commands from module"""
-        commands: List[Dict] = []
+        commands: list[dict] = []
         dir: Path = self.modules_path / name / "src"
 
         if not dir.exists():
             return commands
 
         for file in dir.glob("*.py"):
-            file_cmds: List[Dict] = self.cmd_info(file)
+            file_cmds: list[dict] = self.cmd_info(file)
             commands.extend(file_cmds)
 
         return commands

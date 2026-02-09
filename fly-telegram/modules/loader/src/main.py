@@ -72,12 +72,11 @@ async def lm_cmd(self, flags: str):
         except zipfile.BadZipFile:
             await self.message.edit(f"❌ <b>{module_name} is not a valid zip file!</b>")
             return
-        
 
     # meta.json logic
     meta_path = modules_path / module_name / "meta.json"
 
-    with open(meta_path, 'r') as file:
+    with open(meta_path) as file:
         meta = json.load(file)
 
     name = meta.get("name", module_name)
@@ -125,7 +124,7 @@ async def lm_cmd(self, flags: str):
         if "no-delete" not in splitted_flags:
             shutil.rmtree(os.path.join(modules_path, module_name))
         return
-    
+
     await message.edit(
         f"🕊 <b>{name} is loaded!</b>"
     )

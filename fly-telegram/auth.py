@@ -45,7 +45,7 @@ class Auth:
             if error_msg:
                 logging.error(error_msg)
 
-    async def send_code(self) -> Tuple[str, str]:
+    async def send_code(self) -> tuple[str, str]:
         errors_to_catch = (
             errors.PhoneNumberInvalid,
             errors.PhoneNumberBanned,
@@ -77,7 +77,7 @@ class Auth:
             except errors.BadRequest:
                 logging.error("Invalid 2FA password. Try again")
 
-    async def load(self, web=True) -> Tuple[Client, types.User]:
+    async def load(self, web=True) -> tuple[Client, types.User]:
         await self.client.connect()
 
         try:
