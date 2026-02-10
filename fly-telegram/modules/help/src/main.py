@@ -45,7 +45,7 @@ async def support_cmd(self):
     await self.message.delete()
     await inline.say(
         self.client,
-        self.message.chat.id,
+        self.message,
         "🕊 <b>Do you want to join the support chat?</b>",
         prefix="help_support_",
         buttons=[

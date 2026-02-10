@@ -12,7 +12,7 @@ import logging
 import os
 import re
 import sys
-from typing import Optional, Union
+from typing import Optional
 from uuid import uuid4
 
 from aiogram import Bot, Dispatcher, types
@@ -22,6 +22,7 @@ from aiogram.types import (InlineKeyboardButton, InlineKeyboardMarkup,
 from aiogram.utils.exceptions import Unauthorized
 from database import database
 from pyrogram import Client
+from pyrogram.types import Message
 
 from .botmanager import BotManager
 from .call import InlineCall
@@ -141,12 +142,15 @@ class Inline:
     async def say(
         self,
         client: Client,
-        chat_id: Union[int, str],
+        message: Message,
         text: str,
-        prefix: str = "via_",
         buttons: Optional[list[list[dict]]] = None,
-        description: str = "🕊️ fly telegram v2",
+        **kwargs
     ) -> str:
+        chat_id = kwargs.get('chat_id', message.chat.id)
+        prefix = kwargs.get('prefix', 'via_')
+        description = kwargs.get('description', "🕊️ fly telegram v2")
+
         uuid = self.viamanager.add(text, prefix, buttons, description)
 
         me = await self.bot.get_me()
@@ -158,7 +162,9 @@ class Inline:
         await client.send_inline_bot_result(
             chat_id,
             results.query_id,
-            results.results[0].id
+            results.results[0].id,
+            message_thread_id=getattr(
+                message, 'topic', None) and message.topic.id,
         )
         return uuid
 
