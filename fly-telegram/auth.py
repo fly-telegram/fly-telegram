@@ -82,10 +82,9 @@ class Auth:
 
         try:
             me = await self.client.get_me()
-
         except errors.AuthKeyUnregistered:
             if web:
-                await self.web.run()
+                self.client, me = await self.web.run()
             else:
                 phone, code_hash = await self.send_code()
                 me = await self.enter_code(phone, code_hash) or await self.enter_2fa()
