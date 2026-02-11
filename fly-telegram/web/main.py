@@ -75,11 +75,12 @@ class Web:
                 else:
                     user = await self.client.sign_in(phone, code_hash, code)
 
-                response = JSONResponse(content={"user": user.first_name, "status": "success"})
+                response = JSONResponse(
+                    content={"user": user.first_name, "status": "success"})
 
                 if self.server:
                     self.server.should_exit = True
-                    #await self.server.shutdown()
+                    # await self.server.shutdown()
 
                 return response
             except errors.SessionPasswordNeeded:

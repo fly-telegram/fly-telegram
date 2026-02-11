@@ -7,8 +7,9 @@
 #              🔒 Licensed under the СС-by-NC
 #           creativecommons.org/licenses/by-nc/4.0/
 
+import asyncio
 import logging
-from typing import Union
+from typing import Optional, Union
 
 from pyrogram import Client, types
 
@@ -38,10 +39,18 @@ class Conversation:
         self.chat = chat
         self.clear = clear
 
+        self.last = 0
+        self.timeout = 10
+
     async def __aenter__(self) -> "Conversation":
         """
         Enters the conversation context.
         """
+        try:
+            async for message in self.client.get_chat_history(self.chat, limit=1):
+                self.last = message.id
+        except Exception:
+            self.last = 0
         return self
 
     async def __aexit__(
@@ -77,10 +86,12 @@ class Conversation:
         Returns:
             types.Message: The sent message.
         """
-        return await self.client.send_message(
+        message = await self.client.send_message(
             self.chat, text, *args, **kwargs)
+        self.last = message.id
+        return message
 
-    async def response(self, timeout: int = 30, limit: int = 1) -> types.Message:
+    async def response(self, timeout: Optional[int] = None) -> types.Message:
         """
         Waits for a response from the chat.
 
@@ -94,11 +105,20 @@ class Conversation:
         Raises:
             RuntimeError: If the timeout is reached.
         """
-        async for response in self.client.get_chat_history(self.chat, limit=limit):
-            if not response.from_user.is_self:
-                return response
+        timeout = timeout or self.timeout
 
-        raise RuntimeError("Timeout error")
+        while timeout > 0:
+            async for message in self.client.get_chat_history(self.chat, limit=1):
+                if (
+                    message.id > self.last
+                    and not message.from_user.is_self
+                ):
+                    self.last = message.id
+                    return message
+            await asyncio.sleep(0.5)
+            timeout -= 0.5
+
+        raise TimeoutError(f"TimeOut error")
 
     async def clear_messages(self) -> None:
         """

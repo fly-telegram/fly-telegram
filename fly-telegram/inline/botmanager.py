@@ -8,6 +8,7 @@
 #           creativecommons.org/licenses/by-nc/4.0/
 
 import asyncio
+import logging
 import os
 import random
 import re
@@ -54,7 +55,8 @@ class BotManager:
                 await asyncio.sleep(0.5)
                 try:
                     await conv.send(message)
-                    response = await conv.response(limit=2)
+                    response = await conv.response()
+
                     match = re.search(token_pattern, response.text)
 
                     if match:
