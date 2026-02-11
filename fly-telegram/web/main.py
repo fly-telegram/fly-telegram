@@ -87,7 +87,7 @@ class Web:
             except errors.BadRequest:
                 raise HTTPException(status_code=402, detail="Invalid code")
             except Exception as err:
-                raise HTTPException(status_code=403, detail=f"Error: {err}")
+                raise HTTPException(status_code=403, detail=str(err))
 
     async def run(self, host: str = "0.0.0.0", port: int = 8000):
         config = uvicorn.Config(self.app, host=host, port=port)

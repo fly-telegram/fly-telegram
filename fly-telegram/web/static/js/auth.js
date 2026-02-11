@@ -120,6 +120,9 @@ async function handleTwoFaSubmit() {
   const password = twoFaPasswordInput.value.trim();
   const phoneNumber = phoneNumberInput.value.trim();
 
+  const code = loginInput.value.trim()
+  const code_hash = loginInput.getAttribute('data-code-hash')
+
   if (!password) {
     showNotification('Please enter your 2FA password.');
     return;
@@ -128,12 +131,15 @@ async function handleTwoFaSubmit() {
   try {
     const response = await sendRequest('/sign_in', { 
       phone: phoneNumber, 
-      password: password 
+      password: password,
+      code: code,
+      code_hash: code_hash
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      showNotification(errorData.detail || 'Failed to sign in');
+      const err = await response.json();
+      const message = err.detail;
+      showNotification(typeof msg == 'string' ? msg : JSON.stringify(msg));
       return;
     }
 
@@ -141,7 +147,7 @@ async function handleTwoFaSubmit() {
     showNotification(`Welcome, ${data.user}!`);
     popupContainer.style.display = 'none';
   } catch (error) {
-    showNotification('Failed to sign in');
+    showNotification(error.message || 'Failed to sign in');
   }
 }
 
