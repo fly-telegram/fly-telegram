@@ -125,6 +125,25 @@ class CommandWrapper:
         return getattr(self.client, name)
 
 
+class Events:
+    def __init__(self) -> None:
+        self.load: dict[str, list[Callable]] = {}
+        self.watchers: dict[str, list[Callable]] = {}
+
+    @staticmethod
+    def on_load(func: Callable) -> Callable:
+        func.on_load = True
+        return func
+
+    @staticmethod
+    def watcher(func: Callable) -> Callable:
+        func.watcher = True
+        return func
+
+
+events = Events()
+
+
 class Loader:
     """fly-telegram modules loader"""
 
@@ -137,10 +156,12 @@ class Loader:
         self.core_modules: tuple[str, ...] = (
             "help", "loader", "core", "executor")
         self.command_handlers: dict[str, list[MessageHandler]] = {}
+        self.func_events: dict[str, dict[str, list[Callable]]] = {}
         self._package_prefix: str = (
             f"{__package__}.modules." if __package__
             else "fly-telegram.modules."
         )  # if not package - many path
+        self.events = events
 
     @staticmethod
     def timeout(seconds: int) -> Callable:
@@ -164,6 +185,11 @@ class Loader:
         if name in self.command_handlers:
             await self.unload(name, client)
 
+        self.func_events[name] = {
+            "load": [],
+            "watchers": []
+        }
+
         sources: Path = path / "src"
         module_commands: list[str] = []
         module_prefix: str = f"{self._package_prefix}{name}.src."
@@ -181,6 +207,16 @@ class Loader:
                     command_name: str = func_name[:-4]
                     module_commands.append(command_name)
                     self._register_command(client, command_name, func, name)
+                if getattr(func, "on_load", False):
+                    self.func_events[name]["load"].append(func)
+                # if getattr(func, "watcher"):
+                #    self._register_watcher(client, func, name)
+
+            for event in self.func_events[name]["load"]:
+                if inspect.iscoroutinefunction(event):
+                    asyncio.create_task(event(client))
+                else:
+                    event(client)
 
             self._process_module_handlers(module, client)
 
