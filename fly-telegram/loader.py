@@ -136,9 +136,16 @@ class Events:
         return func
 
     @staticmethod
-    def watcher(func: Callable) -> Callable:
-        func.watcher = True
-        return func
+    def watcher(type: str = "message", regex: str = None,
+                out: bool = False, coming: bool = True):
+        def decorator(func: Callable) -> Callable:
+            func.watcher = True
+            func.watcher_type = type
+            func.watcher_regex = regex
+            func.watcher_out = out
+            func.watcher_coming = coming
+            return func
+        return decorator
 
 
 events = Events()
@@ -209,8 +216,8 @@ class Loader:
                     self._register_command(client, command_name, func, name)
                 if getattr(func, "on_load", False):
                     self.func_events[name]["load"].append(func)
-                # if getattr(func, "watcher"):
-                #    self._register_watcher(client, func, name)
+                if getattr(func, "watcher", None):
+                    self._register_watcher(client, func, name)
 
             for event in self.func_events[name]["load"]:
                 if inspect.iscoroutinefunction(event):
@@ -224,6 +231,50 @@ class Loader:
             await self._restart_dispatcher(client)
 
         return True
+
+    def _register_watcher(self, client: Client,
+                          func: Callable, name: str):
+        watcher_type = getattr(func, "watcher_type", "message")
+        watcher_regex = getattr(func, "watcher_regex", None)
+
+        watcher_out = getattr(func, "watcher_out", False)
+        watcher_coming = getattr(func, "watcher_coming", True)
+
+        # ia tochno peredelayi ne pod filtri. ili tak norm?
+
+        watcher_types = {  # maybe shitcode. sorry
+            "all": filters.all,
+            "message": filters.text,
+            "photo": filters.photo,
+            "video": filters.video,
+            "voice": filters.voice,
+            "audio": filters.audio,
+            "document": filters.document,
+            "sticker": filters.sticker,
+        }
+
+        used = watcher_types.get(watcher_type)
+
+        if watcher_out and not watcher_coming:
+            used &= filters.me
+        elif watcher_coming and not watcher_out:
+            used &= ~filters.me
+
+        if watcher_regex:
+            used &= filters.regex(watcher_regex)
+
+        async def wrapper(c: Client, message: Message):
+            try:
+                if inspect.iscoroutinefunction(func):
+                    await func(c, message)
+                else:
+                    func(c, message)
+            except Exception as err:
+                logging.error(f"watcher error in {name}: {err}")
+
+        handler = MessageHandler(wrapper, filters=used)
+        client.add_handler(handler)
+        self.command_handlers.setdefault(name, []).append(handler)
 
     def _import_or_reload(self, module_name: str) -> Any:
         if module_name in sys.modules:
