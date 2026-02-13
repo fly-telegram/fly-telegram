@@ -233,16 +233,16 @@ class Loader:
         return True
 
     def _register_watcher(self, client: Client,
-                          func: Callable, name: str):
-        watcher_type = getattr(func, "watcher_type", "message")
-        watcher_regex = getattr(func, "watcher_regex", None)
+                          func: Callable, name: str) -> MessageHandler:
+        watcher_type: str = getattr(func, "watcher_type", "message")
+        watcher_regex: str = getattr(func, "watcher_regex", None)
 
-        watcher_out = getattr(func, "watcher_out", False)
-        watcher_coming = getattr(func, "watcher_coming", True)
+        watcher_out: bool = getattr(func, "watcher_out", False)
+        watcher_coming: bool = getattr(func, "watcher_coming", True)
 
         # ia tochno peredelayi ne pod filtri. ili tak norm?
 
-        watcher_types = {  # maybe shitcode. sorry
+        watcher_types: dict[str, Any] = {  # maybe shitcode. sorry
             "all": filters.all,
             "message": filters.text,
             "photo": filters.photo,
@@ -275,6 +275,8 @@ class Loader:
         handler = MessageHandler(wrapper, filters=used)
         client.add_handler(handler)
         self.command_handlers.setdefault(name, []).append(handler)
+
+        return handler
 
     def _import_or_reload(self, module_name: str) -> Any:
         if module_name in sys.modules:
