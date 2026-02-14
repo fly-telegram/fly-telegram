@@ -327,8 +327,8 @@ class Loader:
 
     async def unload(self, name: str, client: Client) -> bool:
         """unload module by name"""
-        if name not in self.command_handlers:
-            return False
+        if name in self.core_modules:
+            raise PermissionError("Cannot unload core module!")
 
         handlers: list[MessageHandler] = self.command_handlers[name]
         for handler in handlers:
