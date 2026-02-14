@@ -25,6 +25,7 @@ from loader import Loader
 
 loader = Loader()
 
+
 @loader.alias('lm')
 async def load_cmd(self, flags: str):
     splitted_flags = flags.split()  # .lm no-delete
@@ -128,6 +129,7 @@ async def load_cmd(self, flags: str):
     await message.edit(
         f"🕊 <b>{name} is loaded!</b>"
     )
+
 
 @loader.alias('unlm')
 async def unload_cmd(self, name: str):
