@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     pass
 
 from pyrogram import Client, filters
-from pyrogram.handlers import MessageHandler
+from pyrogram.handlers import MessageHandler, EditedMessageHandler
 from pyrogram.types import Message
 
 THE_DIR = Path(__file__).parent
@@ -315,11 +315,19 @@ class Loader:
         async def wrapped_command(_: Any, message: Message) -> None:
             await wrapper(message)
 
+        cmd_filter = filters.command([command_name], ".") & filters.me
+
         handler: MessageHandler = MessageHandler(
             wrapped_command,
-            filters.command([command_name], ".") & filters.me
+            cmd_filter
         )
         client.add_handler(handler)
+
+        edited_handler: EditedMessageHandler = EditedMessageHandler(
+            wrapped_command,
+            cmd_filter
+        )
+        client.add_handler(edited_handler)
 
         handlers_list: list[MessageHandler] = self.command_handlers.setdefault(
             module_name, [])
