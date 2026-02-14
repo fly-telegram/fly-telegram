@@ -25,8 +25,8 @@ from loader import Loader
 
 loader = Loader()
 
-
-async def lm_cmd(self, flags: str):
+@loader.alias('lm')
+async def load_cmd(self, flags: str):
     splitted_flags = flags.split()  # .lm no-delete
 
     reply = self.message.reply_to_message
@@ -127,4 +127,29 @@ async def lm_cmd(self, flags: str):
 
     await message.edit(
         f"🕊 <b>{name} is loaded!</b>"
+    )
+
+@loader.alias('unlm')
+async def unload_cmd(self, name: str):
+    # fly-telegram/fly-telegram/modules
+    modules_path = Path(__file__).parent.parent.parent
+
+    message = await self.message.edit(
+        f"🕊 <b>{name}</b>\n"
+        "<code>Removing module...</code>"
+    )
+
+    try:
+        await loader.unload(name, self.client)
+    except Exception as error:
+        await self.message.edit(
+            f"❌ <b>{name} unloading error</b>\n"
+            f"<code>{error}</code>"
+        )
+        return
+
+    shutil.rmtree(os.path.join(modules_path, name))
+
+    await message.edit(
+        f"🕊 <b>{name} unloaded!</b>"
     )
