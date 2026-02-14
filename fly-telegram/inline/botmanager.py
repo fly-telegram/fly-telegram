@@ -8,7 +8,6 @@
 #           creativecommons.org/licenses/by-nc/4.0/
 
 import asyncio
-import logging
 import os
 import random
 import re

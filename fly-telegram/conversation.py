@@ -118,7 +118,7 @@ class Conversation:
             await asyncio.sleep(0.5)
             timeout -= 0.5
 
-        raise TimeoutError(f"TimeOut error")
+        raise TimeoutError("TimeOut error")
 
     async def clear_messages(self) -> None:
         """
