@@ -171,6 +171,13 @@ class Loader:
         self.events = events
 
     @staticmethod
+    def alias(*aliases: str) -> Callable:
+        def decorator(func: Callable) -> Callable:
+            func.aliases = aliases
+            return func
+        return decorator
+
+    @staticmethod
     def timeout(seconds: int) -> Callable:
         def decorator(func: Callable) -> Callable:
             func.timeout = seconds
@@ -211,9 +218,14 @@ class Loader:
 
             for func_name, func in inspect.getmembers(module, inspect.isfunction):
                 if func_name.endswith("_cmd"):
+                    aliases = getattr(func, 'aliases', ())
                     command_name: str = func_name[:-4]
-                    module_commands.append(command_name)
-                    self._register_command(client, command_name, func, name)
+                    names = {command_name}.union(aliases)
+
+                    for command in names:
+                        module_commands.append(command)
+                        self._register_command(client, command, func, name)
+
                 if getattr(func, "on_load", False):
                     self.func_events[name]["load"].append(func)
                 if getattr(func, "watcher", None):

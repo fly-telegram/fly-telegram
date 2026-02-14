@@ -10,6 +10,9 @@
 import ast
 
 from inline import inline
+from loader import Loader
+
+loader = Loader()
 
 
 def insert_returns(body):
@@ -38,6 +41,7 @@ async def run_code(code, env={}):
         return error
 
 
+@loader.alias('e')
 async def eval_cmd(self, code):
     """The eval command for execute python code."""
     result = await run_code(
