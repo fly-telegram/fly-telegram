@@ -332,6 +332,7 @@ class Loader:
         handlers_list: list[MessageHandler] = self.command_handlers.setdefault(
             module_name, [])
         handlers_list.append(handler)
+        handlers_list.append(edited_handler)
 
     async def unload(self, name: str, client: Client) -> bool:
         """unload module by name"""
