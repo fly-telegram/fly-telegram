@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     pass
 
 from pyrogram import Client, filters
-from pyrogram.handlers import MessageHandler, EditedMessageHandler
+from pyrogram.handlers import EditedMessageHandler, MessageHandler
 from pyrogram.types import Message
 
 THE_DIR = Path(__file__).parent
