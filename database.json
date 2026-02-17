@@ -1,7 +1,0 @@
-{
-  "inline_token": null,
-  "updater": {
-    "origin": "https://github.com/fly-telegram/fly-telegram.git",
-    "branch": "v2"
-  }
-}
