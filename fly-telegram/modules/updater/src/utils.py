@@ -7,9 +7,9 @@
 #            🔒 Licensed under the GNU-APGL 3.0
 #             www.gnu.org/licenses/agpl-3.0.html
 
-import git
 import os
 
+import git
 from database import database
 
 try:
@@ -20,6 +20,20 @@ try:
 
 except git.exc.InvalidGitRepositoryError:
     repo = git.Repo.init(os.path.dirname(os.path.abspath(__name__)))
-    origin = repo.create_remote("origin", database.get("git.origin"))
+    origin = repo.create_remote("origin", database.get("updater", "origin"))
 
     repo_initialized = False
+
+
+def check() -> bool:
+    branch = database.get("updater", "branch")
+
+    if branch in repo.heads:
+        local = repo.heads[branch].commit
+    else:
+        return True
+
+    origin.fetch(branch)
+    remote = origin.refs[branch].commit
+
+    return local != remote
