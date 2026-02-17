@@ -28,7 +28,7 @@ async def update_cmd(self):
         self.client,
         self.message,
         "🕊 <b>Update now?</b>",
-        prefix="help_update_"
+        prefix="help_update_",
         buttons=[
             [{"text": "✅ Yes"}],
             [{"text": "❌ No"}]
