@@ -41,7 +41,7 @@ async def update(call: InlineCall):
     branch = database.get("updater", "branch")
     if not check():
         await call.bot.edit_message_text(
-            text='🕊 <b>Installed latest version!</b>',
+            text='🕊 <b>Already installed latest version!</b>',
             parse_mode="HTML",
             inline_message_id=call.inline_message_id
         )
