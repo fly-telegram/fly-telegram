@@ -30,9 +30,9 @@ async def command_cmd(self):
         ]
     )
 
+
 # your handler
-
-
 async def bot_reply(call: InlineCall):
     await call.answer("inline is easy!")             # return answer
+
 
