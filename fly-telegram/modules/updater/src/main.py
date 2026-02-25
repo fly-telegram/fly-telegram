@@ -9,9 +9,9 @@
 
 import os
 import sys
+from time import perf_counter
 
 import git
-from time import perf_counter
 from database import database
 from inline import InlineCall, inline
 from loader import Loader, events
@@ -19,6 +19,7 @@ from loader import Loader, events
 from .utils import check, origin, repo
 
 loader = Loader()
+
 
 @events.on_load
 async def on_load(client):
@@ -36,12 +37,13 @@ async def on_load(client):
                 inline_message_id=data.get('message_id')
             )
             return
-        
+
         await client.edit_message_text(
             chat_id=data.get('chat_id'),
             message_id=data.get('message_id'),
             text=data.get('text').format(f"{end:.3f}")
         )
+
 
 async def restart_cmd(self):
     await self.message.edit("🕊 <b>Restarting...</b>")
@@ -58,6 +60,7 @@ async def restart_cmd(self):
         sys.executable,
         sys.executable,
         "-m", "fly-telegram")
+
 
 @loader.alias("upd")
 async def update_cmd(self):
@@ -80,6 +83,7 @@ async def update_cmd(self):
         ]
     )
 
+
 async def update_handler(call: InlineCall):
     branch = database.get("updater", "branch")
     if not check():
@@ -89,9 +93,9 @@ async def update_handler(call: InlineCall):
             inline_message_id=call.inline_message_id
         )
         return
-    
+
     start = perf_counter()
-    
+
     database.set("restart", {
         "chat_id":  None,
         "message_id": call.inline_message_id,

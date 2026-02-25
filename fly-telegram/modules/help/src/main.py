@@ -60,6 +60,7 @@ async def support_cmd(self):
         ]
     )
 
+
 async def yes_handler(call: InlineCall):
     await call.client.join_chat("t.me/flyTG_support")
     await call.bot.edit_message_text(
@@ -70,6 +71,7 @@ async def yes_handler(call: InlineCall):
         parse_mode="HTML",
         inline_message_id=call.inline_message_id
     )
+
 
 async def no_handler(call: InlineCall):
     await call.bot.edit_message_text(
