@@ -34,7 +34,7 @@ async def check_updates(client):
                 "text": "📥 Install!",
                 "callback": update_handler,
             }]
-        ]
+        ],
         chat_id="me",
     )
 
