@@ -9,7 +9,7 @@
 
 """The example module"""
 
-from inline import InlineCall, inline, make_keyboard  # /fly-telegram/inline
+from inline import InlineCall, inline  # /fly-telegram/inline
 
 
 # _cmd is required for command functions
@@ -24,12 +24,15 @@ async def command_cmd(self):
             [                                        # row. btn | btn | btn
                 {
                     "text": "test",                  # the button name
-                    "callback": bot_reply            # callback. callable function.
+                    # callback. callable function.
+                    "callback": bot_reply
                 }
             ]
         ]
     )
 
 # your handler
+
+
 async def bot_reply(call: InlineCall):
     await call.answer("inline is easy!")             # return answer

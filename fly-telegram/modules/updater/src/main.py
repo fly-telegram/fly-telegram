@@ -21,6 +21,11 @@ from .utils import check, origin, repo
 loader = Loader()
 
 
+@events.loop(every=30)
+async def ok(client):
+    print('ok')
+
+
 @events.on_load
 async def on_load(client):
     if database.get('restart'):

@@ -129,11 +129,20 @@ class Events:
     def __init__(self) -> None:
         self.load: dict[str, list[Callable]] = {}
         self.watchers: dict[str, list[Callable]] = {}
+        self.loops: dict[str, list[tuple[Callable, int]]] = {}
 
     @staticmethod
     def on_load(func: Callable) -> Callable:
         func.on_load = True
         return func
+
+    @staticmethod
+    def loop(every: int) -> Callable:
+        def decorator(func: Callable) -> Callable:
+            func.loop = True
+            func.loop_interval = every
+            return func
+        return decorator
 
     @staticmethod
     def watcher(type: str = "message", regex: str = None,
@@ -164,6 +173,7 @@ class Loader:
             "help", "loader", "core", "executor")
         self.command_handlers: dict[str, list[MessageHandler]] = {}
         self.func_events: dict[str, dict[str, list[Callable]]] = {}
+        self.func_tasks: dict[str, list[asyncio.Task]] = {}
         self._package_prefix: str = (
             f"{__package__}.modules." if __package__
             else "fly-telegram.modules."
@@ -201,8 +211,11 @@ class Loader:
 
         self.func_events[name] = {
             "load": [],
-            "watchers": []
+            "watchers": [],
+            "loops": []
         }
+
+        self.func_tasks[name] = []
 
         sources: Path = path / "src"
         module_commands: list[str] = []
@@ -230,6 +243,14 @@ class Loader:
                     self.func_events[name]["load"].append(func)
                 if getattr(func, "watcher", None):
                     self._register_watcher(client, func, name)
+                if getattr(func, "loop", False):
+                    every = getattr(func, "loop_interval", 60)
+                    self.func_events[name]["loops"].append((func, every))
+
+                    task = asyncio.create_task(
+                        self._run_loop(client, func, every, name)
+                    )
+                    self.func_tasks[name].append(task)
 
             for event in self.func_events[name]["load"]:
                 if inspect.iscoroutinefunction(event):
@@ -243,6 +264,23 @@ class Loader:
             await self._restart_dispatcher(client)
 
         return True
+
+    async def _run_loop(self, client: Client, func: Callable,
+                        every: int, name: str) -> None:
+        while True:
+            try:
+                if inspect.iscoroutinefunction(func):
+                    await func(client)
+                else:
+                    await asyncio.get_event_loop().run_in_executor(
+                        None, func, client)
+
+                await asyncio.sleep(every)
+            except asyncio.CancelledError:
+                break
+
+            except Exception as error:
+                logging.error(f"Module '{name}' loop error: {error}")
 
     def _register_watcher(self, client: Client,
                           func: Callable, name: str) -> MessageHandler:
@@ -338,6 +376,13 @@ class Loader:
         """unload module by name"""
         if name in self.core_modules:
             raise PermissionError("Cannot unload core module!")
+
+        if name in self.func_tasks:
+            for task in self.func_tasks[name]:
+                task.cancel()
+            if self.func_tasks[name]:
+                await asyncio.gather(*self.func_tasks[name], return_exceptions=True)
+            del self.func_tasks[name]
 
         handlers: list[MessageHandler] = self.command_handlers[name]
         for handler in handlers:
