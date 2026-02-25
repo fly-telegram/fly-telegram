@@ -11,14 +11,53 @@ import os
 import sys
 
 import git
+from time import perf_counter
 from database import database
 from inline import InlineCall, inline
-from loader import Loader
+from loader import Loader, events
 
 from .utils import check, origin, repo
 
 loader = Loader()
 
+@events.on_load
+async def on_load(client):
+    if database.get('restart'):
+        data = database.get('restart')
+        database.set('restart', {})
+
+        end = perf_counter() - data.get('time')
+        text = data.get('text')
+
+        if data.get('inline'):
+            await inline.bot.edit_message_text(
+                text=text.format(f"{end:.3f}"),
+                parse_mode="HTML",
+                inline_message_id=data.get('message_id')
+            )
+            return
+        
+        await client.edit_message_text(
+            chat_id=data.get('chat_id'),
+            message_id=data.get('message_id'),
+            text=data.get('text').format(f"{end:.3f}")
+        )
+
+async def restart_cmd(self):
+    await self.message.edit("🕊 <b>Restarting...</b>")
+    start = perf_counter()
+    database.set("restart", {
+        "chat_id": self.message.chat.id,
+        "message_id": self.message.id,
+        "time": start,
+        "text": "🕊 <b>Restarted! ({}s)</b>",
+        "inline": False
+    })
+
+    os.execl(
+        sys.executable,
+        sys.executable,
+        "-m", "fly-telegram")
 
 @loader.alias("upd")
 async def update_cmd(self):
@@ -50,6 +89,16 @@ async def update_handler(call: InlineCall):
             inline_message_id=call.inline_message_id
         )
         return
+    
+    start = perf_counter()
+    
+    database.set("restart", {
+        "chat_id":  None,
+        "message_id": call.inline_message_id,
+        "time": start,
+        "text": "🕊 <b>Updated! ({}s)</b>",
+        "inline": True
+    })
 
     await call.bot.edit_message_text(
         text='🕊 <b>Updating...</b>',
