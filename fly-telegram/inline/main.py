@@ -176,8 +176,12 @@ class Inline:
             chat_id=kwargs.get('chat_id', message.chat.id),
             query_id=results.query_id,
             result_id=results.results[0].id,
-            message_thread_id=getattr(
-                message, 'topic', None) and message.topic.id
+            message_thread_id = (
+                getattr(message, 'topic', None) 
+                and message.topic.id 
+                if not message is None 
+                else None
+            )
         )
         return query_id
 

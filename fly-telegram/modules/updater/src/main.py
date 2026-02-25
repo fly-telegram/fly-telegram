@@ -21,6 +21,23 @@ from .utils import check, origin, repo
 loader = Loader()
 
 
+@events.loop(every=600) # 10 min
+async def check_updates(client):
+    if not check():
+        return
+    
+    await inline.say(
+        client, None,
+        "🕊 <b>New update available!</b>",
+        buttons=[
+            [{
+                "text": "📥 Install!",
+                "callback": update_handler,
+            }]
+        ]
+        chat_id="me",
+    )
+
 @events.on_load
 async def on_load(client):
     if database.get('restart'):
@@ -70,7 +87,6 @@ async def update_cmd(self):
         self.client,
         self.message,
         "🕊 <b>Update now?</b>",
-        prefix="help_update_",
         buttons=[
             [{
                 "text": "✅ Yes",
