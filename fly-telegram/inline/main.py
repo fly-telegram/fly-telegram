@@ -173,7 +173,8 @@ class Inline:
         results = await client.get_inline_bot_results(me.username, f"via_{query_id}")
 
         await client.send_inline_bot_result(
-            chat_id=kwargs.get('chat_id', message.chat.id if message else None),
+            chat_id=kwargs.get(
+                'chat_id', message.chat.id if message else None),
             query_id=results.query_id,
             result_id=results.results[0].id,
             message_thread_id=(
