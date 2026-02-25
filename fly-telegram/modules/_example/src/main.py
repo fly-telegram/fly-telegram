@@ -24,8 +24,7 @@ async def command_cmd(self):
             [                                        # row. btn | btn | btn
                 {
                     "text": "test",                  # the button name
-                    # callback. callable function.
-                    "callback": bot_reply
+                    "callback": bot_reply            # your handler. callable function.
                 }
             ]
         ]
@@ -36,3 +35,4 @@ async def command_cmd(self):
 
 async def bot_reply(call: InlineCall):
     await call.answer("inline is easy!")             # return answer
+
