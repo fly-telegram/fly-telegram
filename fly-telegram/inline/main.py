@@ -10,7 +10,6 @@
 import asyncio
 import logging
 import os
-import re
 import sys
 from typing import Optional
 from uuid import uuid4
@@ -33,17 +32,22 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 class Via:
     def __init__(self) -> None:
         if '_via' not in sys.modules:
-            sys.modules['_via'] = {'active': {}, 'results': {}}
+            sys.modules['_via'] = {
+                'active': {},
+                'results': {},
+                'handlers': {}
+            }
 
         self.active = sys.modules['_via']['active']
         self.results = sys.modules['_via']['results']
+        self.handlers = sys.modules['_via']['handlers']
 
     def add(
         self,
         text: str,
         prefix: str = "via_",
         buttons: Optional[list[list[dict]]] = None,
-        description: str = "Fly-Telegram system result.",
+        description: str = "🕊️ fly telegram system result",
     ):
         query_id = str(uuid4())
         input_text = InputTextMessageContent(
@@ -52,21 +56,28 @@ class Via:
         )
 
         reply_markup = None
+        buttons_uuid = []
+
         if buttons:
             keyboard = []
-            count = 0
 
             for brow in buttons:
                 row = []
                 for btn in brow:
+                    callback = btn.get('callback')
+                    if not callable(callback):
+                        raise TypeError("callback must be a callable!")
+
+                    button_uuid = str(uuid4())
+                    buttons_uuid.append(button_uuid)
+                    self.handlers[button_uuid] = callback
+
                     row.append(
                         InlineKeyboardButton(
                             text=btn.get("text", "button"),
-                            callback_data=btn.get(
-                                "callback", f"{prefix}{query_id}_{count}")
+                            callback_data=button_uuid
                         )
                     )
-                    count += 1
                 keyboard.append(row)
             reply_markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
 
@@ -81,7 +92,8 @@ class Via:
         self.active[query_id] = {
             "text": text,
             "reply_markup": buttons,
-            "prefix": prefix
+            "prefix": prefix,
+            "buttons_uuid": buttons_uuid
         }
 
         self.results[query_id] = result
@@ -92,35 +104,47 @@ class Via:
         logging.debug(self.results)
         return self.results[id]
 
+    def get_huuid(self, uuid: str):
+        logging.debug(self.handlers)
+        return self.handlers.get(uuid)
+
     def update(self, id: str, **kwargs):
         if id in self.active:
-            self.active[id].update(kwargs)
-            prefix = self.results[id].get("prefix")
-            if id in self.results:
-                result = self.results[id]
-                if "text" in kwargs:
-                    result.input_message_content.message_text = kwargs["text"]
-                if "buttons" in kwargs:
-                    if kwargs["buttons"]:
-                        keyboard = []
-                        count = 0
+            old = self.active[id]
+            for old_uuid in old.get('buttons_uuid', []):
+                self.handlers.pop(old_uuid, None)
+            old.update(kwargs)
 
-                        for brow in kwargs["buttons"]:
-                            row = []
-                            for btn in brow:
-                                row.append(
-                                    InlineKeyboardButton(
-                                        text=btn.get("text", "button"),
-                                        callback_data=btn.get(
-                                            "callback", f"{prefix}{id}_{len(keyboard)}")
-                                    )
+            if "buttons" in kwargs:
+                buttons = kwargs["buttons"]
+                reply_markup = None
+                new_uuid = []
+                if buttons:
+                    keyboard = []
+                    for brow in buttons:
+                        row = []
+                        for btn in brow:
+                            callback_func = btn.get("callback")
+                            if not callable(callback_func):
+                                raise TypeError("callback must be a callable!")
+                            btn_uuid = str(uuid4())
+                            self.handlers[btn_uuid] = callback_func
+                            new_uuid.append(btn_uuid)
+                            row.append(
+                                InlineKeyboardButton(
+                                    text=btn.get("text", "button"),
+                                    callback_data=btn_uuid
                                 )
-                                count += 1
-                                keyboard.append(row)
-                        result.reply_markup = InlineKeyboardMarkup(
-                            inline_keyboard=keyboard)
-                    else:
-                        result.reply_markup = None
+                            )
+                        keyboard.append(row)
+                    reply_markup = InlineKeyboardMarkup(
+                        inline_keyboard=keyboard)
+                old["buttons_uuid"] = new_uuid
+                if id in self.results:
+                    self.results[id].reply_markup = reply_markup
+
+            if "text" in kwargs and id in self.results:
+                self.results[id].input_message_content.message_text = kwargs["text"]
 
 
 class Inline:
@@ -128,45 +152,34 @@ class Inline:
         self.client = None
         self._bot: Bot = None
         self.dp: Dispatcher = None
-        self.viamanager = Via()
         logging.debug("New instance: %s", id(self))
-
-        # suka, takoi govnokod nize, no ia zaebalsa. kto pofixit eto - pull request pls. ia ne znay chto delat....
-        if '_inline' not in sys.modules:
-            sys.modules['_inline'] = {'handlers': {}}
-        elif 'handlers' not in sys.modules['_inline']:
-            sys.modules['_inline']['handlers'] = {}
-
-        self.handlers = sys.modules['_inline']['handlers']
+        self.viamanager = Via()
 
     async def say(
-        self,
-        client: Client,
-        message: Message,
-        text: str,
-        buttons: Optional[list[list[dict]]] = None,
-        **kwargs
-    ) -> str:
-        chat_id = kwargs.get('chat_id', message.chat.id)
-        prefix = kwargs.get('prefix', 'via_')
-        description = kwargs.get('description', "🕊️ fly telegram v2")
-
-        uuid = self.viamanager.add(text, prefix, buttons, description)
+            self,
+            client: Client,
+            message: Message,
+            text: str,
+            buttons: Optional[list[list[dict]]] = None,
+            **kwargs) -> str:
+        query_id = self.viamanager.add(
+            text,
+            kwargs.get('prefix', 'via_'),
+            buttons,
+            kwargs.get('description', '')
+        )
 
         me = await self.bot.get_me()
-        results = await client.get_inline_bot_results(
-            me.username,
-            f"{prefix}{uuid}"
-        )
+        results = await client.get_inline_bot_results(me.username, f"via_{query_id}")
 
         await client.send_inline_bot_result(
-            chat_id,
-            results.query_id,
-            results.results[0].id,
+            chat_id=kwargs.get('chat_id', message.chat.id),
+            query_id=results.query_id,
+            result_id=results.results[0].id,
             message_thread_id=getattr(
-                message, 'topic', None) and message.topic.id,
+                message, 'topic', None) and message.topic.id
         )
-        return uuid
+        return query_id
 
     def via(
         self,
@@ -245,47 +258,18 @@ class Inline:
             is_personal=True
         )
 
-    def handler(self, callback_data: str = None):
-        logging.debug(
-            "Starting handler registration. Callback data provided: %s", callback_data)
-
-        def decorator(func):
-            handler_name = callback_data or func.__name__
-
-            pattern = (
-                f"^{handler_name}$"
-                if not handler_name.startswith('^')
-                else handler_name
-            )
-
-            logging.debug("Registering handler '%s' for function '%s'",
-                          handler_name, func.__name__)
-            logging.debug("Function details: %s", func)
-
-            func._is_handler = True
-            func._handler_name = handler_name
-
-            self.handlers[re.compile(pattern)] = func
-            logging.debug("Handler '%s' successfully registered. Current handlers: %s",
-                          handler_name, list(self.handlers.keys()))
-            return func
-        return decorator
-
     async def process_callback(self, callback_query: types.CallbackQuery):
-        handler_name = callback_query.data
+        huuid = callback_query.data
         call = InlineCall(callback_query, self.client, self._bot)
-        me = self.client.me
-
-        if call.from_user.id != me.id:
-            await call.answer("❌ Not available for you")
+        if call.from_user.id != self.client.me.id:
+            await call.answer("❌ Not for you")
             return
 
-        for pattern, func in self.handlers.items():
-            if pattern.match(handler_name):
-                await func(call)
-                return
-
-        logging.debug("no regex match for: %s", handler_name)
+        func = self.viamanager.get_huuid(huuid)
+        if func:
+            await func(call)
+        else:
+            await call.answer("⚠️ Handler expired")
 
     def register_handlers(self, dp: Dispatcher):
         logging.debug("Starting registration of callback query handler.")

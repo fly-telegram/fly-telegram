@@ -15,20 +15,21 @@ from inline import InlineCall, inline, make_keyboard  # /fly-telegram/inline
 # _cmd is required for command functions
 async def command_cmd(self):
     await self.client.unblock_user("spambot")        # use pyrogram client
-    await inline.bot.send_message(                   # inline example usage
-        self.client.me.id,                           # get user id from pyrogram client
-        "🔥 WOW! click for magic",                   # message
-        reply_markup=make_keyboard([                 # make_keyboard return InlineKeyboardMarkup
-            {
-                "text": "click",                     # button name
-                "callback": "example"                # callback data
-            }
-        ])
+    await self.message.delete()
+    await inline.say(                                # say with inline bot
+        client=self.client,                          # pyrogram reply
+        message=self.message,                        # your message object
+        text="inline the easy!",                     # message text
+        buttons=[
+            [                                        # row. btn | btn | btn
+                {
+                    "text": "test",                  # the button name
+                    "callback": bot_reply            # callback. callable function.
+                }
+            ]
+        ]
     )
-    await self.message.edit("🔥 <b>Inline command is sended. check DM</b>")
 
-
-# register handler. callback_data: str = function name
-@inline.handler(callback_data="example")
+# your handler
 async def bot_reply(call: InlineCall):
     await call.answer("inline is easy!")             # return answer

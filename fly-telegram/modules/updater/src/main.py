@@ -30,14 +30,18 @@ async def update_cmd(self):
         "🕊 <b>Update now?</b>",
         prefix="help_update_",
         buttons=[
-            [{"text": "✅ Yes"}],
-            [{"text": "❌ No"}]
+            [{
+                "text": "✅ Yes",
+                "callback": update_handler,
+            }],
+            [{
+                "text": "❌ No",
+                "callback": no_update_handler,
+            }]
         ]
     )
 
-
-@inline.handler(r"help_update_(.+)_0")
-async def update(call: InlineCall):
+async def update_handler(call: InlineCall):
     branch = database.get("updater", "branch")
     if not check():
         await call.bot.edit_message_text(
@@ -64,8 +68,7 @@ async def update(call: InlineCall):
         "-m", "fly-telegram")
 
 
-@inline.handler(r"help_update_(.+)_1")
-async def no_update(call: InlineCall):
+async def no_update_handler(call: InlineCall):
     await call.bot.edit_message_text(
         text='❌ <b>Cancelled</b>',
         parse_mode="HTML",

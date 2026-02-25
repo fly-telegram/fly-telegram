@@ -49,14 +49,18 @@ async def support_cmd(self):
         "🕊 <b>Do you want to join the support chat?</b>",
         prefix="help_support_",
         buttons=[
-            [{"text": "✅ Yes"}],
-            [{"text": "❌ No"}]
+            [{
+                "text": "✅ Yes",
+                "callback": yes_handler,
+            }],
+            [{
+                "text": "❌ No",
+                "callback": no_handler,
+            }]
         ]
     )
 
-
-@inline.handler(r"help_support_(.+)_0")
-async def yes(call: InlineCall):
+async def yes_handler(call: InlineCall):
     await call.client.join_chat("t.me/flyTG_support")
     await call.bot.edit_message_text(
         text=(
@@ -67,9 +71,7 @@ async def yes(call: InlineCall):
         inline_message_id=call.inline_message_id
     )
 
-
-@inline.handler(r"help_support_(.+)_1")
-async def no(call: InlineCall):
+async def no_handler(call: InlineCall):
     await call.bot.edit_message_text(
         text='❌ <b>Cancelled</b>',
         parse_mode="HTML",
