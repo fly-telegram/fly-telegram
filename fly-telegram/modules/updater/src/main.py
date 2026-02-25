@@ -21,11 +21,11 @@ from .utils import check, origin, repo
 loader = Loader()
 
 
-@events.loop(every=600) # 10 min
+@events.loop(every=600)  # 10 min
 async def check_updates(client):
     if not check():
         return
-    
+
     await inline.say(
         client, None,
         "🕊 <b>New update available!</b>",
@@ -37,6 +37,7 @@ async def check_updates(client):
         ],
         chat_id="me",
     )
+
 
 @events.on_load
 async def on_load(client):
