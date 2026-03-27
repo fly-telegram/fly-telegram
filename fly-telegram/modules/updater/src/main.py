@@ -114,7 +114,7 @@ async def update_handler(call: InlineCall):
     start = perf_counter()
 
     database.set("restart", {
-        "chat_id":  None,
+        "chat_id": None,
         "message_id": call.inline_message_id,
         "time": start,
         "text": "🕊 <b>Updated! ({}s)</b>",
