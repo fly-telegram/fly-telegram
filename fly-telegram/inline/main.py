@@ -180,7 +180,7 @@ class Inline:
             message_thread_id=(
                 getattr(message, 'topic', None)
                 and message.topic.id
-                if not message is None
+                if message is not None
                 else None
             )
         )
