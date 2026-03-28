@@ -28,6 +28,7 @@ class Auth:
             parse_mode=ParseMode.HTML,
             **{k: self.config[k] for k in ("api_id", "api_hash")},
             device_model=self.config.get("device_model", " fly-telegram"),
+            proxy=self.config.get("proxy", None)
         )
 
         self.web = Web(self.client)
