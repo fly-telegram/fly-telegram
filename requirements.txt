@@ -12,3 +12,4 @@ python_multipart>=0.0.20
 uvicorn>=0.34.0
 
 watchdog
+aiohttp_socks

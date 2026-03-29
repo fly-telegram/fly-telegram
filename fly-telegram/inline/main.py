@@ -11,6 +11,7 @@ import asyncio
 import logging
 import os
 import sys
+import json
 from typing import Optional
 from uuid import uuid4
 
@@ -299,8 +300,21 @@ class Inline:
             else:
                 inline_token = database.set('inline_token', inline_token)
 
+        with open("config.json") as f:
+            config = json.load(f)
+
+        proxy = config.get('proxy')
+        proxy_url = None
+        if proxy:
+            scheme = proxy.get('scheme')
+            hostname = proxy.get('hostname')
+            port = proxy.get('port')
+
+            proxy_url = f"{scheme}://{hostname}:{port}"
+            logging.debug(f"used proxy: {proxy_url}")
+
         try:
-            self._bot = Bot(token=token)
+            self._bot = Bot(token=token, proxy=proxy_url)
             Bot.set_current(self._bot)
 
             logging.debug("BOT method id: %s", id(self._bot))

@@ -41,7 +41,7 @@ class Database(dict):
         """
         if not location.exists():
             with location.open("w", encoding="utf-8") as f:
-                json.dump({}, file, indent=2)
+                json.dump({}, f, indent=2)
             return {}
 
         with location.open("rb") as file:

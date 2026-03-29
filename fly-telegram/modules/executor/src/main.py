@@ -9,8 +9,9 @@
 
 import ast
 
-from inline import inline
+from inline import inline, InlineCall
 from loader import Loader
+from database import database
 
 loader = Loader()
 
@@ -44,6 +45,27 @@ async def run_code(code, env={}):
 @loader.alias('e')
 async def eval_cmd(self, code):
     """The eval command for execute python code."""
+    warning = database.get("executor", "warning")
+    if not warning:
+        await self.message.delete()
+        await inline.say(
+            self.client,
+            self.message,
+            (
+                '⚠️ <b>The command can be execute code directly '
+                'through the userbot and has full access to your '
+                'data. Be careful with it. \n'
+                'Click the button "agree" to proceed.</b>'
+            ),
+            buttons=[
+                [{
+                    "text": "✅ Agree",
+                    "callback": agree_handler,
+                }],
+            ]
+        )
+        return
+
     result = await run_code(
         code,
         {
@@ -51,6 +73,8 @@ async def eval_cmd(self, code):
             "client": self.client,
             "app": self.client,
             "bot": inline.bot,
+            "db": database,
+            "database": database,
             "message": self.message,
             "reply": self.message.reply_to_message,
             "pyrogram": __import__("pyrogram"),
@@ -69,4 +93,20 @@ async def eval_cmd(self, code):
         f"<pre language='python'>{code}</pre>\n"
         f"<b>📀 Result: </b>\n"
         f"<pre language='python'>{result}</pre>"
+    )
+
+
+async def agree_handler(call: InlineCall):
+    data = {
+        "warning": True
+    }
+    database.set("executor", data)
+
+    await call.bot.edit_message_text(
+        text=(
+            '✅ <b>This is message will no longer appear.\n'
+            'For security reasons, please enter the command again.</b>'
+        ),
+        parse_mode="HTML",
+        inline_message_id=call.inline_message_id
     )
