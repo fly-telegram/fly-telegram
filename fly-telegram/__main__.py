@@ -18,7 +18,6 @@ args = arguments.parser()
 
 
 def check():
-
     if getpass.getuser() == "root" and not args.root:
         print('Running the userbot with root access can be dangerous!')
         print('Run the userbot with the parameter "--root" if you want to skip this error!')

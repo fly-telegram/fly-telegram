@@ -35,6 +35,20 @@ class Auth:
 
     @staticmethod
     def _load_config(file_path: str) -> dict:
+        if not os.path.exists(file_path):
+            default = {
+                "api_id": 12255822,
+                "api_hash": "f626bf229077cae7b9e790606d4efb81",
+                "device_model": "fly telegram",
+                "test_mode": False,  # test DC telegram
+                "quckstart": True,  # soon
+                "proxy": {}  # pyrogram proxy
+            }
+            with open(file_path, "w") as f:
+                json.dump(default, f, indent=4)
+
+            return default
+
         with open(file_path) as f:
             return json.load(f)
 

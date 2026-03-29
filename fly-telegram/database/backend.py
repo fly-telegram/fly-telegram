@@ -40,7 +40,10 @@ class Database(dict):
             Dict[str, Any]: The loaded database.
         """
         if not location.exists():
+            with location.open("w", encoding="utf-8") as f:
+                json.dump({}, file, indent=2)
             return {}
+
         with location.open("rb") as file:
             return json.load(file)
 
@@ -53,7 +56,8 @@ class Database(dict):
 
         self.update(**self.load(self.location))
 
-    def get(self, *keys):
+    def get(
+            self, *keys):
         """
         Gets a value from the database.
 
