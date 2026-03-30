@@ -103,6 +103,7 @@ async def terminal_cmd(self, command: str):
     text = (
         "📼 <b>Command</b>: \n"
         f"<code>{command}</code>\n"
+        "✨ <b>Result</b>: \n"
     )
 
     term = AsyncTerminal(self.message, command, text, 0.25)
