@@ -13,6 +13,8 @@ from inline import inline, InlineCall
 from loader import Loader
 from database import database
 
+from .utils import AsyncTerminal
+
 loader = Loader()
 
 
@@ -94,6 +96,17 @@ async def eval_cmd(self, code):
         f"<b>📀 Result: </b>\n"
         f"<pre language='python'>{result}</pre>"
     )
+
+
+@loader.alias('term')
+async def terminal_cmd(self, command: str):
+    text = (
+        "📼 <b>Command</b>: \n"
+        f"<code>{command}</code>\n"
+    )
+
+    term = AsyncTerminal(self.message, command, text, 0.25)
+    await term.run()
 
 
 async def agree_handler(call: InlineCall):

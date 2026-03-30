@@ -9,6 +9,7 @@
 
 import asyncio
 import logging
+import inspect
 import os
 import sys
 import json
@@ -71,7 +72,12 @@ class Via:
 
                     button_uuid = str(uuid4())
                     buttons_uuid.append(button_uuid)
-                    self.handlers[button_uuid] = callback
+
+                    handler_data = {"callback": callback}
+                    if 'params' in btn:
+                        handler_data['params'] = btn['params']
+
+                    self.handlers[button_uuid] = handler_data
 
                     row.append(
                         InlineKeyboardButton(
@@ -107,7 +113,15 @@ class Via:
 
     def get_huuid(self, uuid: str):
         logging.debug(self.handlers)
-        return self.handlers.get(uuid)
+
+        handler_data = self.handlers.get(uuid)
+        if handler_data:
+            callback = handler_data.get('callback')
+            params = handler_data.get('params', {})
+
+            return callback, params
+
+        return None, None
 
     def update(self, id: str, **kwargs):
         if id in self.active:
@@ -129,7 +143,12 @@ class Via:
                             if not callable(callback_func):
                                 raise TypeError("callback must be a callable!")
                             btn_uuid = str(uuid4())
-                            self.handlers[btn_uuid] = callback_func
+
+                            handler_data = {'callback': callback_func}
+                            if 'params' in btn:
+                                handler_data['params'] = btn['params']
+                            self.handlers[btn_uuid] = handler_data
+
                             new_uuid.append(btn_uuid)
                             row.append(
                                 InlineKeyboardButton(
@@ -271,9 +290,17 @@ class Inline:
             await call.answer("❌ Not for you")
             return
 
-        func = self.viamanager.get_huuid(huuid)
+        func, params = self.viamanager.get_huuid(huuid)
         if func:
-            await func(call)
+            try:
+                sig = inspect.signature(func)
+                if params and len(sig.parameters) > 1:
+                    await func(call, **params)
+                else:
+                    await func(call)
+            except Exception as error:
+                logging.error("Error in processing callback: %s", error)
+                await call.answer("❌ Callback processing error.")
         else:
             await call.answer("⚠️ Handler expired")
 
