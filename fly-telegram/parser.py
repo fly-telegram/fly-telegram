@@ -35,5 +35,9 @@ def args() -> argparse.Namespace:
         default="info",
         help="Run Fly-Telegram with log level"
     )
+    parser.add_argument(
+        "--token",
+        help="Manyally set inline bot token"
+    )
 
     return parser.parse_args()

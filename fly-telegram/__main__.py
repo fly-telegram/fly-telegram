@@ -38,4 +38,8 @@ if __name__ == "__main__":
     check()
     level = args.log_level if hasattr(
         args, 'log_level') and args.log_level else "info"
-    main.userbot.main(level, args.no_web)
+    main.userbot.main(
+        level=level,
+        web=args.no_web,
+        token=args.token,
+    )

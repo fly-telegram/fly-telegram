@@ -45,7 +45,11 @@ class Userbot:
             "warning": logging.WARNING
         }
 
-    async def amain(self, web: bool = True) -> bool:
+    async def amain(
+        self, 
+        web: bool = True,
+        token: str = None
+    ) -> bool:
         """
         async userbot process
         for setting client, loader and etc.
@@ -65,14 +69,19 @@ class Userbot:
         watcher = FilesWatcher(client)
         await watcher.watch()
 
-        await inline.start(client)
+        await inline.start(client, token)
 
         await self.loader.load_all(client)
 
         await idle()
         return True
 
-    def main(self, level: str = "info", web: bool = True) -> None:
+    def main(
+        self, 
+        level: str = "info",
+        web: bool = True,
+        token: str = None,
+    ) -> None:
         """
         sync userbot process
         for logo, logger and start async

@@ -315,16 +315,25 @@ class Inline:
 
         self.dp.register_inline_handler(self.process_query, lambda q: True)
 
-    async def start(self, client: Client):
+    async def start(
+        self, 
+        client: Client,
+        many_token: str = None,
+    ):
         botmanager = BotManager()
-        token = database.get('inline_token')
 
-        if not token:
-            inline_token = await botmanager.create(client)
-            if not inline_token:
-                raise ValueError("Failed to create inline bot!")
-            else:
-                inline_token = database.set('inline_token', inline_token)
+        if many_token:
+            token = many_token
+            database.set('inline_token', token)
+        else:
+            token = database.get('inline_token')
+
+            if not token:
+                inline_token = await botmanager.create(client)
+                if not inline_token:
+                    raise ValueError("Failed to create inline bot!")
+                else:
+                    inline_token = database.set('inline_token', inline_token)
 
         with open("config.json") as f:
             config = json.load(f)
