@@ -81,9 +81,7 @@ async def load_cmd(self, flags: str):
         meta = json.load(file)
 
     name = meta.get("name", module_name)
-    deps = meta.get("deps", None)
-
-    if deps:
+    if deps := meta.get("deps", None):
         formatted = "\n".join(
             f"├─ {requirement}" if i < len(
                 deps) - 1 else f"└─ {requirement}"

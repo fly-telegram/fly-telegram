@@ -59,10 +59,8 @@ class BotManager:
                     response = await conv.response()
                     logging.debug(response)
 
-                    match = re.search(token_pattern, response.text)
-
-                    if match:
-                        token = match.group(1)
+                    if match := re.search(token_pattern, response.text):
+                        token = match[1]
 
                     if any(error in response.text for error in self.errors_texts):
                         raise Exception(

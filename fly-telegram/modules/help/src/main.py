@@ -26,8 +26,7 @@ async def help_cmd(self):
     items = []
     for module in modules:
         get_commands = analyzer.module_commands(module)
-        commands = [command.get('name') for command in get_commands]
-        if commands:
+        if commands := [command.get('name') for command in get_commands]:
             items.append((module, commands))
 
         items.sort(key=lambda x: (len(x[1]), x[0]))

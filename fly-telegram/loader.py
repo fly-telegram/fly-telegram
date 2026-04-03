@@ -15,9 +15,6 @@ import sys
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Optional
 
-if TYPE_CHECKING:
-    pass
-
 from pyrogram import Client, filters
 from pyrogram.handlers import EditedMessageHandler, MessageHandler
 from pyrogram.types import Message
@@ -227,7 +224,8 @@ class Loader:
                 module: Any = self._import_or_reload(module_name)
             except Exception as e:
                 raise ModuleImportError(
-                    f"Failed to import module {module_name}: {e}")
+                    f"Failed to import module {module_name}: {e}"
+                ) from e
 
             for func_name, func in inspect.getmembers(module, inspect.isfunction):
                 if func_name.endswith("_cmd"):

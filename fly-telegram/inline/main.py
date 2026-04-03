@@ -114,8 +114,7 @@ class Via:
     def get_huuid(self, uuid: str):
         logging.debug(self.handlers)
 
-        handler_data = self.handlers.get(uuid)
-        if handler_data:
+        if handler_data := self.handlers.get(uuid):
             callback = handler_data.get('callback')
             params = handler_data.get('params', {})
 
@@ -124,47 +123,47 @@ class Via:
         return None, None
 
     def update(self, id: str, **kwargs):
-        if id in self.active:
-            old = self.active[id]
-            for old_uuid in old.get('buttons_uuid', []):
-                self.handlers.pop(old_uuid, None)
-            old.update(kwargs)
+        if id not in self.active:
+            return
+        old = self.active[id]
+        for old_uuid in old.get('buttons_uuid', []):
+            self.handlers.pop(old_uuid, None)
+        old.update(kwargs)
 
-            if "buttons" in kwargs:
-                buttons = kwargs["buttons"]
-                reply_markup = None
-                new_uuid = []
-                if buttons:
-                    keyboard = []
-                    for brow in buttons:
-                        row = []
-                        for btn in brow:
-                            callback_func = btn.get("callback")
-                            if not callable(callback_func):
-                                raise TypeError("callback must be a callable!")
-                            btn_uuid = str(uuid4())
+        if "buttons" in kwargs:
+            reply_markup = None
+            new_uuid = []
+            if buttons := kwargs["buttons"]:
+                keyboard = []
+                for brow in buttons:
+                    row = []
+                    for btn in brow:
+                        callback_func = btn.get("callback")
+                        if not callable(callback_func):
+                            raise TypeError("callback must be a callable!")
+                        btn_uuid = str(uuid4())
 
-                            handler_data = {'callback': callback_func}
-                            if 'params' in btn:
-                                handler_data['params'] = btn['params']
-                            self.handlers[btn_uuid] = handler_data
+                        handler_data = {'callback': callback_func}
+                        if 'params' in btn:
+                            handler_data['params'] = btn['params']
+                        self.handlers[btn_uuid] = handler_data
 
-                            new_uuid.append(btn_uuid)
-                            row.append(
-                                InlineKeyboardButton(
-                                    text=btn.get("text", "button"),
-                                    callback_data=btn_uuid
-                                )
+                        new_uuid.append(btn_uuid)
+                        row.append(
+                            InlineKeyboardButton(
+                                text=btn.get("text", "button"),
+                                callback_data=btn_uuid
                             )
-                        keyboard.append(row)
-                    reply_markup = InlineKeyboardMarkup(
-                        inline_keyboard=keyboard)
-                old["buttons_uuid"] = new_uuid
-                if id in self.results:
-                    self.results[id].reply_markup = reply_markup
+                        )
+                    keyboard.append(row)
+                reply_markup = InlineKeyboardMarkup(
+                    inline_keyboard=keyboard)
+            old["buttons_uuid"] = new_uuid
+            if id in self.results:
+                self.results[id].reply_markup = reply_markup
 
-            if "text" in kwargs and id in self.results:
-                self.results[id].input_message_content.message_text = kwargs["text"]
+        if "text" in kwargs and id in self.results:
+            self.results[id].input_message_content.message_text = kwargs["text"]
 
 
 class Inline:
@@ -346,9 +345,9 @@ class Inline:
 
             logging.debug("BOT method id: %s", id(self._bot))
             logging.debug("BOT value: %s", self._bot)
-        except Unauthorized:
+        except Unauthorized as e:
             database.set("inline_token", None)
-            raise ValueError("Invalid token! restart the userbot.")
+            raise ValueError("Invalid token! restart the userbot.") from e
 
         self.dp = Dispatcher(self._bot)
         self.client = client

@@ -48,25 +48,24 @@ class ModuleAnalyzer:
             tree = ast.parse(content)
 
             for node in ast.walk(tree):
-                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                    if node.name.endswith("_cmd"):
-                        name: str = node.name[:-4]  # _cmd
+                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name.endswith("_cmd"):
+                    name: str = node.name[:-4]  # _cmd
 
-                        docstring: str = ast.get_docstring(node) or ""
+                    docstring: str = ast.get_docstring(node) or ""
 
-                        args: list[str] = []
-                        for arg in node.args.args:
-                            arg_name: str = arg.arg
-                            if not arg_name == "self":
-                                args.append(arg_name)
+                    args: list[str] = []
+                    for arg in node.args.args:
+                        arg_name: str = arg.arg
+                        if arg_name != "self":
+                            args.append(arg_name)
 
-                        commands.append({
-                            'name': name,
-                            'docstring': docstring,
-                            'arguments': args,
-                            'file': file.name,
-                            'module': file.parent.parent.name
-                        })
+                    commands.append({
+                        'name': name,
+                        'docstring': docstring,
+                        'arguments': args,
+                        'file': file.name,
+                        'module': file.parent.parent.name
+                    })
         except Exception:
             pass
 

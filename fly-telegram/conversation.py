@@ -68,9 +68,8 @@ class Conversation:
             [exc_type, exc_value, exc_traceback]
         ):
             logging.exception(exc_value)
-        else:
-            if self.clear:
-                await self.clear_messages()
+        elif self.clear:
+            await self.clear_messages()
 
         return True
 

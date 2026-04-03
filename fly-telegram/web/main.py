@@ -8,6 +8,7 @@
 #           creativecommons.org/licenses/by-nc/4.0/
 
 
+import os
 import uvicorn
 from fastapi import FastAPI, Form, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -32,14 +33,18 @@ class Web:
             allow_headers=["*"],
             allow_credentials=True,
         )
+
+        currentdir = os.path.dirname(os.path.abspath(__file__))
+        staticdir = os.path.join(currentdir, "static")
+        templatesdir = os.path.join(currentdir, "templates")
+
         self.app.mount(
-            "/static/", StaticFiles(directory="fly-telegram/web/static"), name="static")
-        self.templates = Jinja2Templates(
-            directory="fly-telegram/web/templates")
+            "/static/", StaticFiles(directory=staticdir), name="static")
+        self.templates = Jinja2Templates(directory=templatesdir)
 
         @self.app.get("/", response_class=HTMLResponse)
         async def index(request: Request):
-            return self.templates.TemplateResponse("index.html", {"request": request})
+            return self.templates.TemplateResponse(request=request, name="index.html", context={"request": request})
 
         @self.app.post("/send_code")
         async def send_code(phone: str = Form(...)):

@@ -29,7 +29,9 @@ def insert_returns(body):
             insert_returns(body[-1].body)
 
 
-async def run_code(code, env={}):
+async def run_code(code, env=None):
+    if env is None:
+        env = {}
     try:
         fn_name = "_eval_expr"
         cmd = "\n".join(f" {i}" for i in code.splitlines())
@@ -87,7 +89,7 @@ async def eval_cmd(self, code):
     if getattr(result, "stringify", ""):
         try:
             result = str(result.stringify())
-        except:  # noqa: E722
+        except Exception:
             pass
 
     await self.message.edit(

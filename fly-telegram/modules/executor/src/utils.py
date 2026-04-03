@@ -76,20 +76,19 @@ class Stream:
         """
         while True:
             chunk = await self.stream.read()
-            if chunk:
-                if chunk != self.last_chunk:
-                    self.last_chunk = chunk
-                    self.text += f"<code>{chunk.decode().strip()}</code>\n"
-                    try:
-                        await self.message.edit(self.text)
-                    except (
-                        exceptions.bad_request_400.MessageNotModified,
-                        exceptions.flood_420.FloodWait,
-                    ):
-                        pass
-                    await asyncio.sleep(self.sleep)
-            else:
+            if not chunk:
                 break
+            if chunk != self.last_chunk:
+                self.last_chunk = chunk
+                self.text += f"<code>{chunk.decode().strip()}</code>\n"
+                try:
+                    await self.message.edit(self.text)
+                except (
+                    exceptions.bad_request_400.MessageNotModified,
+                    exceptions.flood_420.FloodWait,
+                ):
+                    pass
+                await asyncio.sleep(self.sleep)
 
 
 class AsyncTerminal:
@@ -137,5 +136,4 @@ class AsyncTerminal:
 
         await asyncio.gather(stdout_processor.process(), stderr_processor.process())
 
-        code = await process.wait()
-        return code
+        return await process.wait()

@@ -54,8 +54,7 @@ class Auth:
 
     async def _get_input(self, prompt: str, error_msg: Optional[str] = None) -> str:
         while True:
-            value = input(prompt).strip()
-            if value:
+            if value := input(prompt).strip():
                 return value
             if error_msg:
                 logging.error(error_msg)
