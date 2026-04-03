@@ -13,7 +13,7 @@ import inspect
 import logging
 import sys
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Optional
+from typing import Any, Callable, Optional
 
 from pyrogram import Client, filters
 from pyrogram.handlers import EditedMessageHandler, MessageHandler
