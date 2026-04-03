@@ -84,3 +84,6 @@ account.session-journal
 account.db-journal
 config.json
 database.json
+
+.sourcery.yaml
+monkeytype.sqlite3
