@@ -16,7 +16,6 @@ PYTHON_VERSION = (3, 9, 0)
 
 args = arguments.parser()
 
-
 def check():
     if getpass.getuser() == "root" and not args.root:
         print('Running the userbot with root access can be dangerous!')
@@ -38,8 +37,10 @@ if __name__ == "__main__":
     check()
     level = args.log_level if hasattr(
         args, 'log_level') and args.log_level else "info"
+    token = args.token if hasattr(
+        args, 'token') and args.token else None
     main.userbot.main(
         level=level,
         web=args.no_web,
-        token=args.token,
+        token=token,
     )

@@ -9,35 +9,41 @@
 
 import argparse
 
-
-def args() -> argparse.Namespace:
+def parser() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-
     parser.add_argument(
         "--no-logo",
         action="store_true",
         help="Disables the logo in the console.",
     )
     parser.add_argument(
-        "--old",
-        action="store_true",
-        help="Ignore python version check",
-    )
-    parser.add_argument(
         "--root",
         action="store_true",
-        help="Ignore root error",
+        help="Disable root check.",
+    )
+    parser.add_argument(
+        "--old",
+        action="store_true",
+        help="Disable python version check.",
     )
     parser.add_argument(
         "--log-level",
-        type=str.lower,
-        choices=["debug", "info", "warning", "error"],
-        default="info",
-        help="Run Fly-Telegram with log level"
+        action="store",
+        type=str,
+        help="Logging level.",
+        required=False,
+    )
+    parser.add_argument(
+        "--no-web",
+        action="store_false",
+        help="Disable webUI for login. Using CLI interface."
     )
     parser.add_argument(
         "--token",
-        help="Manyally set inline bot token"
+        action="store",
+        type=str,
+        help="Manyally set inline token.",
+        required=False,
     )
 
     return parser.parse_args()
