@@ -29,7 +29,7 @@ def parser() -> argparse.Namespace:
     parser.add_argument(
         "--log-level",
         action="store",
-        type=str,
+        type=str.lower,
         help="Logging level.",
         required=False,
     )
