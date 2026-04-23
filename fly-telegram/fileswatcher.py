@@ -18,16 +18,20 @@ from .loader import Loader
 
 
 class ModuleHandler(FileSystemEventHandler):
-    def __init__(self, reload_callback, loop):
+    def __init__(self, reload_callback, loop, modules_path):
         self.callback = reload_callback
+        self.modules_path = modules_path
         self.loop = loop
 
     def on_modified(self, event):
-        if not event.is_directory and event.src_path.endswitch(".py"):
+        if not event.is_directory and event.src_path.endswith(".py"):
             mod_path = Path(event.src_path)
             if mod_path.parent.name != "__pycache__":
-                mod_name = mod_path.parent.name
+                rel_path = mod_path.relative_to(self.modules_path)
+                parts = rel_path.parts
+
                 mod_file = mod_path.name
+                mod_name = parts[0]
 
                 asyncio.run_coroutine_threadsafe(
                     self.callback(mod_name),
@@ -49,10 +53,11 @@ class FilesWatcher:
         path = Path(f"{__package__}/modules")
         logging.info("FilesWatcher is loaded.")
 
-        handler = ModuleHandler(self.reload, self.loop)
+        handler = ModuleHandler(self.reload, self.loop, path)
 
         self.observer = Observer()
         self.observer.schedule(handler, str(path), recursive=True)
+        self.observer.start()
 
     async def stop(self):
         if self.observer:
@@ -65,5 +70,5 @@ class FilesWatcher:
             logging.info(f"Reloading module '{mod_name}'...")
             await self.loader.unload(mod_name, self.client)
             await self.loader.load(mod_name, self.client)
-        except Exception:
-            logging.error(f"Failed to reload module '{mod_name}'.")
+        except Exception as err:
+            logging.error(f"Failed to reload module '{mod_name}': {err}")
