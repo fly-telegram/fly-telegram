@@ -10,13 +10,14 @@
 """The loader module"""
 import asyncio
 import os
+import re
 import shutil
 import sys
 import tempfile
-import requests
-import re
 import zipfile
 from pathlib import Path
+
+import requests
 
 try:
     import ujson as json

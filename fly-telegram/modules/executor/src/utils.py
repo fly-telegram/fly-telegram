@@ -10,8 +10,8 @@
 
 import asyncio
 
-from pyrogram.types import Message
 from pyrogram.errors import exceptions
+from pyrogram.types import Message
 
 
 class BufferedStream:

@@ -9,9 +9,9 @@
 
 import ast
 
-from inline import inline, InlineCall
-from loader import Loader
 from database import database
+from inline import InlineCall, inline
+from loader import Loader
 
 from .utils import AsyncTerminal
 
