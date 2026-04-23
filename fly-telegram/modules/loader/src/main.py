@@ -13,6 +13,8 @@ import os
 import shutil
 import sys
 import tempfile
+import requests
+import re
 import zipfile
 from pathlib import Path
 
@@ -24,6 +26,158 @@ except ModuleNotFoundError:
 from loader import Loader
 
 loader = Loader()
+
+
+try:
+    import ujson as json
+except ModuleNotFoundError:
+    import json
+
+
+loader = Loader()
+
+
+def get_files(user, repo, path, branch, prefix=""):
+    url = f"https://api.github.com/repos/{user}/{repo}/contents/{path}?ref={branch}"
+    files = []
+
+    response = requests.get(url)
+    response.raise_for_status()
+    data = response.json()
+    if isinstance(data, dict):
+        data = [data]
+
+    for item in data:
+        if item["type"] == "dir":
+            sub_files = get_files(
+                user, repo, item["path"], branch,
+                prefix + item["name"] + "/"
+            )
+            files.extend(sub_files)
+        else:
+            files.append({
+                "path": prefix + item["name"],
+                "url": item["download_url"]
+            })
+    return files
+
+
+@loader.alias('dlm')
+async def dload_cmd(self, link: str):
+    """.dlm https://github.com/fly-telegram/modules/tree/main/community/module/"""
+    pattern = r'github\.com/([^/]+)/([^/]+)/(?:blob|tree)/([^/]+)(?:/(.*))?'
+    match = re.search(pattern, link)
+
+    if not match:
+        await self.message.edit("❌ <b>Not a valid GitHub link!</b>")
+        return
+
+    username = match.group(1)
+    repo = match.group(2)
+    branch = match.group(3)
+    path = match.group(4)
+
+    module_name = path.strip('/').split('/')[-1] if path else repo
+
+    message = await self.message.edit(
+        f"🕊 <b>{module_name}</b>\n"
+        "<code>Fetching file list from GitHub...</code>"
+    )
+
+    try:
+        files = get_files(username, repo, path, branch)
+        if not files:
+            await message.edit("❌ <b>No files or module invalid!</b>")
+            return
+    except Exception as error:
+        await message.edit(
+            f"❌ <b>Failed to fetch files from GitHub!</b>\n"
+            f"<code>{error}</code>"
+        )
+        return
+    modules_path = Path(__file__).parent.parent.parent
+    module_dir = modules_path / module_name
+
+    if module_dir.exists():
+        await message.edit(
+            f"🕊 <b>{module_name}</b>\n"
+            "<code>Module already exists. Overwriting...</code>"
+        )
+        shutil.rmtree(module_dir)
+
+    module_dir.mkdir(parents=True, exist_ok=True)
+
+    await message.edit(
+        f"🕊 <b>{module_name}</b>\n"
+        f"<code>Downloading {len(files)} files...</code>"
+    )
+
+    for file in files:
+        filepath = file["path"]
+        full = module_dir / filepath
+        full.parent.mkdir(parents=True, exist_ok=True)
+
+        try:
+            response = requests.get(file["url"])
+            response.raise_for_status()
+            with open(full, "wb") as f:
+                f.write(response.content)
+        except Exception as error:
+            await message.edit(
+                f"❌ <b>Failed to download {filepath}!</b>\n"
+                f"<code>{error}</code>"
+            )
+            return
+
+    meta_path = module_dir / "meta.json"
+
+    with open(meta_path) as file:
+        meta = json.load(file)
+
+    name = meta.get("name", module_name)
+    if deps := meta.get("deps", None):
+        formatted = "\n".join(
+            f"├─ {requirement}" if i < len(
+                deps) - 1 else f"└─ {requirement}"
+            for i, requirement in enumerate(deps)
+        )
+        await message.edit(
+            f"🕊 <b>{name}</b>\n"
+            "<code>Installing required libs...</code>\n"
+            f"{formatted}"
+        )
+        pip = await asyncio.create_subprocess_exec(
+            sys.executable, "-m", "pip", "install", "-q", *deps
+        )
+        output = await pip.wait()
+
+        if output != 0:
+            await self.message.edit(
+                f"❌ <b>{name} installing error</b>\n"
+                f"<code>Failed to install libs.</code>"
+            )
+            shutil.rmtree(module_dir)
+            return
+
+    await message.edit(
+        f"🕊 <b>{name}</b>\n"
+        "<code>Loading module...</code>"
+    )
+
+    try:
+        await loader.load(module_name, self.client, startup=True)
+    except Exception as error:
+        await self.message.edit(
+            f"❌ <b>{name} installing error</b>\n"
+            f"<code>{error}</code>"
+        )
+
+        shutil.rmtree(module_dir)
+        return
+
+    await message.edit(
+        f"🕊 <b>{name} is loaded!</b>"
+    )
 
 
 @loader.alias('lm')

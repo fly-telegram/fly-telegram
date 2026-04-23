@@ -16,6 +16,7 @@ PYTHON_VERSION = (3, 9, 0)
 
 args = arguments.parser()
 
+
 def check():
     if getpass.getuser() == "root" and not args.root:
         print('Running the userbot with root access can be dangerous!')

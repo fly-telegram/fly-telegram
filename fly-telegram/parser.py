@@ -9,6 +9,7 @@
 
 import argparse
 
+
 def parser() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(

@@ -316,7 +316,7 @@ class Inline:
         self.dp.register_inline_handler(self.process_query, lambda q: True)
 
     async def start(
-        self, 
+        self,
         client: Client,
         many_token: str = None,
     ):

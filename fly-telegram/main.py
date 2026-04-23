@@ -46,7 +46,7 @@ class Userbot:
         }
 
     async def amain(
-        self, 
+        self,
         web: bool = True,
         token: str = None
     ) -> bool:
@@ -77,7 +77,7 @@ class Userbot:
         return True
 
     def main(
-        self, 
+        self,
         level: str = "info",
         web: bool = True,
         token: str = None,
