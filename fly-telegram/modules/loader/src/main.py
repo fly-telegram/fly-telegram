@@ -72,10 +72,10 @@ async def dload_cmd(self, link: str):
         await self.message.edit("❌ <b>Not a valid GitHub link!</b>")
         return
 
-    username = match.group(1)
-    repo = match.group(2)
-    branch = match.group(3)
-    path = match.group(4)
+    username = match[1]
+    repo = match[2]
+    branch = match[3]
+    path = match[4]
 
     module_name = path.strip('/').split('/')[-1] if path else repo
 

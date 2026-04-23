@@ -18,7 +18,7 @@ class InlineHandler(logging.StreamHandler):
 
 
 def load(level: logging.NOTSET) -> logging.Logger:  # type: ignore
-    format = logging.Formatter(
+    logger_format = logging.Formatter(
         "%(asctime)s [%(levelname)s] %(funcName)s: %(lineno)d - %(message)s",
         "%m-%d %H:%M:%S")
 
@@ -27,7 +27,7 @@ def load(level: logging.NOTSET) -> logging.Logger:  # type: ignore
     logger.setLevel(level)
 
     console = logging.StreamHandler()
-    console.setFormatter(format)
+    console.setFormatter(logger_format)
     logger.addHandler(console)
 
     # telegram_handler = InlineHandler(client)

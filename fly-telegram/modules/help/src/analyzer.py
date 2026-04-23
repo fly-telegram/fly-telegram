@@ -74,12 +74,12 @@ class ModuleAnalyzer:
     def module_commands(self, name: str) -> list[dict]:
         """get all commands from module"""
         commands: list[dict] = []
-        dir: Path = self.modules_path / name / "src"
+        module_dir: Path = self.modules_path / name / "src"
 
-        if not dir.exists():
+        if not module_dir.exists():
             return commands
 
-        for file in dir.glob("*.py"):
+        for file in module_dir.glob("*.py"):
             file_cmds: list[dict] = self.cmd_info(file)
             commands.extend(file_cmds)
 
