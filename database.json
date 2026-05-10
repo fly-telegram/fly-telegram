@@ -3,7 +3,7 @@
   "restart": {},
   "updater": {
     "origin": "https://github.com/fly-telegram/fly-telegram.git",
-    "branch": "v2"
+    "branch": "master"
   },
   "executor": {
     "warning": false
