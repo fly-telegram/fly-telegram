@@ -45,6 +45,13 @@ class CommandWrapper:
                  'command', 'args', 'no_timeout', 'timeout')
 
     def __init__(self, client: Client, func: Callable[..., Any]) -> None:
+        """
+        The wrapper object
+
+        Args:
+            client (pyrogram.Client): pyrogram client object
+            func (Callable/Any): The function
+        """
         self.client: Client = client
         self.func: Callable[..., Any] = func
         self.filters: Any = filters
@@ -56,6 +63,12 @@ class CommandWrapper:
         self.no_timeout: bool = getattr(func, 'no_timeout', False)
 
     async def __call__(self, message: Message) -> None:
+        """
+        The call object.
+
+        Args:
+            message (pyrogram.types.Message): pyrogram message object
+        """
         self.message = message
         self.command = message.command[0] if message.command else ""
 
@@ -83,6 +96,9 @@ class CommandWrapper:
             await self.message.edit(f"❌ <b>Error: {e}</b>")
 
     async def _process_command(self) -> None:
+        """
+        process the message
+        """
         arguments = inspect.getfullargspec(self.func).args
         exp_args = [arg for arg in arguments if arg != 'self']
 
@@ -130,11 +146,23 @@ class Events:
 
     @staticmethod
     def on_load(func: Callable) -> Callable:
+        """
+        If module is loaded decorator
+
+        Args:
+            func (Callable): The function
+        """
         func.on_load = True
         return func
 
     @staticmethod
     def loop(every: int) -> Callable:
+        """
+        Loop the function decorator
+
+        Args:
+            func (Callable): The function
+        """
         def decorator(func: Callable) -> Callable:
             func.loop = True
             func.loop_interval = every
@@ -144,6 +172,15 @@ class Events:
     @staticmethod
     def watcher(type: str = "message", regex: str = None,
                 out: bool = False, coming: bool = True):
+        """
+        Message watcher decorator
+
+        Args:
+            type (str): The type
+            regex (str): The regex optinal
+            out (bool): Is out message?
+            coming (bool): Its coming message
+        """
         def decorator(func: Callable) -> Callable:
             func.watcher = True
             func.watcher_type = type
@@ -179,6 +216,12 @@ class Loader:
 
     @staticmethod
     def alias(*aliases: str) -> Callable:
+        """
+        The aliases decorator
+
+        Args:
+            *aliases (str): The aliases list
+        """
         def decorator(func: Callable) -> Callable:
             func.aliases = aliases
             return func
@@ -186,6 +229,12 @@ class Loader:
 
     @staticmethod
     def timeout(seconds: int) -> Callable:
+        """
+        Set timeout manyally for command decorator
+
+        Args:
+            seconds (int): The time
+        """
         def decorator(func: Callable) -> Callable:
             func.timeout = seconds
             return func
@@ -193,11 +242,24 @@ class Loader:
 
     @staticmethod
     def no_timeout(func: Callable) -> Callable:
+        """
+        Disable timeout error for the command decorator
+        """
         func.no_timeout = True
         return func
 
     async def load(self, name: str, client: Client, startup: bool = False) -> bool:
-        """load module by name"""
+        """
+        Load the module by name
+
+        Args:
+            name (str): module name
+            client (pyrogram.Client): the pyrogram client object
+            startup (bool): The module load on userbot startup?
+
+        Returns:
+            bool: Its module loaded?
+        """
         path: Path = self.modules_path / name
 
         if not path.exists():
@@ -265,6 +327,15 @@ class Loader:
 
     async def _run_loop(self, client: Client, func: Callable,
                         every: int, name: str) -> None:
+        """
+        Run loop for the command
+
+        Args:
+            client (pyrogram.Client): The pyrogram client object
+            func (Callable): The function
+            every (int): Every command executed by seconds
+            name (str): Module name
+        """
         while True:
             try:
                 if inspect.iscoroutinefunction(func):
@@ -282,6 +353,18 @@ class Loader:
 
     def _register_watcher(self, client: Client,
                           func: Callable, name: str) -> MessageHandler:
+        """
+        Register module watcher
+
+        Args:
+            client (pyorgram.Client): The pyrogram client object
+            func (Callable): The function
+            name (str): The module name
+
+        Returns:
+            pyrogram.types.MessageHandler: The message object
+        """
+
         watcher_type: str = getattr(func, "watcher_type", "message")
         watcher_regex: str = getattr(func, "watcher_regex", None)
 
@@ -327,12 +410,22 @@ class Loader:
         return handler
 
     def _import_or_reload(self, module_name: str) -> Any:
+        """
+        Import module or reload
+        Args:
+            module_name (str): The module name
+        """
         if module_name in sys.modules:
             return importlib.reload(sys.modules[module_name])
         return importlib.import_module(module_name)
 
     def _process_module_handlers(self, module: Any, client: Client) -> None:
-        """register handlers from module"""
+        """
+        Register handlers from module
+        Args:
+            module (Any): The module object
+            client (pyrogram.Client): The pyrogram client object
+        """
         for obj in vars(module).values():
             handlers: list[tuple[Any, int]] = getattr(obj, "handlers", [])
             if isinstance(handlers, list):
@@ -340,12 +433,24 @@ class Loader:
                     client.add_handler(handler, group)
 
     async def _restart_dispatcher(self, client: Client) -> None:
+        """
+        Restart the dispatcher!
+        Args:
+            client (pyrogram.Client): The pyrogram client object
+        """
         await client.dispatcher.stop(clear_handlers=False)
         await client.dispatcher.start()
 
     def _register_command(self, client: Client, command_name: str,
                           func: Callable[..., Any], module_name: str) -> None:
-        """register command"""
+        """
+        Register the command
+        Args:
+            client (pyrogram.Client): The pyerogram client object
+            command_name (str): The command name
+            func (Callable/Any): The function
+            module_name (str): The module name
+        """
         wrapper: CommandWrapper = CommandWrapper(client, func)
 
         async def wrapped_command(_: Any, message: Message) -> None:
@@ -371,7 +476,16 @@ class Loader:
         handlers_list.append(edited_handler)
 
     async def unload(self, name: str, client: Client) -> bool:
-        """unload module by name"""
+        """
+        Unload module by name
+
+        Args:
+            name (str): The module name
+            client (pyrogram.Client): The pyrogram client object
+
+        Returns:
+            bool: Module unloaded?
+        """
         if name in self.core_modules:
             raise PermissionError("Cannot unload core module!")
 
@@ -400,7 +514,11 @@ class Loader:
         return True
 
     async def load_all(self, client: Client) -> None:
-        """load all modules"""
+        """
+        Load all modules from directory
+        Args:
+            client (pyrogram.Client): The pyrogram client object
+        """
         modules_to_load: list[Path] = [
             module for module in self.modules_path.iterdir()
             if module.is_dir() and not module.name.endswith("_")

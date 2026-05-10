@@ -11,7 +11,7 @@ import asyncio
 import os
 from typing import Union
 
-version = "2.0.0 beta"
+version = "2.1"
 logo = r"""
  _______  _____   ___ ___  _______  _______ 
 |    ___||     |_|   |   ||_     _||     __|
@@ -19,13 +19,13 @@ logo = r"""
 |___|    |_______| |___|    |___|  |_______|
 """
 
-BASE_DIR = (  # <- from hikka userbot
+BASE_DIR = (  # <- from hikka userbot (store file session directory)
     "/data"
     if "DOCKER" in os.environ
     else os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 )
 
-SESSION_FILE = os.path.join(
+SESSION_FILE = os.path.join(  # file for session name
     BASE_DIR,
     "account"
 )
@@ -34,6 +34,12 @@ SESSION_FILE = os.path.join(
 async def aioterminal(command: Union[bytes, str]) -> str:
     """
     Async terminal execute
+
+    Args:
+        command (Bytes/Str): The command
+
+    Returns:
+        str: The command result
     """
     a = await asyncio.create_subprocess_shell(
         command.strip(),

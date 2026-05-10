@@ -53,6 +53,13 @@ class Userbot:
         """
         async userbot process
         for setting client, loader and etc.
+
+        Args:
+            web (bool): Login with webUI or not
+            token (str): Inline bot token
+
+        Returns:
+            bool: if runned userbot
         """
         client, me = await self.auth.load(web)
 
@@ -85,6 +92,10 @@ class Userbot:
         """
         sync userbot process
         for logo, logger and start async
+
+        Args:
+            web (bool): Login with webUI or not
+            token (str): Inline bot token
         """
 
         print(logo)

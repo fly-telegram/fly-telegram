@@ -11,6 +11,9 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 
 def make_keyboard(buttons):
+    """
+    Make the keyboard
+    """
     keyboard = InlineKeyboardMarkup()
     for button in buttons:
         keyboard.add(InlineKeyboardButton(

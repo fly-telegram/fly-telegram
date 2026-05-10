@@ -14,6 +14,13 @@ from pyrogram import Client
 class InlineCall:
     def __init__(self, callback_query: CallbackQuery,
                  client: Client = None, bot=None):
+        """
+        InlineCall object
+        Args:
+            callback_query (aiogram.types.CallbackQuery): The callback query
+            client (pyrogram.Client): The pyrogram client object
+            bot (aiogram.Bot): The bot object
+        """
         self.callback_query = callback_query
         self.inline_message_id = callback_query.inline_message_id
         self.message = callback_query.message
@@ -23,7 +30,19 @@ class InlineCall:
         self.client = client
 
     async def answer(self, text: str = None, show_alert: bool = False):
+        """
+        Answer from inline bot
+        Args:
+            text (str): The text message
+            show_alert (bool): Show the alert
+        """
         await self.callback_query.answer(text, show_alert=show_alert)
 
     async def edit_message(self, text: str, reply_markup=None):
+        """
+        Edit the message from inlinebot
+        Args:
+            text (str): The text message
+            reply_markup: The buttons
+        """
         await self.callback_query.message.edit_text(text, reply_markup=reply_markup)

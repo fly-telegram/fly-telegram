@@ -35,6 +35,15 @@ class Auth:
 
     @staticmethod
     def _load_config(file_path: str) -> dict:
+        """
+        Load the config file
+
+        Args:
+            file_path (str): The file path
+
+        Returns:
+            dict: The config 
+        """
         if not os.path.exists(file_path):
             default = {
                 "api_id": 12255822,
@@ -53,6 +62,15 @@ class Auth:
             return json.load(f)
 
     async def _get_input(self, prompt: str, error_msg: Optional[str] = None) -> str:
+        """
+        Get input from user
+
+        Args:
+            prompt (str): the prompt
+            error_msg (str): Error message
+        Returns:
+            str: The message
+        """
         while True:
             if value := input(prompt).strip():
                 return value
@@ -60,6 +78,11 @@ class Auth:
                 logging.error(error_msg)
 
     async def send_code(self) -> tuple[str, str]:
+        """
+        Send code
+        Retruns:
+            tuple: The phone number and code hash
+        """
         errors_to_catch = (
             errors.PhoneNumberInvalid,
             errors.PhoneNumberBanned,
@@ -77,6 +100,15 @@ class Auth:
                 logging.error(f"Error: {e}. Please try again.")
 
     async def enter_code(self, phone: str, code_hash: str) -> Optional[types.User]:
+        """
+        Validate the code
+
+        Args:
+            phone (str): The phone number
+            code_hash (str): The code hash
+        Returns:
+            pyrogram.types.User: the object
+        """
         code = await self._get_input("Verification code: ", "Code cannot be empty!")
         try:
             return await self.client.sign_in(phone, code_hash, code)
@@ -84,6 +116,11 @@ class Auth:
             return None
 
     async def enter_2fa(self) -> types.User:
+        """
+        Validate 2FA password
+        Retruns:
+            pyrogram.types.User: the object
+        """
         while True:
             password = await self._get_input("2FA password: ", "Password cannot be empty!")
             try:
@@ -92,6 +129,14 @@ class Auth:
                 logging.error("Invalid 2FA password. Try again")
 
     async def load(self, web=True) -> tuple[Client, types.User]:
+        """
+        Load for auth user
+
+        Args:
+            web (bool): Login with webUI?
+        Returns:
+            turple: The client and get_me
+        """
         await self.client.connect()
 
         try:

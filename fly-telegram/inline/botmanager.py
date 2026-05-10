@@ -23,6 +23,9 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 class BotManager:
     def __init__(self) -> None:
+        """
+        The inline bot manager
+        """
         self.errors_texts = [
             "Sorry.",
             "That I cannot do.",
@@ -32,8 +35,18 @@ class BotManager:
 
     async def create(self, client: Client,
                      botfather: str = "@BotFather") -> str:
+        """
+        Create the inline bot
+
+        Args:
+            client (pyrogram.Client): The pyrogram object client
+            botfather (str): BotFather username
+
+        Returns:
+            str: The bot token
+        """
         bot_id = "".join(random.choice(string.ascii_letters + string.digits)
-                     for _ in range(5))
+                         for _ in range(5))
         username = f"flyTG_{bot_id}_bot"
         display_name = f"🕊 Fly-telegram of {client.me.first_name}"
 

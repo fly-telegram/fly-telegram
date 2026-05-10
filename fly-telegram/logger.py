@@ -14,10 +14,19 @@ from pyrogram import Client
 
 class InlineHandler(logging.StreamHandler):
     def __init__(self, client: Client):
-        ...
+        ...  # soon
 
 
 def load(level: logging.NOTSET) -> logging.Logger:  # type: ignore
+    """
+    Load the logging proc
+
+    Args:
+        level (logging.NOTSET): The log level object
+
+    Returns:
+        logging.Logger: logger object
+    """
     logger_format = logging.Formatter(
         "%(asctime)s [%(levelname)s] %(funcName)s: %(lineno)d - %(message)s",
         "%m-%d %H:%M:%S")

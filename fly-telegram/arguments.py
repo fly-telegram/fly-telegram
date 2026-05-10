@@ -1,17 +1,22 @@
-"""arguments parser (from friendly-telegram)"""
 #         _______  _____   ___ ___  _______  _______
 #        |    ___||     |_|   |   ||_     _||     __|
 #        |    ___||       |\     /   |   |  |    |  |
 #        |___|    |_______| |___|    |___|  |_______|
 #                      t.me/FLY_UB
 #
-#              🔒 Licensed under the CC-by-NC
+#              🔒 Licensed under the СС-by-NC
 #           creativecommons.org/licenses/by-nc/4.0/
 
 import argparse
 
 
 def parser() -> argparse.Namespace:
+    """
+    parse arguments
+
+    Returns:
+        argparse.Namespace: The arguments
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--no-logo",
@@ -31,7 +36,7 @@ def parser() -> argparse.Namespace:
     parser.add_argument(
         "--log-level",
         action="store",
-        type=str,
+        type=str.lower,
         help="Logging level.",
         required=False,
     )
@@ -39,6 +44,13 @@ def parser() -> argparse.Namespace:
         "--no-web",
         action="store_false",
         help="Disable webUI for login. Using CLI interface."
+    )
+    parser.add_argument(
+        "--token",
+        action="store",
+        type=str,
+        help="Manyally set inline token.",
+        required=False,
     )
 
     return parser.parse_args()

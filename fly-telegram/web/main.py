@@ -21,12 +21,20 @@ from pyrogram import Client, errors
 
 class Web:
     def __init__(self, client: Client):
+        """
+        The webUI backend
+        Args:
+            client (pyrogram.Client): The pyrogram client object
+        """
         self.app = FastAPI()
         self._setup_web()
         self.client = client
         self.server = None
 
     def _setup_web(self):
+        """
+        Setup the webUI
+        """
         self.app.add_middleware(
             CORSMiddleware,
             allow_origins=["*"],
@@ -97,6 +105,16 @@ class Web:
                 raise HTTPException(status_code=403, detail=str(err))
 
     async def run(self, host: str = "0.0.0.0", port: int = 8000):
+        """
+        Run the webUI
+
+        Args:
+            host (str): Client host
+            port (int): Client port
+
+        Returns:
+            turple: The pyrogram.Client and get_me
+        """
         config = uvicorn.Config(self.app, host=host, port=port)
         self.server = uvicorn.Server(config)
         await self.server.serve()

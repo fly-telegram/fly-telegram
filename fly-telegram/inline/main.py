@@ -33,6 +33,9 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 class Via:
     def __init__(self) -> None:
+        """
+        The via @... message generator
+        """
         if '_via' not in sys.modules:
             sys.modules['_via'] = {
                 'active': {},
@@ -51,6 +54,14 @@ class Via:
         buttons: Optional[list[list[dict]]] = None,
         description: str = "🕊️ fly telegram system result",
     ):
+        """
+        Generate relsult
+        Args:
+            text (str): The text
+            prefix (str): The via prefix
+            buttons (list): The aiogram buttons
+            description (str): The result description
+        """
         query_id = str(uuid4())
         input_text = InputTextMessageContent(
             message_text=text,
@@ -108,10 +119,23 @@ class Via:
         return query_id
 
     def get_result(self, id: str):
+        """
+        Get result by UUID
+        Args:
+            id (str): The UUID
+        """
         logging.debug(self.results)
         return self.results[id]
 
     def get_huuid(self, uuid: str):
+        """
+        Get handler by UUID
+        Args:
+            uuid (str): The UUID
+
+        Results:
+            turple: The callback and params
+        """
         logging.debug(self.handlers)
 
         if handler_data := self.handlers.get(uuid):
@@ -123,6 +147,13 @@ class Via:
         return None, None
 
     def update(self, id: str, **kwargs):
+        """
+        Update HUUID
+
+        Args:
+            id (str): The UUID
+            *kwargs: The other args
+        """
         if id not in self.active:
             return
         old = self.active[id]
@@ -168,6 +199,9 @@ class Via:
 
 class Inline:
     def __init__(self):
+        """
+        The inline object
+        """
         self.client = None
         self._bot: Bot = None
         self.dp: Dispatcher = None
@@ -181,6 +215,19 @@ class Inline:
             text: str,
             buttons: Optional[list[list[dict]]] = None,
             **kwargs) -> str:
+        """
+        Send message from inline bot
+
+        Args:
+            client (pyrogram.Client): The pyrogram client object
+            message (pyrogram.types.Message): The messsage object
+            text (str): The text message
+            buttons (list): aiogram buttons
+            *kwargs: The other args
+
+        Returns:
+            str: The query ID
+        """
         query_id = self.viamanager.add(
             text,
             kwargs.get('prefix', 'via_'),
@@ -212,12 +259,25 @@ class Inline:
         buttons: Optional[list[list[dict]]] = None,
         description: str = "🕊️ fly telegram v2",
     ):
+        """
+        The via message
+        Args:
+            text (str): The text message
+            prefix (str): The via prefix
+            buttons (list): The aiogram buttons
+            description (str): The query qescription
+        """
         return self.viamanager.add(text, prefix, buttons, description)
 
     def update_via(self, id: str, **kwargs):
         self.viamanager.update(id, **kwargs)
 
     async def process_query(self, query: InlineQuery):
+        """
+        Proccess the via query
+        Args:
+            query (aiogram.types.InlineQuery): The query
+        """
         q = query.query
         me = self.client.me
 
@@ -283,6 +343,11 @@ class Inline:
         )
 
     async def process_callback(self, callback_query: types.CallbackQuery):
+        """
+        Process the callback by HUUID
+        Args:
+            callback_query (aiogram.types.CallbackQuery): The callback
+        """
         huuid = callback_query.data
         call = InlineCall(callback_query, self.client, self._bot)
         if call.from_user.id != self.client.me.id:
@@ -304,6 +369,11 @@ class Inline:
             await call.answer("⚠️ Handler expired")
 
     def register_handlers(self, dp: Dispatcher):
+        """
+        Register all handlers
+        Args:
+            dp (aiogram.Dispatcher): The dispatcher
+        """
         logging.debug("Starting registration of callback query handler.")
         logging.debug("Dispatcher object: %s", self.dp)
 
@@ -320,6 +390,12 @@ class Inline:
         client: Client,
         many_token: str = None,
     ):
+        """
+        Start the inline userbot or create this
+        Args:
+            client (pyrogram.Client): The pyrogram client object
+            many_token (str): manyally setted inline token
+        """
         botmanager = BotManager()
 
         if many_token:
