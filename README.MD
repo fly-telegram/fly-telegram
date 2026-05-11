@@ -2,9 +2,9 @@
     <img src="https://raw.githubusercontent.com/fly-telegram/userbot/master/assets/logo.gif">
     <h1>🕊️ fly telegram v2.1</h1>
     <p>It is user-friendly userbot.</p>
-    <img alt="code size" src="https://img.shields.io/github/languages/code-size/fly-telegram/fly-telegram?style=for-the-badge&branch=v2">
-    <img alt="repo stars" src="https://img.shields.io/github/stars/fly-telegram/fly-telegram&style=for-the-badge&branch=v2">
-    <img alt="commits" src="https://img.shields.io/github/commit-activity/w/fly-telegram/fly-telegram?style=for-the-badge&branch=v2">
+    <img alt="code size" src="https://img.shields.io/github/languages/code-size/fly-telegram/fly-telegram?style=for-the-badge&branch=master">
+    <img alt="repo stars" src="https://img.shields.io/github/stars/fly-telegram/fly-telegram&style=for-the-badge&branch=master">
+    <img alt="commits" src="https://img.shields.io/github/commit-activity/w/fly-telegram/fly-telegram?style=for-the-badge&branch=master">
 </div>
 
 <h2>⚠️ Requirements</h2>
@@ -14,7 +14,7 @@
 </ul>
 
 <h2>📥 Installation</h2>
-<p><code>. <(wget -qO- https://raw.githubusercontent.com/fly-telegram/fly-telegram/refs/heads/v2/install.sh)</code></p>
+<p><code>. <(wget -qO- https://raw.githubusercontent.com/fly-telegram/fly-telegram/refs/heads/master/install.sh)</code></p>
 
 <h2>📦 Manual installation</h2>
 <ul>
