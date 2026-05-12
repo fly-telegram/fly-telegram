@@ -7,58 +7,104 @@
 #              🔒 Licensed under the СС-by-NC
 #           creativecommons.org/licenses/by-nc/4.0/
 
+# IDEA: github@BadPrivacyclub/rust-fly-telegram.git
+
 import json
 import logging
 import os
 import sys
+from pathlib import Path
 from typing import Optional
 
 from pyrogram import Client, errors, types
 from pyrogram.enums import ParseMode
 
+from .storage import CustomStorage
 from .utils import SESSION_FILE
 from .web import Web
+
+
+def _input_passwd() -> Optional[str]:
+    """Input session password"""
+    password = input(
+        "Input '.session' password encrypt (empty for none): ").strip()
+    return password if password else None
 
 
 class Auth:
     def __init__(self):
         self.config = self._load_config("config.json")
+
+        session_file = Path(SESSION_FILE + ".session")
+        session_password = self.config.get("passwd", None)
+        if session_password is None and not session_file.exists():
+            session_password = _input_passwd()
+            if session_password:
+                self.config["passwd"] = session_password
+                self._save_config("config.json", self.config)
+            else:
+                logging.warning("Session encryption disabled (no password)")
+
+        if session_password:
+            workdir = Path(SESSION_FILE).parent
+            session_name = Path(SESSION_FILE).stem
+            storage = CustomStorage(
+                name=session_name,
+                workdir=workdir,
+                password=session_password,
+            )
+        else:
+            storage = None
+
         self.client = Client(
             SESSION_FILE,
             parse_mode=ParseMode.HTML,
             **{k: self.config[k] for k in ("api_id", "api_hash")},
-            device_model=self.config.get("device_model", " fly-telegram"),
-            proxy=self.config.get("proxy", None)
+            device_model=self.config.get("device_model", "fly-telegram"),
+            proxy=self.config.get("proxy", None),
+            storage_engine=storage,
         )
 
         self.web = Web(self.client)
 
     @staticmethod
-    def _load_config(file_path: str) -> dict:
+    def _save_config(path: str, config: dict):
+        """
+        Save config to file
+        Args:
+            path (str): The file path
+            config (dict): The data
+        """
+        with open(path, "w") as f:
+            json.dump(config, f, indent=4)
+
+    @staticmethod
+    def _load_config(path: str) -> dict:
         """
         Load the config file
 
         Args:
-            file_path (str): The file path
+            path (str): The file path
 
         Returns:
-            dict: The config 
+            dict: The config
         """
-        if not os.path.exists(file_path):
+        if not os.path.exists(path):
             default = {
                 "api_id": 12255822,
                 "api_hash": "f626bf229077cae7b9e790606d4efb81",
                 "device_model": "fly telegram",
                 "test_mode": False,  # test DC telegram
                 "quckstart": True,  # soon
-                "proxy": {}  # pyrogram proxy
+                "proxy": {},  # pyrogram proxy
+                "passwd": None,  # encrypt password for session file
             }
-            with open(file_path, "w") as f:
+            with open(path, "w") as f:
                 json.dump(default, f, indent=4)
 
             return default
 
-        with open(file_path) as f:
+        with open(path) as f:
             return json.load(f)
 
     async def _get_input(self, prompt: str, error_msg: Optional[str] = None) -> str:

@@ -13,3 +13,4 @@ uvicorn>=0.34.0
 
 watchdog
 aiohttp_socks
+sqlcipher3>=0.6.0
