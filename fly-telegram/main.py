@@ -15,7 +15,7 @@ from pyrogram import idle
 from . import logger
 from .auth import Auth
 from .fileswatcher import FilesWatcher
-from .inline import inline
+from .inline import Inline
 from .loader import Loader
 from .utils import logo
 
@@ -31,6 +31,7 @@ class Userbot:
     def __init__(self):
         self.auth = Auth()
         self.loader = Loader()
+        self.inline = Inline()
 
         try:
             self.loop = asyncio.get_event_loop()
@@ -72,11 +73,12 @@ class Userbot:
             client.me = me
 
         client.loader = self.loader  # type: ignore
+        client.inline = self.inline  # type: ignore
 
         watcher = FilesWatcher(client)
         await watcher.watch()
 
-        await inline.start(client, token)
+        await self.inline.start(client, token)
 
         await self.loader.load_all(client)
 

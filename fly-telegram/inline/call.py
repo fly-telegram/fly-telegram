@@ -36,7 +36,7 @@ class InlineCall:
             text (str): The text message
             show_alert (bool): Show the alert
         """
-        await self.callback_query.answer(text, show_alert=show_alert)
+        await self.callback_query.answer(text=text, show_alert=show_alert)
 
     async def edit_message(self, text: str, reply_markup=None):
         """
@@ -45,4 +45,12 @@ class InlineCall:
             text (str): The text message
             reply_markup: The buttons
         """
-        await self.callback_query.message.edit_text(text, reply_markup=reply_markup)
+        if self.inline_message_id:
+            await self.bot.edit_message_text(
+                text=text,
+                inline_message_id=self.inline_message_id,
+                reply_markup=reply_markup,
+                parse_mode="HTML",
+            )
+        elif self.message:
+            await self.message.edit_text(text, reply_markup=reply_markup)

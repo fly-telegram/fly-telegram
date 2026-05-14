@@ -9,16 +9,12 @@
 
 import asyncio
 import logging
-import os
 import random
 import re
 import string
-import sys
 
 from conversation import Conversation
 from pyrogram import Client, errors
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 class BotManager:

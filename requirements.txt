@@ -1,4 +1,4 @@
-aiogram==2.21
+aiogram>=3.28.2
 kurigram @ git+https://github.com/KurimuzonAkuma/pyrogram@dev
 ujson>=5.10.0
 uvloop>=0.19.0
@@ -11,6 +11,6 @@ fastapi>=0.115.12
 python_multipart>=0.0.20
 uvicorn>=0.34.0
 
-watchdog
-aiohttp_socks
+watchdog>=6.0.0
+aiohttp_socks>=0.11.0
 sqlcipher3>=0.6.0

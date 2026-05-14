@@ -10,7 +10,7 @@
 import ast
 
 from database import database
-from inline import InlineCall, inline
+from inline import InlineCall
 from loader import Loader
 
 from .utils import AsyncTerminal
@@ -52,6 +52,7 @@ async def eval_cmd(self, code):
     warning = database.get("executor", "warning")
     if not warning:
         await self.message.delete()
+        inline = self.client.inline
         await inline.say(
             self.client,
             self.message,
@@ -70,6 +71,7 @@ async def eval_cmd(self, code):
         )
         return
 
+    inline = self.client.inline
     result = await run_code(
         code,
         {

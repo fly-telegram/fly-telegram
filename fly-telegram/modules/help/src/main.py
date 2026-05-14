@@ -8,7 +8,7 @@
 #             www.gnu.org/licenses/agpl-3.0.html
 
 """The help command"""
-from inline import InlineCall, inline
+from inline import InlineCall
 
 from .analyzer import ModuleAnalyzer
 
@@ -42,6 +42,7 @@ async def help_cmd(self):
 
 async def support_cmd(self):
     await self.message.delete()
+    inline = self.client.inline
     await inline.say(
         self.client,
         self.message,

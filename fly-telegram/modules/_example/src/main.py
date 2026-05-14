@@ -9,13 +9,14 @@
 
 """The example module"""
 
-from inline import InlineCall, inline  # /fly-telegram/inline
+from inline import InlineCall
 
 
 # _cmd is required for command functions
 async def command_cmd(self):
     await self.client.unblock_user("spambot")        # use pyrogram client
     await self.message.delete()
+    inline = self.client.inline
     await inline.say(                                # say with inline bot
         client=self.client,                          # pyrogram reply
         message=self.message,                        # your message object

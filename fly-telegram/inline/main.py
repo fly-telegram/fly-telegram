@@ -11,16 +11,17 @@ import asyncio
 import inspect
 import json
 import logging
-import os
 import sys
+import os
 from typing import Optional
 from uuid import uuid4
 
-from aiogram import Bot, Dispatcher, types
+from aiogram import Bot, Dispatcher, Router
 from aiogram.types import (InlineKeyboardButton, InlineKeyboardMarkup,
                            InlineQuery, InlineQueryResultArticle,
-                           InputTextMessageContent)
-from aiogram.utils.exceptions import Unauthorized
+                           InputTextMessageContent, CallbackQuery)
+from aiogram.exceptions import TelegramUnauthorizedError
+from aiogram.utils.token import TokenValidationError
 from database import database
 from pyrogram import Client
 from pyrogram.types import Message
@@ -33,19 +34,9 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 class Via:
     def __init__(self) -> None:
-        """
-        The via @... message generator
-        """
-        if '_via' not in sys.modules:
-            sys.modules['_via'] = {
-                'active': {},
-                'results': {},
-                'handlers': {}
-            }
-
-        self.active = sys.modules['_via']['active']
-        self.results = sys.modules['_via']['results']
-        self.handlers = sys.modules['_via']['handlers']
+        self.active: dict = {}
+        self.results: dict = {}
+        self.handlers: dict = {}
 
     def add(
         self,
@@ -54,14 +45,6 @@ class Via:
         buttons: Optional[list[list[dict]]] = None,
         description: str = "🕊️ fly telegram system result",
     ):
-        """
-        Generate relsult
-        Args:
-            text (str): The text
-            prefix (str): The via prefix
-            buttons (list): The aiogram buttons
-            description (str): The result description
-        """
         query_id = str(uuid4())
         input_text = InputTextMessageContent(
             message_text=text,
@@ -73,7 +56,6 @@ class Via:
 
         if buttons:
             keyboard = []
-
             for brow in buttons:
                 row = []
                 for btn in brow:
@@ -119,41 +101,18 @@ class Via:
         return query_id
 
     def get_result(self, id: str):
-        """
-        Get result by UUID
-        Args:
-            id (str): The UUID
-        """
         logging.debug(self.results)
         return self.results[id]
 
     def get_huuid(self, uuid: str):
-        """
-        Get handler by UUID
-        Args:
-            uuid (str): The UUID
-
-        Results:
-            turple: The callback and params
-        """
         logging.debug(self.handlers)
-
         if handler_data := self.handlers.get(uuid):
             callback = handler_data.get('callback')
             params = handler_data.get('params', {})
-
             return callback, params
-
         return None, None
 
     def update(self, id: str, **kwargs):
-        """
-        Update HUUID
-
-        Args:
-            id (str): The UUID
-            *kwargs: The other args
-        """
         if id not in self.active:
             return
         old = self.active[id]
@@ -173,12 +132,10 @@ class Via:
                         if not callable(callback_func):
                             raise TypeError("callback must be a callable!")
                         btn_uuid = str(uuid4())
-
                         handler_data = {'callback': callback_func}
                         if 'params' in btn:
                             handler_data['params'] = btn['params']
                         self.handlers[btn_uuid] = handler_data
-
                         new_uuid.append(btn_uuid)
                         row.append(
                             InlineKeyboardButton(
@@ -187,8 +144,7 @@ class Via:
                             )
                         )
                     keyboard.append(row)
-                reply_markup = InlineKeyboardMarkup(
-                    inline_keyboard=keyboard)
+                reply_markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
             old["buttons_uuid"] = new_uuid
             if id in self.results:
                 self.results[id].reply_markup = reply_markup
@@ -199,14 +155,15 @@ class Via:
 
 class Inline:
     def __init__(self):
-        """
-        The inline object
-        """
         self.client = None
         self._bot: Bot = None
         self.dp: Dispatcher = None
-        logging.debug("New instance: %s", id(self))
+        self._router: Router = None
         self.viamanager = Via()
+
+    @property
+    def bot(self) -> Bot:
+        return self._bot
 
     async def say(
             self,
@@ -215,19 +172,6 @@ class Inline:
             text: str,
             buttons: Optional[list[list[dict]]] = None,
             **kwargs) -> str:
-        """
-        Send message from inline bot
-
-        Args:
-            client (pyrogram.Client): The pyrogram client object
-            message (pyrogram.types.Message): The messsage object
-            text (str): The text message
-            buttons (list): aiogram buttons
-            *kwargs: The other args
-
-        Returns:
-            str: The query ID
-        """
         query_id = self.viamanager.add(
             text,
             kwargs.get('prefix', 'via_'),
@@ -259,25 +203,12 @@ class Inline:
         buttons: Optional[list[list[dict]]] = None,
         description: str = "🕊️ fly telegram v2",
     ):
-        """
-        The via message
-        Args:
-            text (str): The text message
-            prefix (str): The via prefix
-            buttons (list): The aiogram buttons
-            description (str): The query qescription
-        """
         return self.viamanager.add(text, prefix, buttons, description)
 
     def update_via(self, id: str, **kwargs):
         self.viamanager.update(id, **kwargs)
 
     async def process_query(self, query: InlineQuery):
-        """
-        Proccess the via query
-        Args:
-            query (aiogram.types.InlineQuery): The query
-        """
         q = query.query
         me = self.client.me
 
@@ -294,32 +225,20 @@ class Inline:
                     parse_mode="html"
                 )
             )
-
-            await self._bot.answer_inline_query(
-                inline_query_id=query.id,
-                results=[notprems],
-                cache_time=20
-            )
+            await query.answer(results=[notprems], cache_time=20)
             return
 
         results = []
-
         if "_" in q:
             query_id = q.split("_")[-1]
             logging.debug("found new via! ID: %s", query_id)
-
             if query_id in self.viamanager.results:
                 default = self.viamanager.get_result(query_id)
                 if default:
                     results.append(default)
 
         if results:
-            await self._bot.answer_inline_query(
-                inline_query_id=query.id,
-                results=results,
-                cache_time=20,
-                is_personal=True
-            )
+            await query.answer(results=results, cache_time=20, is_personal=True)
             return
 
         default = InlineQueryResultArticle(
@@ -334,20 +253,9 @@ class Inline:
                 parse_mode="html"
             )
         )
+        await query.answer(results=[default], cache_time=20, is_personal=True)
 
-        await self._bot.answer_inline_query(
-            inline_query_id=query.id,
-            results=[default],
-            cache_time=20,
-            is_personal=True
-        )
-
-    async def process_callback(self, callback_query: types.CallbackQuery):
-        """
-        Process the callback by HUUID
-        Args:
-            callback_query (aiogram.types.CallbackQuery): The callback
-        """
+    async def process_callback(self, callback_query: CallbackQuery):
         huuid = callback_query.data
         call = InlineCall(callback_query, self.client, self._bot)
         if call.from_user.id != self.client.me.id:
@@ -363,39 +271,22 @@ class Inline:
                 else:
                     await func(call)
             except Exception as error:
-                logging.error("Error in processing callback: %s", error)
+                logging.error("Error in callback: %s", error)
                 await call.answer("❌ Callback processing error.")
         else:
             await call.answer("⚠️ Handler expired")
 
     def register_handlers(self, dp: Dispatcher):
-        """
-        Register all handlers
-        Args:
-            dp (aiogram.Dispatcher): The dispatcher
-        """
-        logging.debug("Starting registration of callback query handler.")
-        logging.debug("Dispatcher object: %s", self.dp)
-
-        self.dp.register_callback_query_handler(
-            self.process_callback, lambda c: True)
-        logging.debug("Callback query handler registered successfully.")
-        logging.debug("Current registered handlers in dispatcher: %s",
-                      self.dp.message_handlers.handlers)
-
-        self.dp.register_inline_handler(self.process_query, lambda q: True)
+        self._router = Router()
+        self._router.callback_query.register(self.process_callback)
+        self._router.inline_query.register(self.process_query)
+        dp.include_router(self._router)
 
     async def start(
         self,
         client: Client,
         many_token: str = None,
     ):
-        """
-        Start the inline userbot or create this
-        Args:
-            client (pyrogram.Client): The pyrogram client object
-            many_token (str): manyally setted inline token
-        """
         botmanager = BotManager()
 
         if many_token:
@@ -421,25 +312,36 @@ class Inline:
             hostname = proxy.get('hostname')
             port = proxy.get('port')
 
-            proxy_url = f"{scheme}://{hostname}:{port}"
-            logging.debug(f"used proxy: {proxy_url}")
+            if scheme and hostname and port:
+                proxy_url = f"{scheme}://{hostname}:{port}"
+                logging.debug("Using proxy: %s", proxy_url)
+            else:
+                pass
 
         try:
-            self._bot = Bot(token=token, proxy=proxy_url)
-            Bot.set_current(self._bot)
-
-            logging.debug("BOT method id: %s", id(self._bot))
-            logging.debug("BOT value: %s", self._bot)
-        except Unauthorized as e:
+            if proxy_url:
+                from aiogram.client.session.aiohttp import AiohttpSession
+                session = AiohttpSession(proxy=proxy_url)
+                self._bot = Bot(token=token, session=session)
+            else:
+                self._bot = Bot(token=token)
+        except (TelegramUnauthorizedError, TokenValidationError) as e:
+            logging.error("Invalid token: %s", e)
             database.set("inline_token", None)
             raise ValueError("Invalid token! restart the userbot.") from e
+        except Exception as e:
+            logging.error("Failed to create inline bot: %s: %s",
+                          type(e).__name__, e)
+            raise
 
-        self.dp = Dispatcher(self._bot)
+        self.dp = Dispatcher()
         self.client = client
 
         self.register_handlers(self.dp)
         logging.info("Inline bot is loaded.")
-        asyncio.ensure_future(self.dp.start_polling())
+        asyncio.create_task(self.dp.start_polling(
+            self._bot, skip_updates=True, handle_signals=False))
 
     async def stop(self):
-        await self._bot.close()
+        if self._bot:
+            await self._bot.session.close()

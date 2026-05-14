@@ -13,7 +13,7 @@ from time import perf_counter
 
 import git
 from database import database
-from inline import InlineCall, inline
+from inline import InlineCall
 from loader import Loader, events
 
 from .utils import check, origin, repo
@@ -26,6 +26,7 @@ async def check_updates(client):
     if not check():
         return
 
+    inline = client.inline
     await inline.say(
         client, None,
         "🕊 <b>New update available!</b>",
@@ -49,6 +50,7 @@ async def on_load(client):
         text = data.get('text')
 
         if data.get('inline'):
+            inline = client.inline
             await inline.bot.edit_message_text(
                 text=text.format(f"{end:.3f}"),
                 parse_mode="HTML",
@@ -84,6 +86,7 @@ async def restart_cmd(self):
 async def update_cmd(self):
     await self.message.delete()
 
+    inline = self.client.inline
     await inline.say(
         self.client,
         self.message,
