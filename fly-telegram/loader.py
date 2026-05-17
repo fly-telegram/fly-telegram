@@ -491,7 +491,10 @@ class Loader:
         )  # if not package - many path
 
         self.core_modules: tuple[str, ...] = (
-            "help", "loader", "core", "executor")
+            "help", "loader", 
+            "core", "executor",
+            "configurator",
+        )
         self.command_handlers: dict[str, list[MessageHandler]] = {}
         self.func_events: dict[str, dict[str, list[Callable]]] = {}
         self.func_tasks: dict[str, list[asyncio.Task]] = {}
