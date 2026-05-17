@@ -2,7 +2,7 @@ import ast
 from pathlib import Path
 from uuid import uuid4
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from loader import Loader, ConfigValue, ModuleConfig, validators
+from loader import Loader
 from .utils import get_modules, get, set
 
 loader = Loader()
