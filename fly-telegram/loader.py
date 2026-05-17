@@ -491,7 +491,7 @@ class Loader:
         )  # if not package - many path
 
         self.core_modules: tuple[str, ...] = (
-            "help", "loader", 
+            "help", "loader",
             "core", "executor",
             "configurator",
         )

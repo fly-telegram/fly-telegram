@@ -29,12 +29,13 @@ config = ModuleConfig(
     )
 )
 
+
 @events.loop(every=600)  # 10 min
 async def check_updates(client):
     notify = config["notify"]
     if not notify and check():
         return
-    
+
     inline = client.inline
     await inline.say(
         client, None,

@@ -340,7 +340,7 @@ class Inline:
                 h.pop(data, None)
                 await self._bot.edit_message_text(
                     text="❌ <b>Cancelled</b>",
-                    inline_message_id=call.inline_message_id, 
+                    inline_message_id=call.inline_message_id,
                     parse_mode="HTML"
                 )
 
