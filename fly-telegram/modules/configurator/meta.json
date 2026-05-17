@@ -1,0 +1,10 @@
+{
+  "name": "configurator",
+  "description": "The Fly Telegram configurator module, for editing module configs",
+  "version": [1, 0, "beta"],
+  "author": {
+    "name": "fly-telegram",
+    "link": "https://t.me/fly_ub"
+  },
+  "license": "GNU-APGL 3.0"
+}

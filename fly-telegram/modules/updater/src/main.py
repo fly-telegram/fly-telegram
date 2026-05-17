@@ -14,18 +14,27 @@ from time import perf_counter
 import git
 from database import database
 from inline import InlineCall
-from loader import Loader, events
+from loader import Loader, events, ConfigValue, ModuleConfig, validators
 
 from .utils import check, origin, repo
 
 loader = Loader()
 
+config = ModuleConfig(
+    ConfigValue(
+        "notify",
+        True,
+        "Notify for new updates",
+        validators.Boolean()
+    )
+)
 
 @events.loop(every=600)  # 10 min
 async def check_updates(client):
-    if not check():
+    notify = config["notify"]
+    if not notify and check():
         return
-
+    
     inline = client.inline
     await inline.say(
         client, None,

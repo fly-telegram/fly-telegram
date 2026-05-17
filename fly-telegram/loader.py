@@ -11,17 +11,25 @@ import asyncio
 import importlib
 import inspect
 import logging
+import re
 import sys
 from pathlib import Path
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Union
 
 from pyrogram import Client, filters
 from pyrogram.handlers import EditedMessageHandler, MessageHandler
 from pyrogram.types import Message
 
+try:
+    import ujson as json  # noqa: F401
+except ModuleNotFoundError:
+    pass
+
 THE_DIR = Path(__file__).parent
 if str(THE_DIR) not in sys.path:
     sys.path.append(str(THE_DIR))
+
+from database import database  # noqa: E402
 
 
 class LoaderError(Exception):
@@ -194,6 +202,285 @@ class Events:
 events = Events()
 
 
+class ValidationError(Exception):
+    pass
+
+
+class Validator:
+    def __init__(self, err: str = "Invalid value"):
+        self.err = err
+
+    def validate(self, value: Any) -> Any:
+        raise NotImplementedError
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__}>"
+
+
+class String(Validator):
+    def __init__(self, min: int = 0, max: int = 4096, err: str = "Must be a string"):
+        super().__init__(err)
+        self.min = min
+        self.max = max
+
+    def validate(self, value: Any) -> str:
+        if not isinstance(value, str):
+            raise ValidationError(self.err)
+        if len(value) < self.min:
+            raise ValidationError(f"string too short (min {self.min})")
+        if len(value) > self.max:
+            raise ValidationError(f"string too long (max {self.max})")
+        return value
+
+
+class Link(Validator):
+    def __init__(self, err: str = "Must be a link"):
+        super().__init__(err)
+
+    def validate(self, value: Any) -> str:
+        if not isinstance(value, str):
+            raise ValidationError(self.err)
+        pattern = re.compile(
+            r'^https?://'
+            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?|'
+            r'localhost|'
+            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'
+            r'(?::\d+)?'
+            r'(?:/?|[/?]\S+)$', re.IGNORECASE
+        )
+        if not pattern.match(value):
+            raise ValidationError(self.err)
+        return value
+
+
+class Integer(Validator):
+    def __init__(self, min: Optional[int] = None, max: Optional[int] = None,
+                 err: str = "Must be an int"):
+        super().__init__(err)
+        self.min = min
+        self.max = max
+
+    def validate(self, value: Any) -> int:
+        try:
+            val = int(value)
+        except (ValueError, TypeError):
+            raise ValidationError(self.err)
+        if self.min is not None and val < self.min:
+            raise ValidationError(f"Value must be >= {self.min}")
+        if self.max is not None and val > self.max:
+            raise ValidationError(f"Value must be <= {self.max}")
+        return val
+
+
+class Boolean(Validator):
+    def __init__(self, err: str = "Must be a bool (True/False)"):
+        super().__init__(err)
+
+    def validate(self, value: Any) -> bool:
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, str):
+            if value.lower() in ("true", "1", "yes", "on"):
+                return True
+            if value.lower() in ("false", "0", "no", "off"):
+                return False
+        raise ValidationError(self.err)
+
+
+class Float(Validator):
+    def __init__(self, min: Optional[float] = None, max: Optional[float] = None,
+                 err: str = "Must be a float"):
+        super().__init__(err)
+        self.min = min
+        self.max = max
+
+    def validate(self, value: Any) -> float:
+        try:
+            val = float(value)
+        except (ValueError, TypeError):
+            raise ValidationError(self.err)
+        if self.min is not None and val < self.min:
+            raise ValidationError(f"Value must be >= {self.min}")
+        if self.max is not None and val > self.max:
+            raise ValidationError(f"Value must be <= {self.max}")
+        return val
+
+
+class Choice(Validator):
+    def __init__(self, choices: list, err: str = "Invalid choice"):
+        super().__init__(err)
+        self.choices = choices
+
+    def validate(self, value: Any) -> Any:
+        if value not in self.choices:
+            raise ValidationError(
+                f"{self.err}. Allowed: {', '.join(str(c) for c in self.choices)}"
+            )
+        return value
+
+
+class ConfigValue:
+    __slots__ = ("name", "default", "doc", "validator", "on_change", "_owner")
+
+    def __init__(
+        self,
+        name: str,
+        default: Any,
+        doc: Union[str, Callable[[], str]] = "",
+        validator: Optional[Validator] = None,
+        on_change: Optional[Callable] = None,
+    ):
+        self.name = name
+        self.default = default
+        self.doc = doc if isinstance(doc, str) else doc()
+        self.validator = validator
+        self.on_change = on_change
+        self._owner: Optional[str] = None
+
+    def validate(self, value: Any) -> Any:
+        if self.validator:
+            return self.validator.validate(value)
+        return value
+
+    def __repr__(self) -> str:
+        return (
+            f"ConfigValue(name={self.name!r}, default={self.default!r}, "
+            f"validator={self.validator!r})"
+        )
+
+
+class ModuleConfig:
+    def __init__(self, *values: ConfigValue):
+        self.values: dict[str, ConfigValue] = {}
+        self.name: Optional[str] = None
+        self.key: str = "config"
+        self.cache: dict[str, Any] = {}
+
+        for v in values:
+            self.values[v.name] = v
+
+    def _set_module(self, name: str) -> None:
+        self.name = name
+        self._db()
+
+    def _db(self) -> None:
+        data = database.get(self.key, self.name) or {}
+        self.cache = {}
+
+        for name, cfg_value in self.values.items():
+            if name in data:
+                self.cache[name] = data[name]
+            else:
+                self.cache[name] = cfg_value.default
+
+        configs = database.get(self.key)
+        if not isinstance(configs, dict):
+            configs = {}
+        configs[self.name] = self.cache
+        database.set(self.key, configs)
+
+    def _save(self) -> None:
+        all_cfg = database.get(self.key)
+        if not isinstance(all_cfg, dict):
+            all_cfg = {}
+        all_cfg[self.name] = self.cache
+        database.set(self.key, all_cfg)
+
+    def __getitem__(self, key: str) -> Any:
+        if key not in self.values:
+            raise KeyError(
+                f"Config key '{key}' not defined for module '{self.name}'")
+        return self.cache.get(key, self.values[key].default)
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        if key not in self.values:
+            raise KeyError(
+                f"Config key '{key}' not defined for module '{self.name}'")
+
+        cfg_value = self.values[key]
+        valid = cfg_value.validate(value)
+        old_value = self.cache.get(key)
+        self.cache[key] = valid
+        self._save()
+
+        if cfg_value.on_change and old_value != valid:
+            if callable(cfg_value.on_change):
+                cfg_value.on_change(old_value, valid)
+
+    def __getattr__(self, key: str) -> Any:
+        if key.startswith("_") or key in ("values", "name", "key", "cache"):
+            return object.__getattribute__(self, key)
+        if key in self.values:
+            return self[key]
+        raise AttributeError(
+            f"'{type(self).__name__}' object has no attribute '{key}'")
+
+    def __setattr__(self, key: str, value: Any) -> None:
+        if key.startswith("_") or key in ("values", "name", "key", "cache"):
+            object.__setattr__(self, key, value)
+        else:
+            self[key] = value
+
+    def __contains__(self, key: str) -> bool:
+        return key in self.values
+
+    def __iter__(self):
+        return iter(self.values)
+
+    def __len__(self) -> int:
+        return len(self.values)
+
+    def __repr__(self) -> str:
+        items = ", ".join(
+            f"{k}={self.cache.get(k, v.default)!r}"
+            for k, v in self.values.items()
+        )
+        return f"ModuleConfig({items})"
+
+    def get(self, key: str, default: Any = None) -> Any:
+        try:
+            return self[key]
+        except KeyError:
+            return default
+
+    def set(self, key: str, value: Any) -> None:
+        self[key] = value
+
+    def items(self):
+        for name in self.values:
+            yield name, self.cache.get(name, self.values[name].default)
+
+    def keys(self):
+        return self.values.keys()
+
+    def values(self):
+        for name in self.values:
+            yield self.cache.get(name, self.values[name].default)
+
+    def reset(self, key: str) -> None:
+        if key not in self.values:
+            raise KeyError(f"Config key '{key}' not defined")
+        self[key] = self.values[key].default
+
+    def resetall(self) -> None:
+        for name, cfg_value in self.values.items():
+            self.cache[name] = cfg_value.default
+        self._save()
+
+
+class _Validators:
+    String = String
+    Link = Link
+    Integer = Integer
+    Boolean = Boolean
+    Float = Float
+    Choice = Choice
+    Validator = Validator
+
+
+validators = _Validators()
+
+
 class Loader:
     """fly-telegram modules loader"""
 
@@ -213,6 +500,9 @@ class Loader:
             else "fly-telegram.modules."
         )  # if not package - many path
         self.events = events
+        self.ModuleConfig = ModuleConfig
+        self.ConfigValue = ConfigValue
+        self.validators = validators
 
     @staticmethod
     def alias(*aliases: str) -> Callable:
@@ -288,6 +578,11 @@ class Loader:
                 raise ModuleImportError(
                     f"Failed to import module {module_name}: {e}"
                 ) from e
+
+            # Bind ModuleConfig instances to the module
+            for attr_name, attr_val in vars(module).items():
+                if isinstance(attr_val, ModuleConfig):
+                    attr_val._set_module(name)
 
             for func_name, func in inspect.getmembers(module, inspect.isfunction):
                 if func_name.endswith("_cmd"):

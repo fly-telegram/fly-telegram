@@ -2,7 +2,7 @@
 
 DEBUG_FILE="fly-telegram.log"
 REPO="https://github.com/fly-telegram/fly-telegram.git"
-BRANCH="v2"
+BRANCH="master"
 INSTALL_DIR="fly-telegram"
 REQUIREMENTS="requirements.txt"
 
