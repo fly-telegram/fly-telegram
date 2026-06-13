@@ -493,7 +493,7 @@ class Loader:
         self.core_modules: tuple[str, ...] = (
             "help", "loader",
             "core", "executor",
-            "configurator",
+            "configurator", "chats",
         )
         self.command_handlers: dict[str, list[MessageHandler]] = {}
         self.func_events: dict[str, dict[str, list[Callable]]] = {}

@@ -1,0 +1,10 @@
+{
+    "name": "chats",
+    "description": "Manages fly-telegram chats folder with logs, backups and updates channels.",
+    "version": [1, 0, "beta"],
+    "author": {
+        "name": "fly-telegram",
+        "link": "https://t.me/fly_ub"
+    },
+    "license": "GNU-APGL 3.0"
+}

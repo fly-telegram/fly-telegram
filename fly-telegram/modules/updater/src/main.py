@@ -46,7 +46,7 @@ async def check_updates(client):
                 "callback": update_handler,
             }]
         ],
-        chat_id="me",
+        chat_id=database.get("chats", "updates"),
     )
 
 

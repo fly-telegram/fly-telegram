@@ -7,8 +7,6 @@
 #              🔒 Licensed under the СС-by-NC
 #           creativecommons.org/licenses/by-nc/4.0/
 
-# IDEA: github@BadPrivacyclub/rust-fly-telegram.git
-
 import json
 import logging
 import os
@@ -183,9 +181,8 @@ class Auth:
         Returns:
             turple: The client and get_me
         """
-        await self.client.connect()
-
         try:
+            await self.client.connect()
             me = await self.client.get_me()
         except errors.AuthKeyUnregistered:
             if web:
@@ -197,6 +194,15 @@ class Auth:
         except errors.SessionRevoked:
             logging.error("Session revoked! Removing session file...")
             os.remove(SESSION_FILE)
+            await self.client.disconnect()
+            sys.exit(64)
+
+        except KeyError:
+            logging.error(
+                "Corrupted session detected! Removing session file...")
+            session_path = SESSION_FILE + ".session"
+            if os.path.exists(session_path):
+                os.remove(session_path)
             await self.client.disconnect()
             sys.exit(64)
 

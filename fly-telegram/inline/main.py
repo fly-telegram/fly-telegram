@@ -13,6 +13,7 @@ import json
 import logging
 import sys
 import os
+from typing import Callable
 from uuid import uuid4
 
 from aiogram import Bot, Dispatcher, Router
@@ -138,6 +139,7 @@ class Inline:
         self.dp: Dispatcher = None
         self._router: Router = None
         self.viamanager = Via()
+        self._query_handlers: list[Callable] = []
 
     @property
     def bot(self) -> Bot:
@@ -164,6 +166,27 @@ class Inline:
     def update_via(self, id, **kwargs):
         self.viamanager.update(id, **kwargs)
 
+    def query(self, func: Callable = None) -> Callable:
+        """
+        Decorator to register inline query handler from modules.
+
+        Usage:
+            @inline.query
+            async def my_handler(inline_query: InlineQuery):
+                await inline_query.answer(results=[...])
+        """
+        def decorator(f):
+            self._query_handlers.append(f)
+            return f
+
+        if func is not None:
+            # Called as @inline.query without parentheses
+            self._query_handlers.append(func)
+            return func
+
+        # Called as @inline.query() with parentheses
+        return decorator
+
     async def process_query(self, query: InlineQuery):
         q = query.query
         me = self.client.me
@@ -177,10 +200,14 @@ class Inline:
             )], cache_time=20)
             return
 
-        # Configurator queries
-        if q.startswith("cfg_"):
-            await self._cfg_query(query)
-            return
+        # Call registered module handlers
+        for handler in self._query_handlers:
+            try:
+                result = await handler(query)
+                if result is not None:
+                    return
+            except Exception as e:
+                logging.error(f"Inline query handler error: {e}")
 
         results = []
         if "_" in q:
@@ -200,8 +227,7 @@ class Inline:
         )], cache_time=20, is_personal=True)
 
     async def process_chosen_result(self, result: ChosenInlineResult):
-        if result.query.startswith("cfg_"):
-            await self._cfg_chosen(result)
+        pass
 
     async def process_callback(self, callback_query: CallbackQuery):
         data = callback_query.data
@@ -209,11 +235,6 @@ class Inline:
 
         if call.from_user.id != self.client.me.id:
             await call.answer("❌ Not for you")
-            return
-
-        # Configurator callbacks
-        if data.startswith("confirm_") or data.startswith("cancel_"):
-            await self._cfg_callback(call)
             return
 
         func, params = self.viamanager.get_huuid(data)
@@ -229,120 +250,6 @@ class Inline:
                 await call.answer("❌ Callback processing error.")
         else:
             await call.answer("⚠️ Handler expired")
-
-    async def _cfg_query(self, query: InlineQuery):
-        q = query.query
-        parts = q.split(maxsplit=1)
-        uid = parts[0]
-        new_val = parts[1] if len(parts) > 1 else ""
-
-        edit = self.viamanager.handlers.get(uid)
-        if not edit or "module" not in edit:
-            await query.answer(results=[InlineQueryResultArticle(
-                id="expired", title="⚠️ Handler expired", description="Go back and try again",
-                input_message_content=InputTextMessageContent(
-                    message_text="⚠️ <b>Handler expired!</b>", parse_mode="HTML"
-                )
-            )], cache_time=0, is_personal=True)
-            return
-
-        module, key, _vtype = edit["module"], edit["key"], edit["vtype"]
-        from modules.configurator.src.utils import get as cfg_get
-        cur = cfg_get(module, key, "")
-
-        text = (
-            f"🕊 <b>Confirm editing</b> <code>{module}</code>\n\n"
-            f"├─ <i>key</i>: <code>{key}</code>\n"
-            f"├─ <i>old:</i>: <code>{cur}</code>\n"
-            f"└─ <i>new:</i>: <code>{new_val}</code>"
-        )
-
-        save_id = str(uuid4())
-        cancel_id = str(uuid4())
-        self.viamanager.handlers[f"confirm_{save_id}"] = {
-            "action": "save", "module": module, "key": key, "value": new_val, "uid": uid}
-        self.viamanager.handlers[f"cancel_{cancel_id}"] = {
-            "action": "cancel", "module": module, "key": key, "uid": uid}
-
-        markup = InlineKeyboardMarkup(inline_keyboard=[[
-            InlineKeyboardButton(
-                text="✅ Save", callback_data=f"confirm_{save_id}"),
-            InlineKeyboardButton(
-                text="❌ Cancel", callback_data=f"cancel_{cancel_id}"),
-        ]])
-
-        await query.answer(results=[InlineQueryResultArticle(
-            id=str(uuid4()), title="🕊 Enter new value",
-            description=f"{cur} to {new_val}",
-            input_message_content=InputTextMessageContent(
-                message_text=text, parse_mode="HTML"),
-            reply_markup=markup,
-        )], cache_time=0, is_personal=True)
-
-    async def _cfg_chosen(self, result: ChosenInlineResult):
-        q = result.query
-        if not q.startswith("cfg_"):
-            return
-
-        parts = q.split(maxsplit=1)
-        uid = parts[0]
-        value = parts[1] if len(parts) > 1 else ""
-
-        edit = self.viamanager.handlers.get(uid)
-        if not edit or "module" not in edit:
-            return
-
-        module, key = edit["module"], edit["key"]
-        try:
-            from modules.configurator.src.utils import set as cfg_set
-            cfg_set(module, key, value)
-            self.viamanager.handlers.pop(uid, None)
-            await self._bot.send_message(
-                chat_id=self.client.me.id,
-                text=(
-                    "✅ <b>Saved!</b>\n"
-                    f"<code>{module}.{key} = {value}</code>"
-                ),
-                parse_mode="HTML"
-            )
-        except Exception as e:
-            logging.error(f"Config save error: {e}")
-
-    async def _cfg_callback(self, call: InlineCall):
-        data = call.data
-        h = self.viamanager.handlers
-
-        if data.startswith("confirm_"):
-            d = h.get(data)
-            if d and d.get("action") == "save":
-                module, key, value, uid = d["module"], d["key"], d["value"], d["uid"]
-                try:
-                    from modules.configurator.src.utils import set as cfg_set
-                    cfg_set(module, key, value)
-                    h.pop(uid, None)
-                    h.pop(data, None)
-                    await self._bot.edit_message_text(
-                        text=(
-                            "✅ <b>Saved!</b>\n"
-                            f"<code>{module}.{key} = {value}</code>"
-                        ),
-                        inline_message_id=call.inline_message_id, parse_mode="HTML"
-                    )
-                except Exception as e:
-                    logging.error(f"Config save error: {e}")
-                    await self._bot.edit_message_text(text=f"❌ <b>Error:</b> <code>{e}</code>",
-                                                      inline_message_id=call.inline_message_id, parse_mode="HTML")
-
-        elif data.startswith("cancel_"):
-            d = h.get(data)
-            if d and d.get("action") == "cancel":
-                h.pop(d["uid"], None)
-                h.pop(data, None)
-                await self._bot.edit_message_text(
-                    text="❌ <b>Cancelled</b>",
-                    inline_message_id=call.inline_message_id,
-                    parse_mode="HTML"
-                )
 
     def register_handlers(self, dp: Dispatcher):
         self._router = Router()

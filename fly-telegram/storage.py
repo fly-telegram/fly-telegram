@@ -7,6 +7,8 @@
 #              🔒 Licensed under the СС-by-NC
 #           creativecommons.org/licenses/by-nc/4.0/
 
+# IDEA: github@BadPrivacyclub/rust-fly-telegram.git
+
 import logging
 from pathlib import Path
 from typing import Optional

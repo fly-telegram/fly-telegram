@@ -17,6 +17,7 @@ from .auth import Auth
 from .fileswatcher import FilesWatcher
 from .inline import Inline
 from .loader import Loader
+from .logger import InlineHandler
 from .utils import logo
 
 try:
@@ -71,6 +72,16 @@ class Userbot:
 
         if not client.me:
             client.me = me
+
+        try:
+            telegram_handler = InlineHandler(client)
+            telegram_handler.setFormatter(logging.Formatter(
+                "%(asctime)s [%(levelname)s] %(funcName)s: %(lineno)d - %(message)s",
+                "%m-%d %H:%M:%S"
+            ))
+            logging.getLogger().addHandler(telegram_handler)
+        except Exception:
+            pass
 
         client.loader = self.loader  # type: ignore
         client.inline = self.inline  # type: ignore
