@@ -139,7 +139,7 @@ class Inline:
         self.dp: Dispatcher = None
         self._router: Router = None
         self.viamanager = Via()
-        self._query_handlers: list[Callable] = []
+        self._q_handlers: list[Callable] = []
 
     @property
     def bot(self) -> Bot:
@@ -167,24 +167,14 @@ class Inline:
         self.viamanager.update(id, **kwargs)
 
     def query(self, func: Callable = None) -> Callable:
-        """
-        Decorator to register inline query handler from modules.
-
-        Usage:
-            @inline.query
-            async def my_handler(inline_query: InlineQuery):
-                await inline_query.answer(results=[...])
-        """
+        """Decorator to register inline query handler from modules."""
         def decorator(f):
-            self._query_handlers.append(f)
+            self._q_handlers.append(f)
             return f
 
         if func is not None:
-            # Called as @inline.query without parentheses
-            self._query_handlers.append(func)
+            self._q_handlers.append(func)
             return func
-
-        # Called as @inline.query() with parentheses
         return decorator
 
     async def process_query(self, query: InlineQuery):
@@ -200,8 +190,7 @@ class Inline:
             )], cache_time=20)
             return
 
-        # Call registered module handlers
-        for handler in self._query_handlers:
+        for handler in self._q_handlers:
             try:
                 result = await handler(query)
                 if result is not None:

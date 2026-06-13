@@ -218,37 +218,29 @@ async def close(call):
     await call.edit_message("🕊 <b>Configurator closed</b>")
 
 
-# Inline query handler for quick config access
-async def _register_inline_query(client):
-    """Register inline query handler via decorator"""
+async def _inline_query(client):
     inline = client.inline
 
     @inline.query()
-    async def config_inline_handler(query: InlineQuery):
-        """Handle 'cfg' inline query for quick config access"""
+    async def config_handler(query: InlineQuery):
         q = query.query.strip()
 
         if not q.startswith("cfg"):
             return None
 
-        # Check if this is a config edit request: cfg_<uuid> <value>
-        # Format: cfg_<uuid> <new_value> - save value to config
         parts = q.split(maxsplit=1)
-        first_part = parts[0]
+        onepart = parts[0]
 
-        # If first part is cfg_<uuid> (has underscore after cfg), it's a save request
-        if first_part.startswith("cfg_") and len(first_part) > 4:
-            uid = first_part  # cfg_<uuid>
+        if onepart.startswith("cfg_") and len(onepart) > 4:
+            uid = onepart  # cfg_<uuid>
             new_val = parts[1] if len(parts) > 1 else ""
 
-            # Find handler data in viamanager
             edit_data = inline.viamanager.handlers.get(uid)
             if edit_data and "module" in edit_data:
                 module_name = edit_data["module"]
                 key = edit_data["key"]
                 vtype = edit_data.get("vtype", "str")
 
-                # Convert and save value
                 converted = convert(new_val, vtype)
                 set(module_name, key, converted)
 
@@ -283,10 +275,8 @@ async def _register_inline_query(client):
                 ], cache_time=0, is_personal=True)
                 return True
 
-        # Parse: cfg <module> [key] - browse config
         parts = q.split(maxsplit=2)
         if len(parts) < 2:
-            # Show all modules
             modules = get_modules()
             if not modules:
                 await query.answer(results=[
@@ -341,7 +331,6 @@ async def _register_inline_query(client):
             return True
 
         if len(parts) < 3:
-            # Show module keys
             results = []
             for k in mod['keys']:
                 cur_val = get(module_name, k['name'], k['default'])
@@ -363,7 +352,6 @@ async def _register_inline_query(client):
             await query.answer(results=results, cache_time=60, is_personal=True)
             return True
 
-        # Show specific key
         key_name = parts[2]
         key_info = next(
             (k for k in mod['keys'] if k['name'] == key_name), None)
@@ -402,7 +390,6 @@ async def _register_inline_query(client):
         return True
 
 
-# Register on module load
 @loader.events.on_load
 async def _on_load(client):
-    await _register_inline_query(client)
+    await _inline_query(client)
