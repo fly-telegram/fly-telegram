@@ -1,3 +1,12 @@
+#         _______  _____   ___ ___  _______  _______
+#        |    ___||     |_|   |   ||_     _||     __|
+#        |    ___||       |\     /   |   |  |    |  |
+#        |___|    |_______| |___|    |___|  |_______|
+#                      t.me/FLY_UB
+#
+#            🔒 Licensed under the GNU-APGL 3.0
+#             www.gnu.org/licenses/agpl-3.0.html
+
 import asyncio
 from pyrogram import Client, errors
 from pyrogram.types import ChatAdministratorRights
