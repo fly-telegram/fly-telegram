@@ -177,11 +177,16 @@ class Inline:
             return func
         return decorator
 
+    def inline_rights(self, user_id: int) -> bool:
+        rights_data = database.get("rights") or {}
+        user_rights = rights_data.get(str(user_id), [])
+        return "inline" in user_rights
+
     async def process_query(self, query: InlineQuery):
         q = query.query
         me = self.client.me
 
-        if query.from_user.id != me.id:
+        if query.from_user.id != me.id and not self.inline_rights(query.from_user.id):
             await query.answer(results=[InlineQueryResultArticle(
                 id="notprems", title="🕊️ fly telegram v2", description="Not available",
                 input_message_content=InputTextMessageContent(
@@ -196,7 +201,12 @@ class Inline:
                 if result is not None:
                     return
             except Exception as e:
-                logging.error(f"Inline query handler error: {e}")
+                err_str = str(e)
+                if any(x in err_str for x in ("ClientOSError", "ServerDisconnectedError", "ConnectionResetError", "TelegramNetworkError", "disconnected", "connection")):
+                    logging.error(
+                        "Inline query handler error: connection error")
+                else:
+                    logging.error(f"Inline query handler error: {e}")
 
         results = []
         if "_" in q:
@@ -222,7 +232,7 @@ class Inline:
         data = callback_query.data
         call = InlineCall(callback_query, self.client, self._bot)
 
-        if call.from_user.id != self.client.me.id:
+        if call.from_user.id != self.client.me.id and not self.inline_rights(call.from_user.id):
             await call.answer("❌ Not for you")
             return
 
@@ -235,7 +245,11 @@ class Inline:
                 else:
                     await func(call)
             except Exception as e:
-                logging.error(f"Callback error: {e}")
+                err_str = str(e)
+                if any(x in err_str for x in ("ClientOSError", "ServerDisconnectedError", "ConnectionResetError", "TelegramNetworkError", "disconnected", "connection")):
+                    logging.error("Callback error: connection error")
+                else:
+                    logging.error(f"Callback error: {e}")
                 await call.answer("❌ Callback processing error.")
         else:
             await call.answer("⚠️ Handler expired")

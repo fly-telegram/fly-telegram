@@ -1,6 +1,6 @@
 {
-  "name": "help", 
-  "description": "The Fly Telegram module for receiving all modules and commands.",
+  "name": "rights",
+  "description": "The Fly Telegram core module for managing rights.",
   "version": [1, 0, "beta"],
   "author": {
     "name": "fly-telegram",

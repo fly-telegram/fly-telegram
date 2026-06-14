@@ -101,7 +101,11 @@ class CommandWrapper:
         except ArgumentsError as e:
             await self.message.edit(f"❌ <b>Arguments Error: {e}</b>")
         except Exception as e:
-            await self.message.edit(f"❌ <b>Error: {e}</b>")
+            err_str = str(e)
+            if any(x in err_str for x in ("ClientOSError", "ServerDisconnectedError", "ConnectionResetError", "TelegramNetworkError", "disconnected", "connection")):
+                await self.message.edit("❌ <b>connection error</b>")
+            else:
+                await self.message.edit(f"❌ <b>Error: {e}</b>")
 
     async def _process_command(self) -> None:
         """
@@ -494,8 +498,10 @@ class Loader:
             "help", "loader",
             "core", "executor",
             "configurator", "chats",
+            "rights",
         )
         self.command_handlers: dict[str, list[MessageHandler]] = {}
+        self.commands_reg: dict[str, str] = {}
         self.func_events: dict[str, dict[str, list[Callable]]] = {}
         self.func_tasks: dict[str, list[asyncio.Task]] = {}
         self._package_prefix: str = (
@@ -647,7 +653,12 @@ class Loader:
                 break
 
             except Exception as error:
-                logging.error(f"Module '{name}' loop error: {error}")
+                err_str = str(error)
+                if any(x in err_str for x in ("ClientOSError", "ServerDisconnectedError", "ConnectionResetError", "TelegramNetworkError", "disconnected", "connection")):
+                    logging.error(
+                        f"Module '{name}' loop error: connection error")
+                else:
+                    logging.error(f"Module '{name}' loop error: {error}")
 
     def _register_watcher(self, client: Client,
                           func: Callable, name: str) -> MessageHandler:
@@ -699,7 +710,11 @@ class Loader:
                 else:
                     func(c, message)
             except Exception as err:
-                logging.error(f"watcher error in {name}: {err}")
+                err_str = str(err)
+                if any(x in err_str for x in ("ClientOSError", "ServerDisconnectedError", "ConnectionResetError", "TelegramNetworkError", "disconnected", "connection")):
+                    logging.error(f"watcher error in {name}: connection error")
+                else:
+                    logging.error(f"watcher error in {name}: {err}")
 
         handler = MessageHandler(wrapper, filters=used)
         client.add_handler(handler)
@@ -752,9 +767,19 @@ class Loader:
         wrapper: CommandWrapper = CommandWrapper(client, func)
 
         async def wrapped_command(_: Any, message: Message) -> None:
+            user_id = message.from_user.id if message.from_user else None
+            if user_id is None:
+                return
+
+            if user_id != client.me.id:
+                rights_data = database.get("rights") or {}
+                user_rights = rights_data.get(str(user_id), [])
+                if command_name not in user_rights:
+                    return
+
             await wrapper(message)
 
-        cmd_filter = filters.command([command_name], ".") & filters.me
+        cmd_filter = filters.command([command_name], ".")
 
         handler: MessageHandler = MessageHandler(
             wrapped_command,
@@ -772,6 +797,8 @@ class Loader:
             module_name, [])
         handlers_list.append(handler)
         handlers_list.append(edited_handler)
+
+        self.commands_reg[command_name] = module_name
 
     async def unload(self, name: str, client: Client) -> bool:
         """
@@ -799,6 +826,11 @@ class Loader:
             client.remove_handler(handler)
 
         del self.command_handlers[name]
+
+        to_remove = [cmd for cmd,
+                     mod in self.commands_reg.items() if mod == name]
+        for cmd in to_remove:
+            del self.commands_reg[cmd]
 
         prefix: str = f"{self._package_prefix}{name}."
         modules_to_delete: list[str] = [

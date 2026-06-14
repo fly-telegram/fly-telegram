@@ -56,13 +56,13 @@ async def start(client: Client):
                 break
 
         if folder:
-            await client.edit_folder(folder.id, title="fly-telegram", included_chats=ids)
+            await client.edit_folder(folder.id, included_chats=ids)
         else:
             await client.create_folder(name="fly-telegram", included_chats=ids)
     except errors.FloodWait as e:
         await asyncio.sleep(e.value)
         if folder:
-            await client.edit_folder(folder.id, title="fly-telegram", included_chats=ids)
+            await client.edit_folder(folder.id, included_chats=ids)
         else:
             await client.create_folder(name="fly-telegram", included_chats=ids)
     except Exception:
