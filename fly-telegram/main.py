@@ -50,7 +50,8 @@ class Userbot:
     async def amain(
         self,
         web: bool = True,
-        token: str = None
+        token: str = None,
+        qr: bool = False,
     ) -> bool:
         """
         async userbot process
@@ -59,11 +60,12 @@ class Userbot:
         Args:
             web (bool): Login with webUI or not
             token (str): Inline bot token
+            qr (bool): Login via QR code
 
         Returns:
             bool: if runned userbot
         """
-        client, me = await self.auth.load(web)
+        client, me = await self.auth.load(web, qr)
 
         await client.initialize()
         await client.dispatcher.start()
@@ -101,6 +103,7 @@ class Userbot:
         level: str = "info",
         web: bool = True,
         token: str = None,
+        qr: bool = False,
     ) -> None:
         """
         sync userbot process
@@ -109,13 +112,14 @@ class Userbot:
         Args:
             web (bool): Login with webUI or not
             token (str): Inline bot token
+            qr (bool): Login via QR code
         """
 
         print(logo)
         logger.load(self.levels.get(level.lower()))
 
         try:
-            self.loop.run_until_complete(self.amain(web))
+            self.loop.run_until_complete(self.amain(web, token, qr))
         except KeyboardInterrupt:
             print("stopping...")
 

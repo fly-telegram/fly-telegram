@@ -47,4 +47,5 @@ if __name__ == "__main__":
         level=level,
         web=args.no_web,
         token=token,
+        qr=args.qr,
     )

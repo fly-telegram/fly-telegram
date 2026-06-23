@@ -211,3 +211,65 @@ input[type="password"]:focus {
 .popup input::placeholder {
   color: rgba(255, 255, 255, 0.6);
 }
+
+.tab-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.tab-btn {
+  padding: 8px 24px;
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: 16px;
+  font-weight: 900;
+  cursor: pointer;
+  color: var(--primary-color);
+  background-color: rgba(225, 225, 225, 0.1);
+  transition: background-color 0.3s;
+}
+
+.tab-btn.active {
+  background-color: rgba(66, 184, 216, 0.5);
+}
+
+.tab-btn:hover {
+  background-color: rgba(225, 225, 225, 0.3);
+}
+
+.qr-container {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 30px;
+  opacity: 0;
+  transition: var(--transition);
+}
+
+.qr-container.show {
+  display: flex;
+  opacity: 1;
+}
+
+#qr-code-area svg {
+  width: 256px;
+  height: 256px;
+  border-radius: var(--border-radius);
+  background: white;
+  padding: 16px;
+}
+
+.qr-hint {
+  margin-top: 16px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+}
+
+.qr-status {
+  margin-top: 8px;
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--primary-color);
+}

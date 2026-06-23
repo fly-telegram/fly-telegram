@@ -7,6 +7,8 @@
 #              🔒 Licensed under the СС-by-NC
 #           creativecommons.org/licenses/by-nc/4.0/
 
+import asyncio
+import base64
 import json
 import logging
 import os
@@ -14,8 +16,11 @@ import sys
 from pathlib import Path
 from typing import Optional
 
+import qrcode
 from pyrogram import Client, errors, types
 from pyrogram.enums import ParseMode
+from pyrogram.raw.functions.auth import ExportLoginToken, ImportLoginToken
+from pyrogram.raw.types.auth import LoginTokenSuccess, LoginTokenMigrateTo
 
 from .storage import CustomStorage
 from .utils import SESSION_FILE
@@ -172,12 +177,63 @@ class Auth:
             except errors.BadRequest:
                 logging.error("Invalid 2FA password. Try again")
 
-    async def load(self, web=True) -> tuple[Client, types.User]:
+    async def login_qr(self) -> tuple[Client, types.User]:
+        """
+        Login via QR code
+        Returns:
+            tuple: The client and get_me
+        """
+        result = await self.client.invoke(ExportLoginToken(
+            api_id=self.config["api_id"],
+            api_hash=self.config["api_hash"],
+            except_ids=[]
+        ))
+
+        if isinstance(result, LoginTokenSuccess):
+            me = await self.client.get_me()
+            return self.client, me
+
+        token_bytes = result.token
+        token_b64 = base64.urlsafe_b64encode(
+            token_bytes).rstrip(b'=').decode()
+        url = f"tg://login?token={token_b64}"
+
+        qr = qrcode.QRCode()
+        qr.add_data(url)
+        logging.info(
+            "Open your telegram app (Settings > Devices > Add new device) and scan")
+        qr.print_ascii()
+
+        while True:
+            await asyncio.sleep(3)
+            try:
+                result = await self.client.invoke(ImportLoginToken(token=token_bytes))
+            except Exception:
+                continue
+
+            if isinstance(result, LoginTokenSuccess):
+                me = await self.client.get_me()
+                return self.client, me
+
+            elif isinstance(result, LoginTokenMigrateTo):
+                await self.client.disconnect()
+                self.client.dc_id = result.dc_id
+                await self.client.connect()
+                try:
+                    result2 = await self.client.invoke(ImportLoginToken(token=result.token))
+                except Exception:
+                    continue
+                if isinstance(result2, LoginTokenSuccess):
+                    me = await self.client.get_me()
+                    return self.client, me
+
+    async def load(self, web=True, qr=False) -> tuple[Client, types.User]:
         """
         Load for auth user
 
         Args:
             web (bool): Login with webUI?
+            qr (bool): Login via QR code?
         Returns:
             turple: The client and get_me
         """
@@ -185,6 +241,8 @@ class Auth:
             await self.client.connect()
             me = await self.client.get_me()
         except errors.AuthKeyUnregistered:
+            if qr:
+                return await self.login_qr()
             if web:
                 self.client, me = await self.web.run()
             else:

@@ -52,5 +52,10 @@ def parser() -> argparse.Namespace:
         help="Manyally set inline token.",
         required=False,
     )
+    parser.add_argument(
+        "--qr",
+        action="store_true",
+        help="Login via QR code.",
+    )
 
     return parser.parse_args()
