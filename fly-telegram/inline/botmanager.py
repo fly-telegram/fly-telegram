@@ -46,37 +46,60 @@ class BotManager:
         username = f"flyTG_{bot_id}_bot"
         display_name = f"🕊 Fly-telegram of {client.me.first_name}"
 
-        messages = [
-            "/cancel",
-            "/newbot",
-            display_name,
-            username,
-            "/setinline",
-            f"@{username}",
-            "🕊 fly-telegram: ",
-        ]
-
-        token_pattern = r"Use this token to access the HTTP API:\n([0-9]+:[A-Za-z0-9_]+)"
+        pattern = r"{}:\n([0-9]+:[A-Za-z0-9_]+)"
         token = None
 
         async with Conversation(client, botfather, True) as conv:
-            for message in messages:
-                await asyncio.sleep(0.5)
-                try:
-                    logging.debug(message)
-                    await conv.send(message)
-                    response = await conv.response()
-                    logging.debug(response)
+            try:
+                await conv.send("/cancel")
+                await asyncio.sleep(1)
+                await conv.send("/token")
+                resp = await conv.response()
+                if resp.reply_markup and resp.reply_markup.keyboard:
+                    botpattern = re.compile(r"@?flyTG_[A-Za-z0-9]{5}_bot$")
+                    for row in resp.reply_markup.keyboard:
+                        for button in row:
+                            if botpattern.fullmatch(button.text):
+                                await conv.send(button.text)
+                                token_resp = await conv.response()
+                                if match := re.search(pattern.format("You can use this token to access HTTP API"), token_resp.text):
+                                    token = match[1]
+                                    username = button.text.lstrip("@")
+                                break
+                        if token:
+                            break
+            except Exception:
+                pass
 
-                    if match := re.search(token_pattern, response.text):
-                        token = match[1]
+            if not token:
+                messages = [
+                    "/cancel",
+                    "/newbot",
+                    display_name,
+                    username,
+                    "/setinline",
+                    f"@{username}",
+                    "🕊 fly-telegram: ",
+                ]
 
-                    if any(error in response.text for error in self.errors_texts):
-                        raise Exception(
-                            f"Failed to create inline bot. Botfather response: {response.text}")
-                except errors.UserIsBlocked:
-                    await client.unblock_user(botfather)
+                for message in messages:
+                    await asyncio.sleep(0.5)
+                    try:
+                        logging.debug(message)
+                        await conv.send(message)
+                        resp = await conv.response()
+                        logging.debug(resp)
 
+                        if match := re.search(pattern.format("Use this token to access the HTTP API"), resp.text):
+                            token = match[1]
+
+                        if any(error in resp.text for error in self.errors_texts):
+                            raise Exception(
+                                f"Failed to create inline bot. Botfather response: {resp.text}")
+                    except (errors.UserIsBlocked, errors.YouBlockedUser):
+                        await client.unblock_user(botfather)
+
+        if token:
             async with Conversation(client, f"@{username}", True) as conv:
                 await conv.send("/start")
 

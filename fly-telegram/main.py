@@ -95,8 +95,10 @@ class Userbot:
 
         await self.loader.load_all(client)
 
-        await idle()
-        return True
+        try:
+            await idle()
+        finally:
+            await client.stop()
 
     def main(
         self,

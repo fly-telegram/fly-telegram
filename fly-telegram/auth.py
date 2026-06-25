@@ -213,6 +213,8 @@ class Auth:
 
             if isinstance(result, LoginTokenSuccess):
                 me = await self.client.get_me()
+                await self.client.storage.user_id(me.id)
+                await self.client.storage.is_bot(False)
                 return self.client, me
 
             elif isinstance(result, LoginTokenMigrateTo):
@@ -225,6 +227,8 @@ class Auth:
                     continue
                 if isinstance(result2, LoginTokenSuccess):
                     me = await self.client.get_me()
+                    await self.client.storage.user_id(me.id)
+                    await self.client.storage.is_bot(False)
                     return self.client, me
 
     async def load(self, web=True, qr=False) -> tuple[Client, types.User]:
@@ -251,7 +255,7 @@ class Auth:
 
         except errors.SessionRevoked:
             logging.error("Session revoked! Removing session file...")
-            os.remove(SESSION_FILE)
+            os.remove(SESSION_FILE + ".session")
             await self.client.disconnect()
             sys.exit(64)
 

@@ -36,6 +36,10 @@ async def check_updates(client):
     if not notify and check():
         return
 
+    chat_id = database.get("chats", "updates")
+    if not chat_id:
+        return
+
     inline = client.inline
     await inline.say(
         client, None,
@@ -46,7 +50,7 @@ async def check_updates(client):
                 "callback": update_handler,
             }]
         ],
-        chat_id=database.get("chats", "updates"),
+        chat_id=chat_id,
     )
 
 

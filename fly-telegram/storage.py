@@ -74,6 +74,12 @@ class CustomStorage(SQLiteStorage):
         with self.conn:
             self.conn.execute("VACUUM")
 
+    async def close(self):
+        if self.conn:
+            self.conn.commit()
+            self.conn.close()
+            self.conn = None
+
     async def _session_string(self):
         """in memory import database"""
         import base64

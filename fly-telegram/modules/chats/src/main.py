@@ -30,6 +30,16 @@ async def start(client: Client):
         cid = chats.get(key)
         if not cid:
             try:
+                async for dialog in client.get_dialogs():
+                    if dialog.chat.title == title:
+                        cid = dialog.chat.id
+                        chats[key] = cid
+                        break
+            except Exception:
+                pass
+
+        if not cid:
+            try:
                 channel = await client.create_channel(title=title, description=desc)
                 cid = channel.id
                 chats[key] = cid

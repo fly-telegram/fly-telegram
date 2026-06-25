@@ -99,6 +99,9 @@ class Web:
                 response = JSONResponse(
                     content={"user": user.first_name, "status": "success"})
 
+                await self.client.storage.user_id(user.id)
+                await self.client.storage.is_bot(False)
+
                 if self.server:
                     self.server.should_exit = True
                     # await self.server.shutdown()
@@ -166,6 +169,8 @@ class Web:
                 if self.server:
                     self.server.should_exit = True
                 me = await self.client.get_me()
+                await self.client.storage.user_id(me.id)
+                await self.client.storage.is_bot(False)
                 return {"status": "success", "user": me.first_name}
 
             if isinstance(result, LoginTokenMigrateTo):
@@ -181,6 +186,8 @@ class Web:
                     if self.server:
                         self.server.should_exit = True
                     me = await self.client.get_me()
+                    await self.client.storage.user_id(me.id)
+                    await self.client.storage.is_bot(False)
                     return {"status": "success", "user": me.first_name}
                 return {"status": "waiting"}
 
