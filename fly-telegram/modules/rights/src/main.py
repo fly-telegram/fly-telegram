@@ -268,7 +268,7 @@ async def show_command(call, module, command):
         [
             {
                 "text": "➕ Add user",
-                "switch_inline_query_current_chat": f"rights_add {command} ",
+                "switch_inline_query_current_chat": f"newrights {command} ",
             }
         ]
     )
@@ -348,7 +348,7 @@ async def get_users(call):
         [
             {
                 "text": "➕ Add user",
-                "switch_inline_query_current_chat": "rights_add inline ",
+                "switch_inline_query_current_chat": "newrights inline ",
             }
         ]
     )
