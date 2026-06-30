@@ -45,13 +45,9 @@ class ModuleHandler(FileSystemEventHandler):
                 mod_file = mod_path.name
                 mod_name = parts[0]
 
-                asyncio.run_coroutine_threadsafe(
-                    self.callback(mod_name),
-                    self.loop
-                )
+                asyncio.run_coroutine_threadsafe(self.callback(mod_name), self.loop)
 
-                logging.info(
-                    f"Module '{mod_name}' file '{mod_file}' was modified.")
+                logging.info(f"Module '{mod_name}' file '{mod_file}' was modified.")
 
 
 class FilesWatcher:

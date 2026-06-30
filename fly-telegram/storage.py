@@ -13,8 +13,7 @@ import logging
 from pathlib import Path
 from typing import Optional
 
-from pyrogram.storage.sqlite_storage import SQLiteStorage
-from pyrogram.storage.sqlite_storage import TEST, PROD
+from pyrogram.storage.sqlite_storage import PROD, TEST, SQLiteStorage
 
 log = logging.getLogger(__name__)
 
@@ -43,8 +42,7 @@ class CustomStorage(SQLiteStorage):
         if self.in_memory:
             from sqlcipher3 import dbapi2 as sqlite3
 
-            self.conn = sqlite3.connect(
-                ":memory:", timeout=1, check_same_thread=False)
+            self.conn = sqlite3.connect(":memory:", timeout=1, check_same_thread=False)
             self.conn.set_key(self._passwd)
             await self.create()
 
@@ -57,8 +55,7 @@ class CustomStorage(SQLiteStorage):
 
         from sqlcipher3 import dbapi2 as sqlite3
 
-        self.conn = sqlite3.connect(
-            str(path), timeout=1, check_same_thread=False)
+        self.conn = sqlite3.connect(str(path), timeout=1, check_same_thread=False)
         self.conn.set_key(self._passwd)
 
         if self.use_wal:
@@ -95,9 +92,7 @@ class CustomStorage(SQLiteStorage):
                     if len(self.session_string) == self.SESSION_STRING_SIZE
                     else self.OLD_SESSION_STRING_FORMAT_64
                 ),
-                base64.urlsafe_b64decode(
-                    self.session_string + "=" * (-len(self.session_string) % 4)
-                ),
+                base64.urlsafe_b64decode(self.session_string + "=" * (-len(self.session_string) % 4)),
             )
 
             await self.dc_id(dc_id)
@@ -112,9 +107,7 @@ class CustomStorage(SQLiteStorage):
 
         dc_id, api_id, test_mode, auth_key, user_id, is_bot = struct.unpack(
             self.SESSION_STRING_FORMAT,
-            base64.urlsafe_b64decode(
-                self.session_string + "=" * (-len(self.session_string) % 4)
-            ),
+            base64.urlsafe_b64decode(self.session_string + "=" * (-len(self.session_string) % 4)),
         )
 
         await self.dc_id(dc_id)

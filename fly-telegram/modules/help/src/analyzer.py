@@ -27,10 +27,7 @@ class ModuleAnalyzer:
             return modules
 
         for item in self.modules_path.iterdir():
-            if (item.is_dir and
-                not item.name.startswith("_") and
-                    not item.name.startswith(".")):
-
+            if item.is_dir and not item.name.startswith("_") and not item.name.startswith("."):
                 src_path = item / "src"
                 if src_path.exists() and any(src_path.glob("*.py")):
                     modules.append(item.name)
@@ -42,7 +39,7 @@ class ModuleAnalyzer:
         commands: list[dict] = []
 
         try:
-            with open(file, encoding='utf-8') as f:
+            with open(file, encoding="utf-8") as f:
                 content = f.read()
 
             tree = ast.parse(content)
@@ -59,13 +56,15 @@ class ModuleAnalyzer:
                         if arg_name != "self":
                             args.append(arg_name)
 
-                    commands.append({
-                        'name': name,
-                        'docstring': docstring,
-                        'arguments': args,
-                        'file': file.name,
-                        'module': file.parent.parent.name
-                    })
+                    commands.append(
+                        {
+                            "name": name,
+                            "docstring": docstring,
+                            "arguments": args,
+                            "file": file.name,
+                            "module": file.parent.parent.name,
+                        }
+                    )
         except Exception:
             pass
 

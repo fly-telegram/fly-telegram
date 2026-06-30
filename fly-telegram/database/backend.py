@@ -56,8 +56,7 @@ class Database(dict):
 
         self.update(**self.load(self.location))
 
-    def get(
-            self, *keys):
+    def get(self, *keys):
         """
         Gets a value from the database.
 

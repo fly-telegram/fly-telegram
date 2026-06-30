@@ -1,12 +1,17 @@
 import ast
 from pathlib import Path
 from uuid import uuid4
+
 from aiogram.types import (
-    InlineKeyboardButton, InlineKeyboardMarkup,
-    InlineQuery, InlineQueryResultArticle, InputTextMessageContent
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    InlineQuery,
+    InlineQueryResultArticle,
+    InputTextMessageContent,
 )
 from loader import Loader
-from .utils import get_modules, get, set
+
+from .utils import get, get_modules, set
 
 loader = Loader()
 
@@ -22,38 +27,30 @@ def _kb(call, buttons):
         line = []
         for b in row:
             if "switch_inline_query_current_chat" in b:
-                line.append(InlineKeyboardButton(
-                    text=b["text"],
-                    switch_inline_query_current_chat=b["switch_inline_query_current_chat"])
+                line.append(
+                    InlineKeyboardButton(
+                        text=b["text"], switch_inline_query_current_chat=b["switch_inline_query_current_chat"]
+                    )
                 )
                 continue
             if "switch_inline_query" in b:
-                line.append(InlineKeyboardButton(
-                    text=b["text"],
-                    switch_inline_query=b["switch_inline_query"])
-                )
+                line.append(InlineKeyboardButton(text=b["text"], switch_inline_query=b["switch_inline_query"]))
                 continue
             cb = b.get("callback")
             params = b.get("params", {})
             if callable(cb):
                 uid = str(uuid4())
                 via.handlers[uid] = {"callback": cb, "params": params}
-                line.append(InlineKeyboardButton(
-                    text=b["text"], callback_data=uid))
+                line.append(InlineKeyboardButton(text=b["text"], callback_data=uid))
             else:
-                line.append(InlineKeyboardButton(
-                    text=b["text"], callback_data=b["callback"]))
+                line.append(InlineKeyboardButton(text=b["text"], callback_data=b["callback"]))
         rows.append(line)
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
 def edit_btn(client, module, key, vtype, cur=""):
     uid = str(uuid4())
-    client.inline.viamanager.handlers[f"cfg_{uid}"] = {
-        "module": module,
-        "key": key,
-        "vtype": vtype
-    }
+    client.inline.viamanager.handlers[f"cfg_{uid}"] = {"module": module, "key": key, "vtype": vtype}
     return {"text": "✏️ Enter new value", "switch_inline_query_current_chat": f"cfg_{uid} {cur}"}
 
 
@@ -70,7 +67,9 @@ def get_choices(module, key):
                             if kw.arg == "validator" and isinstance(kw.value, ast.Call):
                                 if isinstance(kw.value.func, ast.Name) and kw.value.func.id == "Choice":
                                     if kw.value.args and isinstance(kw.value.args[0], ast.List):
-                                        return [elt.value for elt in kw.value.args[0].elts if isinstance(elt, ast.Constant)]
+                                        return [
+                                            elt.value for elt in kw.value.args[0].elts if isinstance(elt, ast.Constant)
+                                        ]
         except Exception:
             pass
     return []
@@ -90,25 +89,16 @@ async def config_cmd(self):
     await self.message.delete()
     modules = get_modules()
     if not modules:
-        await self.client.inline.say(
-            self.client, self.message,
-            "❌ <b>No config in modules found!</b>"
-        )
+        await self.client.inline.say(self.client, self.message, "❌ <b>No config in modules found!</b>")
         return
 
     buttons = [
-        [{"text": f"📦 {m['name']} ({len(m['keys'])} keys)",
-          "callback": get_module,
-          "params": {
-              "module": m["name"]}
-          }] for m in modules]
+        [{"text": f"📦 {m['name']} ({len(m['keys'])} keys)", "callback": get_module, "params": {"module": m["name"]}}]
+        for m in modules
+    ]
     buttons.append([{"text": "❌ Close", "callback": close}])
 
-    await self.client.inline.say(
-        self.client, self.message,
-        "🕊 <b>Configurator</b>",
-        buttons=buttons
-    )
+    await self.client.inline.say(self.client, self.message, "🕊 <b>Configurator</b>", buttons=buttons)
 
 
 async def get_module(call, module):
@@ -121,24 +111,24 @@ async def get_module(call, module):
     buttons = []
     for k in mod["keys"]:
         get(module, k["name"], k["default"])
-        buttons.append([
-            {"text": f"{k['name']}",
-             "callback": edit_key,
-             "params": {
-                 "module": module,
-                 "key": k["name"],
-                 "vtype": k.get("type", "str"),
-                 "default": str(k["default"])
-                 if k["default"] is not None else ""
-             }
-             }])
+        buttons.append(
+            [
+                {
+                    "text": f"{k['name']}",
+                    "callback": edit_key,
+                    "params": {
+                        "module": module,
+                        "key": k["name"],
+                        "vtype": k.get("type", "str"),
+                        "default": str(k["default"]) if k["default"] is not None else "",
+                    },
+                }
+            ]
+        )
     buttons.append([{"text": "⬅️ Back", "callback": config_cmd}])
     buttons.append([{"text": "❌ Close", "callback": close}])
 
-    await call.edit_message(
-        f"🕊 <b>{module}</b>",
-        reply_markup=_kb(call, buttons)
-    )
+    await call.edit_message(f"🕊 <b>{module}</b>", reply_markup=_kb(call, buttons))
 
 
 async def edit_key(call, module, key, vtype, default):
@@ -149,53 +139,42 @@ async def edit_key(call, module, key, vtype, default):
     if vtype == "bool":
         new_val = "False" if cur else "True"
         buttons.append(
-            [{
-                "text": "✅ Enable" if not cur else "❌ Disable",
-                "callback": apply,
-                "params": {
-                    "module": module,
-                    "key": key,
-                    "value": new_val,
-                    "vtype": vtype
-                }}
-             ])
+            [
+                {
+                    "text": "✅ Enable" if not cur else "❌ Disable",
+                    "callback": apply,
+                    "params": {"module": module, "key": key, "value": new_val, "vtype": vtype},
+                }
+            ]
+        )
     elif vtype == "choice":
         choices = get_choices(module, key)
         for choice in choices:
             prefix = "✅" if choice == cur else "⬜"
-            buttons.append([
-                {
-                    "text": f"{prefix} {choice}",
-                    "callback": apply,
-                    "params": {
-                        "module": module,
-                        "key": key,
-                        "value": choice,
-                        "vtype": vtype
+            buttons.append(
+                [
+                    {
+                        "text": f"{prefix} {choice}",
+                        "callback": apply,
+                        "params": {"module": module, "key": key, "value": choice, "vtype": vtype},
                     }
-                }])
+                ]
+            )
     else:
-        buttons.append(
-            [edit_btn(call.client, module, key, vtype, str(cur) if cur else "")])
+        buttons.append([edit_btn(call.client, module, key, vtype, str(cur) if cur else "")])
 
     if default:
-        buttons.append([{
-            "text": "🔄 Reset to default",
-            "callback": apply,
-            "params": {
-                "module": module,
-                "key": key,
-                "value": default,
-                "vtype": vtype
-            }
-        }])
+        buttons.append(
+            [
+                {
+                    "text": "🔄 Reset to default",
+                    "callback": apply,
+                    "params": {"module": module, "key": key, "value": default, "vtype": vtype},
+                }
+            ]
+        )
 
-    buttons.append(
-        [{
-            "text": "⬅️ Back",
-            "callback": get_module,
-            "params": {"module": module}
-        }])
+    buttons.append([{"text": "⬅️ Back", "callback": get_module, "params": {"module": module}}])
     buttons.append([{"text": "❌ Close", "callback": close}])
 
     text = (
@@ -244,70 +223,81 @@ async def _inline_query(client):
                 converted = convert(new_val, vtype)
                 set(module_name, key, converted)
 
-                await query.answer(results=[
-                    InlineQueryResultArticle(
-                        id=f"saved_{uid}",
-                        title="✅ Saved!",
-                        description=f"{module_name}.{key} = {converted}",
-                        input_message_content=InputTextMessageContent(
-                            message_text=(
-                                "✅ <b>Saved!</b>\n\n"
-                                f"├─ <i>module</i>: <code>{module_name}</code>\n"
-                                f"├─ <i>key</i>: <code>{key}</code>\n"
-                                f"└─ <i>value</i>: <code>{converted}</code>"
+                await query.answer(
+                    results=[
+                        InlineQueryResultArticle(
+                            id=f"saved_{uid}",
+                            title="✅ Saved!",
+                            description=f"{module_name}.{key} = {converted}",
+                            input_message_content=InputTextMessageContent(
+                                message_text=(
+                                    "✅ <b>Saved!</b>\n\n"
+                                    f"├─ <i>module</i>: <code>{module_name}</code>\n"
+                                    f"├─ <i>key</i>: <code>{key}</code>\n"
+                                    f"└─ <i>value</i>: <code>{converted}</code>"
+                                ),
+                                parse_mode="HTML",
                             ),
-                            parse_mode="HTML"
                         )
-                    )
-                ], cache_time=0, is_personal=True)
+                    ],
+                    cache_time=0,
+                    is_personal=True,
+                )
                 return True
             else:
-                await query.answer(results=[
-                    InlineQueryResultArticle(
-                        id="expired",
-                        title="⚠️ Handler expired",
-                        description="Go back and try again",
-                        input_message_content=InputTextMessageContent(
-                            message_text="⚠️ <b>Handler expired!</b>",
-                            parse_mode="HTML"
+                await query.answer(
+                    results=[
+                        InlineQueryResultArticle(
+                            id="expired",
+                            title="⚠️ Handler expired",
+                            description="Go back and try again",
+                            input_message_content=InputTextMessageContent(
+                                message_text="⚠️ <b>Handler expired!</b>", parse_mode="HTML"
+                            ),
                         )
-                    )
-                ], cache_time=0, is_personal=True)
+                    ],
+                    cache_time=0,
+                    is_personal=True,
+                )
                 return True
 
         parts = q.split(maxsplit=2)
         if len(parts) < 2:
             modules = get_modules()
             if not modules:
-                await query.answer(results=[
-                    InlineQueryResultArticle(
-                        id="no_modules",
-                        title="❌ No modules",
-                        description="No configurable modules found",
-                        input_message_content=InputTextMessageContent(
-                            message_text="❌ <b>No configurable modules found</b>",
-                            parse_mode="HTML"
+                await query.answer(
+                    results=[
+                        InlineQueryResultArticle(
+                            id="no_modules",
+                            title="❌ No modules",
+                            description="No configurable modules found",
+                            input_message_content=InputTextMessageContent(
+                                message_text="❌ <b>No configurable modules found</b>", parse_mode="HTML"
+                            ),
                         )
-                    )
-                ], cache_time=60, is_personal=True)
+                    ],
+                    cache_time=60,
+                    is_personal=True,
+                )
                 return True
 
             results = []
             for m in modules:
-                results.append(InlineQueryResultArticle(
-                    id=f"mod_{m['name']}",
-                    title=f"📦 {m['name']}",
-                    description=f"{len(m['keys'])} configurable keys",
-                    input_message_content=InputTextMessageContent(
-                        message_text=(
-                            f"🕊 <b>Configurator: {m['name']}</b>\n\n"
-                            f"<i>Keys:</i>\n" +
-                            "\n".join(
-                                f"• <code>{k['name']}</code> ({k.get('type', 'str')})" for k in m['keys'])
+                results.append(
+                    InlineQueryResultArticle(
+                        id=f"mod_{m['name']}",
+                        title=f"📦 {m['name']}",
+                        description=f"{len(m['keys'])} configurable keys",
+                        input_message_content=InputTextMessageContent(
+                            message_text=(
+                                f"🕊 <b>Configurator: {m['name']}</b>\n\n"
+                                f"<i>Keys:</i>\n"
+                                + "\n".join(f"• <code>{k['name']}</code> ({k.get('type', 'str')})" for k in m["keys"])
+                            ),
+                            parse_mode="HTML",
                         ),
-                        parse_mode="HTML"
                     )
-                ))
+                )
 
             await query.answer(results=results, cache_time=60, is_personal=True)
             return True
@@ -317,76 +307,88 @@ async def _inline_query(client):
         mod = next((m for m in modules if m["name"] == module_name), None)
 
         if not mod:
-            await query.answer(results=[
-                InlineQueryResultArticle(
-                    id="mod_not_found",
-                    title="❌ Module not found",
-                    description=f"Module '{module_name}' not found",
-                    input_message_content=InputTextMessageContent(
-                        message_text=f"❌ <b>Module '{module_name}' not found</b>",
-                        parse_mode="HTML"
+            await query.answer(
+                results=[
+                    InlineQueryResultArticle(
+                        id="mod_not_found",
+                        title="❌ Module not found",
+                        description=f"Module '{module_name}' not found",
+                        input_message_content=InputTextMessageContent(
+                            message_text=f"❌ <b>Module '{module_name}' not found</b>", parse_mode="HTML"
+                        ),
                     )
-                )
-            ], cache_time=60, is_personal=True)
+                ],
+                cache_time=60,
+                is_personal=True,
+            )
             return True
 
         if len(parts) < 3:
             results = []
-            for k in mod['keys']:
-                cur_val = get(module_name, k['name'], k['default'])
-                results.append(InlineQueryResultArticle(
-                    id=f"key_{module_name}_{k['name']}",
-                    title=f"🔧 {k['name']}",
-                    description=f"Current: {cur_val} | Type: {k.get('type', 'str')}",
-                    input_message_content=InputTextMessageContent(
-                        message_text=(
-                            f"🕊 <b>{module_name}.{k['name']}</b>\n\n"
-                            f"├─ <i>current</i>: <code>{cur_val}</code>\n"
-                            f"├─ <i>default</i>: <code>{k['default']}</code>\n"
-                            f"└─ <i>type</i>: <code>{k.get('type', 'str')}</code>"
+            for k in mod["keys"]:
+                cur_val = get(module_name, k["name"], k["default"])
+                results.append(
+                    InlineQueryResultArticle(
+                        id=f"key_{module_name}_{k['name']}",
+                        title=f"🔧 {k['name']}",
+                        description=f"Current: {cur_val} | Type: {k.get('type', 'str')}",
+                        input_message_content=InputTextMessageContent(
+                            message_text=(
+                                f"🕊 <b>{module_name}.{k['name']}</b>\n\n"
+                                f"├─ <i>current</i>: <code>{cur_val}</code>\n"
+                                f"├─ <i>default</i>: <code>{k['default']}</code>\n"
+                                f"└─ <i>type</i>: <code>{k.get('type', 'str')}</code>"
+                            ),
+                            parse_mode="HTML",
                         ),
-                        parse_mode="HTML"
                     )
-                ))
+                )
 
             await query.answer(results=results, cache_time=60, is_personal=True)
             return True
 
         key_name = parts[2]
-        key_info = next(
-            (k for k in mod['keys'] if k['name'] == key_name), None)
+        key_info = next((k for k in mod["keys"] if k["name"] == key_name), None)
 
         if not key_info:
-            await query.answer(results=[
-                InlineQueryResultArticle(
-                    id="key_not_found",
-                    title="❌ Key not found",
-                    description=f"Key '{key_name}' not found in module '{module_name}'",
-                    input_message_content=InputTextMessageContent(
-                        message_text=f"❌ <b>Key '{key_name}' not found in module '{module_name}'</b>",
-                        parse_mode="HTML"
+            await query.answer(
+                results=[
+                    InlineQueryResultArticle(
+                        id="key_not_found",
+                        title="❌ Key not found",
+                        description=f"Key '{key_name}' not found in module '{module_name}'",
+                        input_message_content=InputTextMessageContent(
+                            message_text=f"❌ <b>Key '{key_name}' not found in module '{module_name}'</b>",
+                            parse_mode="HTML",
+                        ),
                     )
-                )
-            ], cache_time=60, is_personal=True)
+                ],
+                cache_time=60,
+                is_personal=True,
+            )
             return True
 
-        cur_val = get(module_name, key_name, key_info['default'])
-        await query.answer(results=[
-            InlineQueryResultArticle(
-                id=f"edit_{module_name}_{key_name}",
-                title=f"✏️ {module_name}.{key_name}",
-                description=f"Current: {cur_val}",
-                input_message_content=InputTextMessageContent(
-                    message_text=(
-                        f"🕊 <b>{module_name}.{key_name}</b>\n\n"
-                        f"├─ <i>current</i>: <code>{cur_val}</code>\n"
-                        f"├─ <i>default</i>: <code>{key_info['default']}</code>\n"
-                        f"└─ <i>type</i>: <code>{key_info.get('type', 'str')}</code>"
+        cur_val = get(module_name, key_name, key_info["default"])
+        await query.answer(
+            results=[
+                InlineQueryResultArticle(
+                    id=f"edit_{module_name}_{key_name}",
+                    title=f"✏️ {module_name}.{key_name}",
+                    description=f"Current: {cur_val}",
+                    input_message_content=InputTextMessageContent(
+                        message_text=(
+                            f"🕊 <b>{module_name}.{key_name}</b>\n\n"
+                            f"├─ <i>current</i>: <code>{cur_val}</code>\n"
+                            f"├─ <i>default</i>: <code>{key_info['default']}</code>\n"
+                            f"└─ <i>type</i>: <code>{key_info.get('type', 'str')}</code>"
+                        ),
+                        parse_mode="HTML",
                     ),
-                    parse_mode="HTML"
                 )
-            )
-        ], cache_time=60, is_personal=True)
+            ],
+            cache_time=60,
+            is_personal=True,
+        )
         return True
 
 

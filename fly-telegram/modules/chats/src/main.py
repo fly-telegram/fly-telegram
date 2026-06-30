@@ -8,10 +8,12 @@
 #             www.gnu.org/licenses/agpl-3.0.html
 
 import asyncio
+import contextlib
+
+from database import database
+from loader import events
 from pyrogram import Client, errors
 from pyrogram.types import ChatAdministratorRights
-from loader import events
-from database import database
 
 
 @events.on_load
@@ -84,12 +86,9 @@ async def start(client: Client):
             return
 
         me = await bot.get_me()
-        rights = ChatAdministratorRights(
-            can_post_messages=True, can_edit_messages=True)
+        rights = ChatAdministratorRights(can_post_messages=True, can_edit_messages=True)
         for cid in ids:
-            try:
+            with contextlib.suppress(Exception):
                 await client.promote_chat_member(cid, me.id, privileges=rights)
-            except Exception:
-                pass
     except Exception:
         pass

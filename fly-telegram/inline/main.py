@@ -11,18 +11,22 @@ import asyncio
 import inspect
 import json
 import logging
-import sys
 import os
+import sys
 from typing import Callable
 from uuid import uuid4
 
 from aiogram import Bot, Dispatcher, Router
-from aiogram.types import (
-    InlineKeyboardButton, InlineKeyboardMarkup,
-    InlineQuery, InlineQueryResultArticle,
-    InputTextMessageContent, CallbackQuery, ChosenInlineResult
-)
 from aiogram.exceptions import TelegramUnauthorizedError
+from aiogram.types import (
+    CallbackQuery,
+    ChosenInlineResult,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    InlineQuery,
+    InlineQueryResultArticle,
+    InputTextMessageContent,
+)
 from aiogram.utils.token import TokenValidationError
 from database import database
 
@@ -40,8 +44,7 @@ class Via:
 
     def add(self, text, prefix="via_", buttons=None, description="🕊️ fly telegram system result"):
         query_id = str(uuid4())
-        input_text = InputTextMessageContent(
-            message_text=text, parse_mode="HTML")
+        input_text = InputTextMessageContent(message_text=text, parse_mode="HTML")
         reply_markup = None
         buttons_uuid = []
 
@@ -51,28 +54,32 @@ class Via:
                 row = []
                 for btn in brow:
                     if "switch_inline_query_current_chat" in btn:
-                        row.append(InlineKeyboardButton(
-                            text=btn.get("text", "button"),
-                            switch_inline_query_current_chat=btn["switch_inline_query_current_chat"]
-                        ))
+                        row.append(
+                            InlineKeyboardButton(
+                                text=btn.get("text", "button"),
+                                switch_inline_query_current_chat=btn["switch_inline_query_current_chat"],
+                            )
+                        )
                         continue
                     if "switch_inline_query" in btn:
-                        row.append(InlineKeyboardButton(
-                            text=btn.get("text", "button"),
-                            switch_inline_query=btn["switch_inline_query"]
-                        ))
+                        row.append(
+                            InlineKeyboardButton(
+                                text=btn.get("text", "button"), switch_inline_query=btn["switch_inline_query"]
+                            )
+                        )
                         continue
 
-                    callback = btn.get('callback')
+                    callback = btn.get("callback")
                     if not callable(callback):
                         raise TypeError("callback must be callable")
 
                     uid = str(uuid4())
                     buttons_uuid.append(uid)
                     self.handlers[uid] = {
-                        "callback": callback, **({"params": btn["params"]} if "params" in btn else {})}
-                    row.append(InlineKeyboardButton(
-                        text=btn.get("text", "button"), callback_data=uid))
+                        "callback": callback,
+                        **({"params": btn["params"]} if "params" in btn else {}),
+                    }
+                    row.append(InlineKeyboardButton(text=btn.get("text", "button"), callback_data=uid))
                 keyboard.append(row)
             reply_markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
 
@@ -84,8 +91,7 @@ class Via:
             reply_markup=reply_markup,
         )
 
-        self.active[query_id] = {
-            "text": text, "reply_markup": buttons, "prefix": prefix, "buttons_uuid": buttons_uuid}
+        self.active[query_id] = {"text": text, "reply_markup": buttons, "prefix": prefix, "buttons_uuid": buttons_uuid}
         self.results[query_id] = result
         return query_id
 
@@ -116,14 +122,11 @@ class Via:
                         if not callable(cb):
                             raise TypeError("callback must be callable")
                         uid = str(uuid4())
-                        self.handlers[uid] = {
-                            "callback": cb, **({"params": btn["params"]} if "params" in btn else {})}
+                        self.handlers[uid] = {"callback": cb, **({"params": btn["params"]} if "params" in btn else {})}
                         new_uuid.append(uid)
-                        row.append(InlineKeyboardButton(
-                            text=btn.get("text", "button"), callback_data=uid))
+                        row.append(InlineKeyboardButton(text=btn.get("text", "button"), callback_data=uid))
                     keyboard.append(row)
-                old["reply_markup"] = InlineKeyboardMarkup(
-                    inline_keyboard=keyboard)
+                old["reply_markup"] = InlineKeyboardMarkup(inline_keyboard=keyboard)
             old["buttons_uuid"] = new_uuid
             if id in self.results:
                 self.results[id].reply_markup = old.get("reply_markup")
@@ -146,17 +149,14 @@ class Inline:
         return self._bot
 
     async def say(self, client, message, text, buttons=None, **kwargs):
-        query_id = self.viamanager.add(text, kwargs.get(
-            "prefix", "via_"), buttons, kwargs.get("description", ""))
+        query_id = self.viamanager.add(text, kwargs.get("prefix", "via_"), buttons, kwargs.get("description", ""))
         me = await self.bot.get_me()
         results = await client.get_inline_bot_results(me.username, f"via_{query_id}")
         await client.send_inline_bot_result(
-            chat_id=kwargs.get(
-                "chat_id", message.chat.id if message else None),
+            chat_id=kwargs.get("chat_id", message.chat.id if message else None),
             query_id=results.query_id,
             result_id=results.results[0].id,
-            message_thread_id=(message.topic.id if message and getattr(
-                message, "topic", None) else None),
+            message_thread_id=(message.topic.id if message and getattr(message, "topic", None) else None),
         )
         return query_id
 
@@ -168,6 +168,7 @@ class Inline:
 
     def query(self, func: Callable = None) -> Callable:
         """Decorator to register inline query handler from modules."""
+
         def decorator(f):
             self._q_handlers.append(f)
             return f
@@ -187,12 +188,19 @@ class Inline:
         me = self.client.me
 
         if query.from_user.id != me.id and not self.inline_rights(query.from_user.id):
-            await query.answer(results=[InlineQueryResultArticle(
-                id="notprems", title="🕊️ fly telegram v2", description="Not available",
-                input_message_content=InputTextMessageContent(
-                    message_text="<b>🕊️ fly telegram v2</b>\n<b>Not available for you</b>", parse_mode="html"
-                )
-            )], cache_time=20)
+            await query.answer(
+                results=[
+                    InlineQueryResultArticle(
+                        id="notprems",
+                        title="🕊️ fly telegram v2",
+                        description="Not available",
+                        input_message_content=InputTextMessageContent(
+                            message_text="<b>🕊️ fly telegram v2</b>\n<b>Not available for you</b>", parse_mode="html"
+                        ),
+                    )
+                ],
+                cache_time=20,
+            )
             return
 
         for handler in self._q_handlers:
@@ -202,9 +210,18 @@ class Inline:
                     return
             except Exception as e:
                 err_str = str(e)
-                if any(x in err_str for x in ("ClientOSError", "ServerDisconnectedError", "ConnectionResetError", "TelegramNetworkError", "disconnected", "connection")):
-                    logging.error(
-                        "Inline query handler error: connection error")
+                if any(
+                    x in err_str
+                    for x in (
+                        "ClientOSError",
+                        "ServerDisconnectedError",
+                        "ConnectionResetError",
+                        "TelegramNetworkError",
+                        "disconnected",
+                        "connection",
+                    )
+                ):
+                    logging.error("Inline query handler error: connection error")
                 else:
                     logging.error(f"Inline query handler error: {e}")
 
@@ -218,12 +235,20 @@ class Inline:
             await query.answer(results=results, cache_time=20, is_personal=True)
             return
 
-        await query.answer(results=[InlineQueryResultArticle(
-            id="default", title="🕊️ fly telegram v2", description="Not found!",
-            input_message_content=InputTextMessageContent(
-                message_text="<b>🕊️ fly telegram v2</b>\n<b>The query is not found</b>", parse_mode="html"
-            )
-        )], cache_time=20, is_personal=True)
+        await query.answer(
+            results=[
+                InlineQueryResultArticle(
+                    id="default",
+                    title="🕊️ fly telegram v2",
+                    description="Not found!",
+                    input_message_content=InputTextMessageContent(
+                        message_text="<b>🕊️ fly telegram v2</b>\n<b>The query is not found</b>", parse_mode="html"
+                    ),
+                )
+            ],
+            cache_time=20,
+            is_personal=True,
+        )
 
     async def process_chosen_result(self, result: ChosenInlineResult):
         pass
@@ -246,7 +271,17 @@ class Inline:
                     await func(call)
             except Exception as e:
                 err_str = str(e)
-                if any(x in err_str for x in ("ClientOSError", "ServerDisconnectedError", "ConnectionResetError", "TelegramNetworkError", "disconnected", "connection")):
+                if any(
+                    x in err_str
+                    for x in (
+                        "ClientOSError",
+                        "ServerDisconnectedError",
+                        "ConnectionResetError",
+                        "TelegramNetworkError",
+                        "disconnected",
+                        "connection",
+                    )
+                ):
                     logging.error("Callback error: connection error")
                 else:
                     logging.error(f"Callback error: {e}")
@@ -286,8 +321,8 @@ class Inline:
         try:
             if proxy_url:
                 from aiogram.client.session.aiohttp import AiohttpSession
-                self._bot = Bot(
-                    token=token, session=AiohttpSession(proxy=proxy_url))
+
+                self._bot = Bot(token=token, session=AiohttpSession(proxy=proxy_url))
             else:
                 self._bot = Bot(token=token)
         except (TelegramUnauthorizedError, TokenValidationError) as e:
@@ -295,16 +330,14 @@ class Inline:
             database.set("inline_token", None)
             raise ValueError("Invalid token! restart the userbot.") from e
         except Exception as e:
-            logging.error(
-                f"Failed to create inline bot: {type(e).__name__}: {e}")
+            logging.error(f"Failed to create inline bot: {type(e).__name__}: {e}")
             raise
 
         self.dp = Dispatcher()
         self.client = client
         self.register_handlers(self.dp)
         logging.info("Inline bot loaded.")
-        asyncio.create_task(self.dp.start_polling(
-            self._bot, skip_updates=True, handle_signals=False))
+        asyncio.create_task(self.dp.start_polling(self._bot, skip_updates=True, handle_signals=False))
 
     async def stop(self):
         if self._bot:

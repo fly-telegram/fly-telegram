@@ -14,9 +14,7 @@ def make_keyboard(buttons):
     """Make the keyboard"""
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text=button["text"],
-                                  callback_data=button["callback"])]
-            for button in buttons
+            [InlineKeyboardButton(text=button["text"], callback_data=button["callback"])] for button in buttons
         ]
     )
     return keyboard

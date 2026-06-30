@@ -1,6 +1,7 @@
 from aiogram.types import InlineQuery, InlineQueryResultArticle, InputTextMessageContent
 from database import database
 from loader import events
+
 from .utils import _kb, genresult
 
 
@@ -220,9 +221,7 @@ async def rights_cmd(self, user=""):
     btns.append([{"text": f"🕊️ Inline Access ({ic})", "callback": get_users}])
     btns.append([{"text": "❌ Close", "callback": close}])
     if hasattr(self, "edit_message"):
-        await self.edit_message(
-            "<b>🕊 fly-telegram rights</b>\n", reply_markup=_kb(self, btns)
-        )
+        await self.edit_message("<b>🕊 fly-telegram rights</b>\n", reply_markup=_kb(self, btns))
     else:
         await self.client.inline.say(
             self.client,
@@ -282,9 +281,7 @@ async def show_command(call, module, command):
                 }
             ]
         )
-    btns.append(
-        [{"text": "⬅️ Back", "callback": show_module, "params": {"module": module}}]
-    )
+    btns.append([{"text": "⬅️ Back", "callback": show_module, "params": {"module": module}}])
     btns.append([{"text": "❌ Close", "callback": close}])
     text = f"🕊 <b>.{command}</b>\n├─ <i>module</i>: <code>{module}</code>\n└─ <i>users with rights</i>: <code>{len(usrs)}</code>"
     await call.edit_message(text, reply_markup=_kb(call, btns))
@@ -324,9 +321,7 @@ async def remove_user(call, uid, right, module=None):
 
 async def revoke(call, right, module=None):
     ok = drop(right)
-    await call.answer(
-        f"✅ Revoked .{right} for all!" if ok else "❌ No users had rights."
-    )
+    await call.answer(f"✅ Revoked .{right} for all!" if ok else "❌ No users had rights.")
     if right == "inline":
         await get_users(call)
     else:
@@ -364,7 +359,7 @@ async def get_users(call):
         )
     btns.append([{"text": "⬅️ Back", "callback": rights_cmd}])
     btns.append([{"text": "❌ Close", "callback": close}])
-    text = f"🕊️ <b>Inline Access</b>\n" f"└─ <i>granted</i>: <code>{len(usrs)}</code>"
+    text = f"🕊️ <b>Inline Access</b>\n└─ <i>granted</i>: <code>{len(usrs)}</code>"
     await call.edit_message(text, reply_markup=_kb(call, btns))
 
 

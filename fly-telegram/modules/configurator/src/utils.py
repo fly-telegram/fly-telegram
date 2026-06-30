@@ -1,5 +1,7 @@
 import ast
+import contextlib
 from pathlib import Path
+
 from database import database
 
 MODULES_PATH = Path(__file__).parent.parent.parent
@@ -38,9 +40,7 @@ def get_keys(source):
         if not isinstance(node, ast.Call):
             continue
         func = node.func
-        if isinstance(func, ast.Name) and func.id == "ConfigValue":
-            pass
-        elif isinstance(func, ast.Attribute) and func.attr == "ConfigValue":
+        if isinstance(func, ast.Name) and func.id == "ConfigValue" or isinstance(func, ast.Attribute) and func.attr == "ConfigValue":
             pass
         else:
             continue
@@ -55,10 +55,8 @@ def get_keys(source):
 
         default = None
         if len(node.args) > 1:
-            try:
+            with contextlib.suppress(Exception):
                 default = ast.literal_eval(node.args[1])
-            except Exception:
-                pass
 
         validator_node = None
         for kw in node.keywords:

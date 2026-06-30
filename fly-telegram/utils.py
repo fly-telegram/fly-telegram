@@ -13,21 +13,18 @@ from typing import Union
 
 version = "2.1"
 logo = r"""
- _______  _____   ___ ___  _______  _______ 
+ _______  _____   ___ ___  _______  _______
 |    ___||     |_|   |   ||_     _||     __|
 |    ___||       |\     /   |   |  |    |  |
 |___|    |_______| |___|    |___|  |_______|
 """
 
 BASE_DIR = (  # <- from hikka userbot (store file session directory)
-    "/data"
-    if "DOCKER" in os.environ
-    else os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    "/data" if "DOCKER" in os.environ else os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 )
 
 SESSION_FILE = os.path.join(  # file for session name
-    BASE_DIR,
-    "account"
+    BASE_DIR, "account"
 )
 
 

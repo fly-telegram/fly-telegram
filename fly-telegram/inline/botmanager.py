@@ -26,11 +26,10 @@ class BotManager:
             "Sorry.",
             "That I cannot do.",
             "too many attempts",
-            "Unfortunately, you cannot create new bots at this time."
+            "Unfortunately, you cannot create new bots at this time.",
         ]
 
-    async def create(self, client: Client,
-                     botfather: str = "@BotFather") -> str:
+    async def create(self, client: Client, botfather: str = "@BotFather") -> str:
         """
         Create the inline bot
 
@@ -41,8 +40,7 @@ class BotManager:
         Returns:
             str: The bot token
         """
-        bot_id = "".join(random.choice(string.ascii_letters + string.digits)
-                         for _ in range(5))
+        bot_id = "".join(random.choice(string.ascii_letters + string.digits) for _ in range(5))
         username = f"flyTG_{bot_id}_bot"
         display_name = f"🕊 Fly-telegram of {client.me.first_name}"
 
@@ -62,7 +60,9 @@ class BotManager:
                             if botpattern.fullmatch(button.text):
                                 await conv.send(button.text)
                                 token_resp = await conv.response()
-                                if match := re.search(pattern.format("You can use this token to access HTTP API"), token_resp.text):
+                                if match := re.search(
+                                    pattern.format("You can use this token to access HTTP API"), token_resp.text
+                                ):
                                     token = match[1]
                                     username = button.text.lstrip("@")
                                 break
@@ -94,8 +94,7 @@ class BotManager:
                             token = match[1]
 
                         if any(error in resp.text for error in self.errors_texts):
-                            raise Exception(
-                                f"Failed to create inline bot. Botfather response: {resp.text}")
+                            raise Exception(f"Failed to create inline bot. Botfather response: {resp.text}")
                     except (errors.UserIsBlocked, errors.YouBlockedUser):
                         await client.unblock_user(botfather)
 

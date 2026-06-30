@@ -9,6 +9,7 @@
 """from V1"""
 
 import asyncio
+import contextlib
 
 from pyrogram.errors import exceptions
 from pyrogram.types import Message
@@ -81,13 +82,8 @@ class Stream:
             if chunk != self.last_chunk:
                 self.last_chunk = chunk
                 self.text += f"<code>{chunk.decode().strip()}</code>\n"
-                try:
+                with contextlib.suppress(exceptions.bad_request_400.MessageNotModified, exceptions.flood_420.FloodWait):
                     await self.message.edit(self.text)
-                except (
-                    exceptions.bad_request_400.MessageNotModified,
-                    exceptions.flood_420.FloodWait,
-                ):
-                    pass
                 await asyncio.sleep(self.sleep)
 
 
@@ -127,12 +123,8 @@ class AsyncTerminal:
             self.command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
         )
 
-        stdout_processor = Stream(
-            process.stdout, self.message, self.text, self.sleep, self.buffer_size
-        )
-        stderr_processor = Stream(
-            process.stderr, self.message, self.text, self.sleep, self.buffer_size
-        )
+        stdout_processor = Stream(process.stdout, self.message, self.text, self.sleep, self.buffer_size)
+        stderr_processor = Stream(process.stderr, self.message, self.text, self.sleep, self.buffer_size)
 
         await asyncio.gather(stdout_processor.process(), stderr_processor.process())
 

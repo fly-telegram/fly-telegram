@@ -22,7 +22,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pyrogram import Client, errors
 from pyrogram.raw.functions.auth import ExportLoginToken, ImportLoginToken
-from pyrogram.raw.types.auth import LoginTokenSuccess, LoginTokenMigrateTo
+from pyrogram.raw.types.auth import LoginTokenMigrateTo, LoginTokenSuccess
 
 
 class Web:
@@ -54,8 +54,7 @@ class Web:
         staticdir = os.path.join(currentdir, "static")
         templatesdir = os.path.join(currentdir, "templates")
 
-        self.app.mount(
-            "/static/", StaticFiles(directory=staticdir), name="static")
+        self.app.mount("/static/", StaticFiles(directory=staticdir), name="static")
         self.templates = Jinja2Templates(directory=templatesdir)
 
         @self.app.get("/", response_class=HTMLResponse)
@@ -71,22 +70,20 @@ class Web:
                 sent_code = await self.client.send_code(phone)
                 return JSONResponse(content={"code_hash": sent_code.phone_code_hash})
             except errors.PhoneNumberInvalid:
-                raise HTTPException(
-                    status_code=400, detail="Invalid phone number")
+                raise HTTPException(status_code=400, detail="Invalid phone number")
             except errors.PhoneNumberBanned:
-                raise HTTPException(
-                    status_code=400, detail="Phone number banned")
+                raise HTTPException(status_code=400, detail="Phone number banned")
             except errors.PhoneNumberFlood:
-                raise HTTPException(
-                    status_code=400, detail="Phone number flood")
+                raise HTTPException(status_code=400, detail="Phone number flood")
             except errors.PhoneNumberUnoccupied:
-                raise HTTPException(
-                    status_code=400, detail="Phone number unoccupied")
+                raise HTTPException(status_code=400, detail="Phone number unoccupied")
             except errors.BadRequest:
                 raise HTTPException(status_code=400, detail="Bad request")
 
         @self.app.post("/sign_in")
-        async def sign_in(phone: str = Form(...), code_hash: str = Form(...), code: str = Form(...), password: str = Form(None)):
+        async def sign_in(
+            phone: str = Form(...), code_hash: str = Form(...), code: str = Form(...), password: str = Form(None)
+        ):
             if not self.client.is_connected:
                 await self.client.connect()
 
@@ -96,8 +93,7 @@ class Web:
                 else:
                     user = await self.client.sign_in(phone, code_hash, code)
 
-                response = JSONResponse(
-                    content={"user": user.first_name, "status": "success"})
+                response = JSONResponse(content={"user": user.first_name, "status": "success"})
 
                 await self.client.storage.user_id(user.id)
                 await self.client.storage.is_bot(False)
@@ -120,11 +116,9 @@ class Web:
                 await self.client.connect()
 
             try:
-                result = await self.client.invoke(ExportLoginToken(
-                    api_id=self.client.api_id,
-                    api_hash=self.client.api_hash,
-                    except_ids=[]
-                ))
+                result = await self.client.invoke(
+                    ExportLoginToken(api_id=self.client.api_id, api_hash=self.client.api_hash, except_ids=[])
+                )
             except Exception as e:
                 raise HTTPException(status_code=500, detail=str(e))
 
@@ -133,24 +127,18 @@ class Web:
                 return {"status": "already_logged_in", "user": me.first_name}
 
             self.qr_token = result.token
-            token_b64 = base64.urlsafe_b64encode(
-                result.token).rstrip(b'=').decode()
+            token_b64 = base64.urlsafe_b64encode(result.token).rstrip(b"=").decode()
             url = f"tg://login?token={token_b64}"
 
             qr = qrcode.QRCode()
             qr.add_data(url)
             qr.make()
-            img = qr.make_image(
-                image_factory=qrcode.image.svg.SvgPathFillImage)
+            img = qr.make_image(image_factory=qrcode.image.svg.SvgPathFillImage)
             svg_buf = io.BytesIO()
             img.save(svg_buf)
             svg_str = svg_buf.getvalue().decode()
 
-            return {
-                "token_b64": token_b64,
-                "qr_svg": svg_str,
-                "status": "waiting"
-            }
+            return {"token_b64": token_b64, "qr_svg": svg_str, "status": "waiting"}
 
         @self.app.post("/qr_poll")
         async def qr_poll():

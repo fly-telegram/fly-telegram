@@ -10,6 +10,6 @@
 __author__ = "HotDrify"
 __contact__ = "https://t.me/hotdrify"
 __license__ = "CC-BY-NC"
-__credits__ = ["Hikka" "friendly-telegram", "teagram-TL", "Dragon-Userbot"]
+__credits__ = ["Hikka", "friendly-telegram", "teagram-TL", "Dragon-Userbot"]
 
 __version__ = (2, 1, "beta")

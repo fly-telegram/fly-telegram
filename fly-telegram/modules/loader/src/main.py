@@ -8,6 +8,7 @@
 #             www.gnu.org/licenses/agpl-3.0.html
 
 """The loader module"""
+
 import asyncio
 import os
 import re
@@ -50,23 +51,17 @@ def get_files(user, repo, path, branch, prefix=""):
 
     for item in data:
         if item["type"] == "dir":
-            sub_files = get_files(
-                user, repo, item["path"], branch,
-                prefix + item["name"] + "/"
-            )
+            sub_files = get_files(user, repo, item["path"], branch, prefix + item["name"] + "/")
             files.extend(sub_files)
         else:
-            files.append({
-                "path": prefix + item["name"],
-                "url": item["download_url"]
-            })
+            files.append({"path": prefix + item["name"], "url": item["download_url"]})
     return files
 
 
-@loader.alias('dlm')
+@loader.alias("dlm")
 async def dload_cmd(self, link: str):
     """.dlm https://github.com/fly-telegram/modules/tree/main/community/module/"""
-    pattern = r'github\.com/([^/]+)/([^/]+)/(?:blob|tree)/([^/]+)(?:/(.*))?'
+    pattern = r"github\.com/([^/]+)/([^/]+)/(?:blob|tree)/([^/]+)(?:/(.*))?"
     match = re.search(pattern, link)
 
     if not match:
@@ -78,12 +73,9 @@ async def dload_cmd(self, link: str):
     branch = match[3]
     path = match[4]
 
-    module_name = path.strip('/').split('/')[-1] if path else repo
+    module_name = path.strip("/").split("/")[-1] if path else repo
 
-    message = await self.message.edit(
-        f"🕊 <b>{module_name}</b>\n"
-        "<code>Fetching file list from GitHub...</code>"
-    )
+    message = await self.message.edit(f"🕊 <b>{module_name}</b>\n<code>Fetching file list from GitHub...</code>")
 
     try:
         files = get_files(username, repo, path, branch)
@@ -91,27 +83,18 @@ async def dload_cmd(self, link: str):
             await message.edit("❌ <b>No files or module invalid!</b>")
             return
     except Exception as error:
-        await message.edit(
-            f"❌ <b>Failed to fetch files from GitHub!</b>\n"
-            f"<code>{error}</code>"
-        )
+        await message.edit(f"❌ <b>Failed to fetch files from GitHub!</b>\n<code>{error}</code>")
         return
     modules_path = Path(__file__).parent.parent.parent
     module_dir = modules_path / module_name
 
     if module_dir.exists():
-        await message.edit(
-            f"🕊 <b>{module_name}</b>\n"
-            "<code>Module already exists. Overwriting...</code>"
-        )
+        await message.edit(f"🕊 <b>{module_name}</b>\n<code>Module already exists. Overwriting...</code>")
         shutil.rmtree(module_dir)
 
     module_dir.mkdir(parents=True, exist_ok=True)
 
-    await message.edit(
-        f"🕊 <b>{module_name}</b>\n"
-        f"<code>Downloading {len(files)} files...</code>"
-    )
+    await message.edit(f"🕊 <b>{module_name}</b>\n<code>Downloading {len(files)} files...</code>")
 
     for file in files:
         filepath = file["path"]
@@ -124,10 +107,7 @@ async def dload_cmd(self, link: str):
             with open(full, "wb") as f:
                 f.write(response.content)
         except Exception as error:
-            await message.edit(
-                f"❌ <b>Failed to download {filepath}!</b>\n"
-                f"<code>{error}</code>"
-            )
+            await message.edit(f"❌ <b>Failed to download {filepath}!</b>\n<code>{error}</code>")
             return
 
     meta_path = module_dir / "meta.json"
@@ -138,60 +118,36 @@ async def dload_cmd(self, link: str):
     name = meta.get("name", module_name)
     if deps := meta.get("deps", None):
         formatted = "\n".join(
-            f"├─ {requirement}" if i < len(
-                deps) - 1 else f"└─ {requirement}"
-            for i, requirement in enumerate(deps)
+            f"├─ {requirement}" if i < len(deps) - 1 else f"└─ {requirement}" for i, requirement in enumerate(deps)
         )
-        await message.edit(
-            f"🕊 <b>{name}</b>\n"
-            "<code>Installing required libs...</code>\n"
-            f"{formatted}"
-        )
-        pip = await asyncio.create_subprocess_exec(
-            sys.executable, "-m", "pip", "install", "-q", *deps
-        )
+        await message.edit(f"🕊 <b>{name}</b>\n<code>Installing required libs...</code>\n{formatted}")
+        pip = await asyncio.create_subprocess_exec(sys.executable, "-m", "pip", "install", "-q", *deps)
         output = await pip.wait()
 
         if output != 0:
-            await self.message.edit(
-                f"❌ <b>{name} installing error</b>\n"
-                f"<code>Failed to install libs.</code>"
-            )
+            await self.message.edit(f"❌ <b>{name} installing error</b>\n<code>Failed to install libs.</code>")
             shutil.rmtree(module_dir)
             return
 
-    await message.edit(
-        f"🕊 <b>{name}</b>\n"
-        "<code>Loading module...</code>"
-    )
+    await message.edit(f"🕊 <b>{name}</b>\n<code>Loading module...</code>")
 
     try:
         await loader.load(module_name, self.client, startup=True)
     except Exception as error:
-        await self.message.edit(
-            f"❌ <b>{name} installing error</b>\n"
-            f"<code>{error}</code>"
-        )
+        await self.message.edit(f"❌ <b>{name} installing error</b>\n<code>{error}</code>")
 
         shutil.rmtree(module_dir)
         return
 
-    await message.edit(
-        f"🕊 <b>{name} is loaded!</b>"
-    )
+    await message.edit(f"🕊 <b>{name} is loaded!</b>")
 
 
-@loader.alias('lm')
+@loader.alias("lm")
 async def load_cmd(self, flags: str):
     splitted_flags = flags.split()  # .lm no-delete
 
     reply = self.message.reply_to_message
-    file = (
-        self.message if self.message.document
-        else reply
-        if reply and reply.document
-        else None
-    )
+    file = self.message if self.message.document else reply if reply and reply.document else None
 
     # fly-telegram/fly-telegram/modules
     modules_path = Path(__file__).parent.parent.parent
@@ -207,19 +163,13 @@ async def load_cmd(self, flags: str):
         await self.message.edit("❌ <b>Invalid file format!</b>")
         return
 
-    message = await self.message.edit(
-        f"🕊 <b>{module_name}</b>\n"
-        "<code>Downloading module...</code>"
-    )
+    message = await self.message.edit(f"🕊 <b>{module_name}</b>\n<code>Downloading module...</code>")
 
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_path = os.path.join(temp_dir, filename)
         await file.download(temp_path)
 
-        await message.edit(
-            f"🕊 <b>{module_name}</b>\n"
-            "<code>Extracting module...</code>"
-        )
+        await message.edit(f"🕊 <b>{module_name}</b>\n<code>Extracting module...</code>")
 
         try:
             with zipfile.ZipFile(temp_path, "r") as archive:
@@ -238,73 +188,46 @@ async def load_cmd(self, flags: str):
     name = meta.get("name", module_name)
     if deps := meta.get("deps", None):
         formatted = "\n".join(
-            f"├─ {requirement}" if i < len(
-                deps) - 1 else f"└─ {requirement}"
-            for i, requirement in enumerate(deps)
+            f"├─ {requirement}" if i < len(deps) - 1 else f"└─ {requirement}" for i, requirement in enumerate(deps)
         )
-        await message.edit(
-            f"🕊 <b>{name}</b>\n"
-            "<code>Installing required libs...</code>\n"
-            f"{formatted}"
-        )
-        pip = await asyncio.create_subprocess_exec(
-            sys.executable, "-m", "pip", "install", "-q", *deps
-        )
+        await message.edit(f"🕊 <b>{name}</b>\n<code>Installing required libs...</code>\n{formatted}")
+        pip = await asyncio.create_subprocess_exec(sys.executable, "-m", "pip", "install", "-q", *deps)
         output = await pip.wait()
 
         if output != 0:
-            await self.message.edit(
-                f"❌ <b>{name} installing error</b>\n"
-                f"<code>Failed to install libs.</code>"
-            )
+            await self.message.edit(f"❌ <b>{name} installing error</b>\n<code>Failed to install libs.</code>")
 
             if "no-delete" not in splitted_flags:
                 shutil.rmtree(os.path.join(modules_path, module_name))
             return
 
-    await message.edit(
-        f"🕊 <b>{name}</b>\n"
-        "<code>Loading module...</code>"
-    )
+    await message.edit(f"🕊 <b>{name}</b>\n<code>Loading module...</code>")
 
     try:
         await loader.load(module_name, self.client, startup=True)
     except Exception as error:
-        await self.message.edit(
-            f"❌ <b>{name} installing error</b>\n"
-            f"<code>{error}</code>"
-        )
+        await self.message.edit(f"❌ <b>{name} installing error</b>\n<code>{error}</code>")
 
         if "no-delete" not in splitted_flags:
             shutil.rmtree(os.path.join(modules_path, module_name))
         return
 
-    await message.edit(
-        f"🕊 <b>{name} is loaded!</b>"
-    )
+    await message.edit(f"🕊 <b>{name} is loaded!</b>")
 
 
-@loader.alias('unlm')
+@loader.alias("unlm")
 async def unload_cmd(self, name: str):
     # fly-telegram/fly-telegram/modules
     modules_path = Path(__file__).parent.parent.parent
 
-    message = await self.message.edit(
-        f"🕊 <b>{name}</b>\n"
-        "<code>Removing module...</code>"
-    )
+    message = await self.message.edit(f"🕊 <b>{name}</b>\n<code>Removing module...</code>")
 
     try:
         await loader.unload(name, self.client)
     except Exception as error:
-        await self.message.edit(
-            f"❌ <b>{name} unloading error</b>\n"
-            f"<code>{error}</code>"
-        )
+        await self.message.edit(f"❌ <b>{name} unloading error</b>\n<code>{error}</code>")
         return
 
     shutil.rmtree(os.path.join(modules_path, name))
 
-    await message.edit(
-        f"🕊 <b>{name} unloaded!</b>"
-    )
+    await message.edit(f"🕊 <b>{name} unloaded!</b>")

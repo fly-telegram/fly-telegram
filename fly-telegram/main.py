@@ -40,12 +40,7 @@ class Userbot:
             self.loop = asyncio.new_event_loop()
             asyncio.set_event_loop(self.loop)
 
-        self.levels = {
-            "info": logging.INFO,
-            "debug": logging.DEBUG,
-            "error": logging.ERROR,
-            "warning": logging.WARNING
-        }
+        self.levels = {"info": logging.INFO, "debug": logging.DEBUG, "error": logging.ERROR, "warning": logging.WARNING}
 
     async def amain(
         self,
@@ -77,10 +72,11 @@ class Userbot:
 
         try:
             telegram_handler = InlineHandler(client)
-            telegram_handler.setFormatter(logging.Formatter(
-                "%(asctime)s [%(levelname)s] %(funcName)s: %(lineno)d - %(message)s",
-                "%m-%d %H:%M:%S"
-            ))
+            telegram_handler.setFormatter(
+                logging.Formatter(
+                    "%(asctime)s [%(levelname)s] %(funcName)s: %(lineno)d - %(message)s", "%m-%d %H:%M:%S"
+                )
+            )
             logging.getLogger().addHandler(telegram_handler)
         except Exception:
             pass

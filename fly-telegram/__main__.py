@@ -22,14 +22,16 @@ def check():
     Check
     """
     if getpass.getuser() == "root" and not args.root:
-        print('Running the userbot with root access can be dangerous!')
+        print("Running the userbot with root access can be dangerous!")
         print('Run the userbot with the parameter "--root" if you want to skip this error!')
         sys.exit(1)
 
     if sys.version_info < PYTHON_VERSION and not args.old:
-        print('Your Python version is old!')
-        print(f'Use version {".".join(map(str, PYTHON_VERSION))}')
-        print('If you want to skip this error, use the "--old" parameter to run on older versions. There may be errors!')
+        print("Your Python version is old!")
+        print(f"Use version {'.'.join(map(str, PYTHON_VERSION))}")
+        print(
+            'If you want to skip this error, use the "--old" parameter to run on older versions. There may be errors!'
+        )
         sys.exit(1)
 
     if __package__ != "fly-telegram":
@@ -39,10 +41,8 @@ def check():
 
 if __name__ == "__main__":
     check()
-    level = args.log_level if hasattr(
-        args, 'log_level') and args.log_level else "info"
-    token = args.token if hasattr(
-        args, 'token') and args.token else None
+    level = args.log_level if hasattr(args, "log_level") and args.log_level else "info"
+    token = args.token if hasattr(args, "token") and args.token else None
     main.userbot.main(
         level=level,
         web=args.no_web,

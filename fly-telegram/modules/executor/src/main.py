@@ -8,6 +8,7 @@
 #             www.gnu.org/licenses/agpl-3.0.html
 
 import ast
+import contextlib
 
 from database import database
 from inline import InlineCall
@@ -46,7 +47,7 @@ async def run_code(code, env=None):
         return error
 
 
-@loader.alias('e')
+@loader.alias("e")
 async def eval_cmd(self, code):
     """The eval command for execute python code."""
     warning = database.get("executor", "warning")
@@ -57,17 +58,19 @@ async def eval_cmd(self, code):
             self.client,
             self.message,
             (
-                '⚠️ <b>The command can be execute code directly '
-                'through the userbot and has full access to your '
-                'data. Be careful with it. \n'
+                "⚠️ <b>The command can be execute code directly "
+                "through the userbot and has full access to your "
+                "data. Be careful with it. \n"
                 'Click the button "agree" to proceed.</b>'
             ),
             buttons=[
-                [{
-                    "text": "✅ Agree",
-                    "callback": agree_handler,
-                }],
-            ]
+                [
+                    {
+                        "text": "✅ Agree",
+                        "callback": agree_handler,
+                    }
+                ],
+            ],
         )
         return
 
@@ -84,15 +87,13 @@ async def eval_cmd(self, code):
             "message": self.message,
             "reply": self.message.reply_to_message,
             "pyrogram": __import__("pyrogram"),
-            "sys": __import__("sys")
-        }
+            "sys": __import__("sys"),
+        },
     )
 
     if getattr(result, "stringify", ""):
-        try:
+        with contextlib.suppress(Exception):
             result = str(result.stringify())
-        except Exception:
-            pass
 
     await self.message.edit(
         "<b>🐍 Python code:</b>\n"
@@ -102,29 +103,22 @@ async def eval_cmd(self, code):
     )
 
 
-@loader.alias('term')
+@loader.alias("term")
 async def terminal_cmd(self, command: str):
-    text = (
-        "📼 <b>Command</b>: \n"
-        f"<code>{command}</code>\n"
-        "✨ <b>Result</b>: \n"
-    )
+    text = f"📼 <b>Command</b>: \n<code>{command}</code>\n✨ <b>Result</b>: \n"
 
     term = AsyncTerminal(self.message, command, text, 0.25)
     await term.run()
 
 
 async def agree_handler(call: InlineCall):
-    data = {
-        "warning": True
-    }
+    data = {"warning": True}
     database.set("executor", data)
 
     await call.bot.edit_message_text(
         text=(
-            '✅ <b>This is message will no longer appear.\n'
-            'For security reasons, please enter the command again.</b>'
+            "✅ <b>This is message will no longer appear.\nFor security reasons, please enter the command again.</b>"
         ),
         parse_mode="HTML",
-        inline_message_id=call.inline_message_id
+        inline_message_id=call.inline_message_id,
     )

@@ -49,8 +49,7 @@ class ModuleImportError(LoaderError):
 
 
 class CommandWrapper:
-    __slots__ = ('client', 'func', 'filters', 'message',
-                 'command', 'args', 'no_timeout', 'timeout')
+    __slots__ = ("client", "func", "filters", "message", "command", "args", "no_timeout", "timeout")
 
     def __init__(self, client: Client, func: Callable[..., Any]) -> None:
         """
@@ -67,8 +66,8 @@ class CommandWrapper:
         self.command: Optional[str] = None
         self.args: list[str] = []
 
-        self.timeout: int = getattr(func, 'timeout', 30)
-        self.no_timeout: bool = getattr(func, 'no_timeout', False)
+        self.timeout: int = getattr(func, "timeout", 30)
+        self.no_timeout: bool = getattr(func, "no_timeout", False)
 
     async def __call__(self, message: Message) -> None:
         """
@@ -82,7 +81,7 @@ class CommandWrapper:
 
         full = message.text.strip() if message.text else ""
         if full.startswith(f".{self.command}"):
-            args_text = full[len(self.command) + 1:].lstrip()
+            args_text = full[len(self.command) + 1 :].lstrip()
             self.args = args_text.split() if args_text else []
         else:
             self.args = []
@@ -102,7 +101,17 @@ class CommandWrapper:
             await self.message.edit(f"❌ <b>Arguments Error: {e}</b>")
         except Exception as e:
             err_str = str(e)
-            if any(x in err_str for x in ("ClientOSError", "ServerDisconnectedError", "ConnectionResetError", "TelegramNetworkError", "disconnected", "connection")):
+            if any(
+                x in err_str
+                for x in (
+                    "ClientOSError",
+                    "ServerDisconnectedError",
+                    "ConnectionResetError",
+                    "TelegramNetworkError",
+                    "disconnected",
+                    "connection",
+                )
+            ):
                 await self.message.edit("❌ <b>connection error</b>")
             else:
                 await self.message.edit(f"❌ <b>Error: {e}</b>")
@@ -112,16 +121,13 @@ class CommandWrapper:
         process the message
         """
         arguments = inspect.getfullargspec(self.func).args
-        exp_args = [arg for arg in arguments if arg != 'self']
+        exp_args = [arg for arg in arguments if arg != "self"]
 
         if not exp_args:
             return await self.func(self)
 
         full = self.message.text.strip() if self.message.text else ""
-        if full.startswith(f".{self.command}"):
-            text = full[len(self.command) + 1:].lstrip()
-        else:
-            text = ""
+        text = full[len(self.command) + 1:].lstrip() if full.startswith(f".{self.command}") else ""
 
         if len(exp_args) == 1:
             return await self.func(self, text)
@@ -129,10 +135,10 @@ class CommandWrapper:
         splitted = text.split(maxsplit=len(exp_args) - 1)
 
         if len(splitted) < len(exp_args) - 1:
-            missing = ", ".join(exp_args[len(splitted):])
+            missing = ", ".join(exp_args[len(splitted) :])
             raise ArgumentsError(f"Required arguments: {missing}")
 
-        args = splitted[:len(exp_args) - 1]
+        args = splitted[: len(exp_args) - 1]
 
         if len(splitted) == len(exp_args) - 1:
             last = ""
@@ -140,7 +146,7 @@ class CommandWrapper:
             args.append(splitted[-1])
             return await self.func(self, *args)
         else:
-            start = len(' '.join(args)) + 1 if args else 0
+            start = len(" ".join(args)) + 1 if args else 0
             last = text[start:].strip()
             args.append(last)
 
@@ -175,15 +181,16 @@ class Events:
         Args:
             func (Callable): The function
         """
+
         def decorator(func: Callable) -> Callable:
             func.loop = True
             func.loop_interval = every
             return func
+
         return decorator
 
     @staticmethod
-    def watcher(type: str = "message", regex: str = None,
-                out: bool = False, coming: bool = True):
+    def watcher(type: str = "message", regex: str = None, out: bool = False, coming: bool = True):
         """
         Message watcher decorator
 
@@ -193,6 +200,7 @@ class Events:
             out (bool): Is out message?
             coming (bool): Its coming message
         """
+
         def decorator(func: Callable) -> Callable:
             func.watcher = True
             func.watcher_type = type
@@ -200,6 +208,7 @@ class Events:
             func.watcher_out = out
             func.watcher_coming = coming
             return func
+
         return decorator
 
 
@@ -245,12 +254,13 @@ class Link(Validator):
         if not isinstance(value, str):
             raise ValidationError(self.err)
         pattern = re.compile(
-            r'^https?://'
-            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?|'
-            r'localhost|'
-            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'
-            r'(?::\d+)?'
-            r'(?:/?|[/?]\S+)$', re.IGNORECASE
+            r"^https?://"
+            r"(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?|"
+            r"localhost|"
+            r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})"
+            r"(?::\d+)?"
+            r"(?:/?|[/?]\S+)$",
+            re.IGNORECASE,
         )
         if not pattern.match(value):
             raise ValidationError(self.err)
@@ -258,8 +268,7 @@ class Link(Validator):
 
 
 class Integer(Validator):
-    def __init__(self, min: Optional[int] = None, max: Optional[int] = None,
-                 err: str = "Must be an int"):
+    def __init__(self, min: Optional[int] = None, max: Optional[int] = None, err: str = "Must be an int"):
         super().__init__(err)
         self.min = min
         self.max = max
@@ -292,8 +301,7 @@ class Boolean(Validator):
 
 
 class Float(Validator):
-    def __init__(self, min: Optional[float] = None, max: Optional[float] = None,
-                 err: str = "Must be a float"):
+    def __init__(self, min: Optional[float] = None, max: Optional[float] = None, err: str = "Must be a float"):
         super().__init__(err)
         self.min = min
         self.max = max
@@ -317,9 +325,7 @@ class Choice(Validator):
 
     def validate(self, value: Any) -> Any:
         if value not in self.choices:
-            raise ValidationError(
-                f"{self.err}. Allowed: {', '.join(str(c) for c in self.choices)}"
-            )
+            raise ValidationError(f"{self.err}. Allowed: {', '.join(str(c) for c in self.choices)}")
         return value
 
 
@@ -347,10 +353,7 @@ class ConfigValue:
         return value
 
     def __repr__(self) -> str:
-        return (
-            f"ConfigValue(name={self.name!r}, default={self.default!r}, "
-            f"validator={self.validator!r})"
-        )
+        return f"ConfigValue(name={self.name!r}, default={self.default!r}, validator={self.validator!r})"
 
 
 class ModuleConfig:
@@ -392,14 +395,12 @@ class ModuleConfig:
 
     def __getitem__(self, key: str) -> Any:
         if key not in self.values:
-            raise KeyError(
-                f"Config key '{key}' not defined for module '{self.name}'")
+            raise KeyError(f"Config key '{key}' not defined for module '{self.name}'")
         return self.cache.get(key, self.values[key].default)
 
     def __setitem__(self, key: str, value: Any) -> None:
         if key not in self.values:
-            raise KeyError(
-                f"Config key '{key}' not defined for module '{self.name}'")
+            raise KeyError(f"Config key '{key}' not defined for module '{self.name}'")
 
         cfg_value = self.values[key]
         valid = cfg_value.validate(value)
@@ -407,17 +408,15 @@ class ModuleConfig:
         self.cache[key] = valid
         self._save()
 
-        if cfg_value.on_change and old_value != valid:
-            if callable(cfg_value.on_change):
-                cfg_value.on_change(old_value, valid)
+        if cfg_value.on_change and old_value != valid and callable(cfg_value.on_change):
+            cfg_value.on_change(old_value, valid)
 
     def __getattr__(self, key: str) -> Any:
         if key.startswith("_") or key in ("values", "name", "key", "cache"):
             return object.__getattribute__(self, key)
         if key in self.values:
             return self[key]
-        raise AttributeError(
-            f"'{type(self).__name__}' object has no attribute '{key}'")
+        raise AttributeError(f"'{type(self).__name__}' object has no attribute '{key}'")
 
     def __setattr__(self, key: str, value: Any) -> None:
         if key.startswith("_") or key in ("values", "name", "key", "cache"):
@@ -435,10 +434,7 @@ class ModuleConfig:
         return len(self.values)
 
     def __repr__(self) -> str:
-        items = ", ".join(
-            f"{k}={self.cache.get(k, v.default)!r}"
-            for k, v in self.values.items()
-        )
+        items = ", ".join(f"{k}={self.cache.get(k, v.default)!r}" for k, v in self.values.items())
         return f"ModuleConfig({items})"
 
     def get(self, key: str, default: Any = None) -> Any:
@@ -490,14 +486,16 @@ class Loader:
 
     def __init__(self) -> None:
         self.modules_path: Path = (
-            Path(f"./{__package__}/modules") if __package__
-            else Path("./fly-telegram/modules")
+            Path(f"./{__package__}/modules") if __package__ else Path("./fly-telegram/modules")
         )  # if not package - many path
 
         self.core_modules: tuple[str, ...] = (
-            "help", "loader",
-            "core", "executor",
-            "configurator", "chats",
+            "help",
+            "loader",
+            "core",
+            "executor",
+            "configurator",
+            "chats",
             "rights",
         )
         self.command_handlers: dict[str, list[MessageHandler]] = {}
@@ -505,8 +503,7 @@ class Loader:
         self.func_events: dict[str, dict[str, list[Callable]]] = {}
         self.func_tasks: dict[str, list[asyncio.Task]] = {}
         self._package_prefix: str = (
-            f"{__package__}.modules." if __package__
-            else "fly-telegram.modules."
+            f"{__package__}.modules." if __package__ else "fly-telegram.modules."
         )  # if not package - many path
         self.events = events
         self.ModuleConfig = ModuleConfig
@@ -521,9 +518,11 @@ class Loader:
         Args:
             *aliases (str): The aliases list
         """
+
         def decorator(func: Callable) -> Callable:
             func.aliases = aliases
             return func
+
         return decorator
 
     @staticmethod
@@ -534,9 +533,11 @@ class Loader:
         Args:
             seconds (int): The time
         """
+
         def decorator(func: Callable) -> Callable:
             func.timeout = seconds
             return func
+
         return decorator
 
     @staticmethod
@@ -567,11 +568,7 @@ class Loader:
         if name in self.command_handlers:
             await self.unload(name, client)
 
-        self.func_events[name] = {
-            "load": [],
-            "watchers": [],
-            "loops": []
-        }
+        self.func_events[name] = {"load": [], "watchers": [], "loops": []}
 
         self.func_tasks[name] = []
 
@@ -579,23 +576,21 @@ class Loader:
         module_commands: list[str] = []
         module_prefix: str = f"{self._package_prefix}{name}.src."
 
-        for file in sources.glob('*.py'):
+        for file in sources.glob("*.py"):
             module_name: str = f"{module_prefix}{file.stem}"
             try:
                 module: Any = self._import_or_reload(module_name)
             except Exception as e:
-                raise ModuleImportError(
-                    f"Failed to import module {module_name}: {e}"
-                ) from e
+                raise ModuleImportError(f"Failed to import module {module_name}: {e}") from e
 
             # Bind ModuleConfig instances to the module
-            for attr_name, attr_val in vars(module).items():
+            for _attr_name, attr_val in vars(module).items():
                 if isinstance(attr_val, ModuleConfig):
                     attr_val._set_module(name)
 
             for func_name, func in inspect.getmembers(module, inspect.isfunction):
                 if func_name.endswith("_cmd"):
-                    aliases = getattr(func, 'aliases', ())
+                    aliases = getattr(func, "aliases", ())
                     command_name: str = func_name[:-4]
                     names = {command_name}.union(aliases)
 
@@ -611,9 +606,7 @@ class Loader:
                     every = getattr(func, "loop_interval", 60)
                     self.func_events[name]["loops"].append((func, every))
 
-                    task = asyncio.create_task(
-                        self._run_loop(client, func, every, name)
-                    )
+                    task = asyncio.create_task(self._run_loop(client, func, every, name))
                     self.func_tasks[name].append(task)
 
             for event in self.func_events[name]["load"]:
@@ -629,8 +622,7 @@ class Loader:
 
         return True
 
-    async def _run_loop(self, client: Client, func: Callable,
-                        every: int, name: str) -> None:
+    async def _run_loop(self, client: Client, func: Callable, every: int, name: str) -> None:
         """
         Run loop for the command
 
@@ -645,8 +637,7 @@ class Loader:
                 if inspect.iscoroutinefunction(func):
                     await func(client)
                 else:
-                    await asyncio.get_event_loop().run_in_executor(
-                        None, func, client)
+                    await asyncio.get_event_loop().run_in_executor(None, func, client)
 
                 await asyncio.sleep(every)
             except asyncio.CancelledError:
@@ -654,14 +645,22 @@ class Loader:
 
             except Exception as error:
                 err_str = str(error)
-                if any(x in err_str for x in ("ClientOSError", "ServerDisconnectedError", "ConnectionResetError", "TelegramNetworkError", "disconnected", "connection")):
-                    logging.error(
-                        f"Module '{name}' loop error: connection error")
+                if any(
+                    x in err_str
+                    for x in (
+                        "ClientOSError",
+                        "ServerDisconnectedError",
+                        "ConnectionResetError",
+                        "TelegramNetworkError",
+                        "disconnected",
+                        "connection",
+                    )
+                ):
+                    logging.error(f"Module '{name}' loop error: connection error")
                 else:
                     logging.error(f"Module '{name}' loop error: {error}")
 
-    def _register_watcher(self, client: Client,
-                          func: Callable, name: str) -> MessageHandler:
+    def _register_watcher(self, client: Client, func: Callable, name: str) -> MessageHandler:
         """
         Register module watcher
 
@@ -711,7 +710,17 @@ class Loader:
                     func(c, message)
             except Exception as err:
                 err_str = str(err)
-                if any(x in err_str for x in ("ClientOSError", "ServerDisconnectedError", "ConnectionResetError", "TelegramNetworkError", "disconnected", "connection")):
+                if any(
+                    x in err_str
+                    for x in (
+                        "ClientOSError",
+                        "ServerDisconnectedError",
+                        "ConnectionResetError",
+                        "TelegramNetworkError",
+                        "disconnected",
+                        "connection",
+                    )
+                ):
                     logging.error(f"watcher error in {name}: connection error")
                 else:
                     logging.error(f"watcher error in {name}: {err}")
@@ -754,8 +763,7 @@ class Loader:
         await client.dispatcher.stop(clear_handlers=False)
         await client.dispatcher.start()
 
-    def _register_command(self, client: Client, command_name: str,
-                          func: Callable[..., Any], module_name: str) -> None:
+    def _register_command(self, client: Client, command_name: str, func: Callable[..., Any], module_name: str) -> None:
         """
         Register the command
         Args:
@@ -781,20 +789,13 @@ class Loader:
 
         cmd_filter = filters.command([command_name], ".")
 
-        handler: MessageHandler = MessageHandler(
-            wrapped_command,
-            cmd_filter
-        )
+        handler: MessageHandler = MessageHandler(wrapped_command, cmd_filter)
         client.add_handler(handler)
 
-        edited_handler: EditedMessageHandler = EditedMessageHandler(
-            wrapped_command,
-            cmd_filter
-        )
+        edited_handler: EditedMessageHandler = EditedMessageHandler(wrapped_command, cmd_filter)
         client.add_handler(edited_handler)
 
-        handlers_list: list[MessageHandler] = self.command_handlers.setdefault(
-            module_name, [])
+        handlers_list: list[MessageHandler] = self.command_handlers.setdefault(module_name, [])
         handlers_list.append(handler)
         handlers_list.append(edited_handler)
 
@@ -827,16 +828,12 @@ class Loader:
 
         del self.command_handlers[name]
 
-        to_remove = [cmd for cmd,
-                     mod in self.commands_reg.items() if mod == name]
+        to_remove = [cmd for cmd, mod in self.commands_reg.items() if mod == name]
         for cmd in to_remove:
             del self.commands_reg[cmd]
 
         prefix: str = f"{self._package_prefix}{name}."
-        modules_to_delete: list[str] = [
-            module for module in sys.modules.keys()
-            if module.startswith(prefix)
-        ]
+        modules_to_delete: list[str] = [module for module in sys.modules if module.startswith(prefix)]
 
         for module in modules_to_delete:
             del sys.modules[module]
@@ -850,20 +847,17 @@ class Loader:
             client (pyrogram.Client): The pyrogram client object
         """
         modules_to_load: list[Path] = [
-            module for module in self.modules_path.iterdir()
-            if module.is_dir() and not module.name.endswith("_")
+            module for module in self.modules_path.iterdir() if module.is_dir() and not module.name.endswith("_")
         ]
 
         for module in modules_to_load:
             try:
                 await self.load(module.name, client, startup=True)
             except ModuleImportError as error:
-                logging.error(
-                    f"Import error in module '{module.name}': {error}")
+                logging.error(f"Import error in module '{module.name}': {error}")
             except ModuleNotFoundError as error:
                 logging.error(f"Module '{module.name}' not found: {error}")
             except Exception as error:
-                logging.error(
-                    f"Unexpected error loading module '{module.name}': {error}")
+                logging.error(f"Unexpected error loading module '{module.name}': {error}")
 
         await self._restart_dispatcher(client)

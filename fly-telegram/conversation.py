@@ -29,12 +29,7 @@ class Conversation:
         clear (bool): Whether to clear the conversation messages when exiting.
     """
 
-    def __init__(
-        self,
-        client: Client,
-        chat: Union[str, int],
-        clear: bool = False
-    ) -> None:
+    def __init__(self, client: Client, chat: Union[str, int], clear: bool = False) -> None:
         self.client = client
         self.chat = chat
         self.clear = clear
@@ -53,20 +48,13 @@ class Conversation:
             self.last = 0
         return self
 
-    async def __aexit__(
-        self,
-        exc_type: type,
-        exc_value: Exception,
-        exc_traceback
-    ) -> bool:
+    async def __aexit__(self, exc_type: type, exc_value: Exception, exc_traceback) -> bool:
         """
         Exits the conversation context.
 
         If an exception occurs, logs the exception. If `clear` is True, clears the conversation messages.
         """
-        if all(
-            [exc_type, exc_value, exc_traceback]
-        ):
+        if all([exc_type, exc_value, exc_traceback]):
             logging.exception(exc_value)
         elif self.clear:
             await self.clear_messages()
@@ -85,8 +73,7 @@ class Conversation:
         Returns:
             types.Message: The sent message.
         """
-        message = await self.client.send_message(
-            self.chat, text, *args, **kwargs)
+        message = await self.client.send_message(self.chat, text, *args, **kwargs)
         self.last = message.id
         return message
 
@@ -108,10 +95,7 @@ class Conversation:
 
         while timeout > 0:
             async for message in self.client.get_chat_history(self.chat, limit=1):
-                if (
-                    message.id > self.last
-                    and not message.from_user.is_self
-                ):
+                if message.id > self.last and not message.from_user.is_self:
                     self.last = message.id
                     return message
             await asyncio.sleep(0.5)

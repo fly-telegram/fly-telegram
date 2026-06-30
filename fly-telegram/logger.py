@@ -9,13 +9,13 @@
 import asyncio
 import logging
 import os
-
 from logging.handlers import RotatingFileHandler
+
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from pyrogram import Client
 
 from .database import database
 from .utils import BASE_DIR
-from pyrogram import Client
 
 
 class InlineHandler(logging.StreamHandler):
@@ -61,28 +61,27 @@ class InlineHandler(logging.StreamHandler):
         try:
             text = "\n".join(entries)
             if len(text) > self._max:
-                text = text[:self._max] + "\n..."
+                text = text[: self._max] + "\n..."
             chats = database.get("chats")
             if not isinstance(chats, dict):
                 return
             logID = chats.get("logs")
             if not logID:
                 return
-            if (
-                    hasattr(self.client, "inline")
-                    and self.client.inline
-                    and self.client.inline.bot):
+            if hasattr(self.client, "inline") and self.client.inline and self.client.inline.bot:
                 await self.client.inline.bot.send_message(
                     logID,
                     f"<code>{text}</code>",
                     parse_mode="html",
                     reply_markup=InlineKeyboardMarkup(
-                        inline_keyboard=[[
-                            InlineKeyboardButton(
-                                text="⚠️ Issues",
-                                url="https://github.com/fly-telegram/fly-telegram/issues",
-                            )
-                        ]]
+                        inline_keyboard=[
+                            [
+                                InlineKeyboardButton(
+                                    text="⚠️ Issues",
+                                    url="https://github.com/fly-telegram/fly-telegram/issues",
+                                )
+                            ]
+                        ]
                     ),
                 )
         except Exception:
@@ -144,8 +143,8 @@ def load(level: logging.NOTSET) -> logging.Logger:  # type: ignore
         logging.Logger: logger object
     """
     logger_format = logging.Formatter(
-        "%(asctime)s [%(levelname)s] %(funcName)s: %(lineno)d - %(message)s",
-        "%m-%d %H:%M:%S")
+        "%(asctime)s [%(levelname)s] %(funcName)s: %(lineno)d - %(message)s", "%m-%d %H:%M:%S"
+    )
 
     logger = logging.getLogger()
     logger.handlers = []

@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "fly-telegram"
+version = "2.1b"
+description = "It is user-friendly userbot"
+authors = [{name = "HotDrify"}]
+license = {text = "CC-BY-NC"}
+requires-python = ">=3.9"
+
+[tool.ruff]
+target-version = "py39"
+line-length = 120
+indent-width = 4
+exclude = ["venv", ".ruff_cache", "logs", "assets"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+[tool.ruff.lint]
+select = [
+  "E",
+  "F",
+  "W",
+  "I",
+  "UP",
+  "N",
+  "B",
+  "SIM",
+]
+ignore = [
+  "E501",
+  "N815",
+  "N812",
+  "N803",
+  "N999",
+  "B904",
+  "N802",
+  "N806",
+  "SIM102",
+  "SIM105",
+]
+unfixable = []
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["E402", "F401", "I"]
+
+[tool.autopep8]
+max_line_length = 120
+indent_size = 4
+recursive = true
+in_place = true
+aggressive = 1
+ignore = ["E402", "E501", "W291", "W292", "W391"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 15

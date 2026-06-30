@@ -12,8 +12,7 @@ from pyrogram import Client
 
 
 class InlineCall:
-    def __init__(self, callback_query: CallbackQuery,
-                 client: Client = None, bot=None):
+    def __init__(self, callback_query: CallbackQuery, client: Client = None, bot=None):
         """
         InlineCall object
         Args:

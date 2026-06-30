@@ -20,7 +20,7 @@ import qrcode
 from pyrogram import Client, errors, types
 from pyrogram.enums import ParseMode
 from pyrogram.raw.functions.auth import ExportLoginToken, ImportLoginToken
-from pyrogram.raw.types.auth import LoginTokenSuccess, LoginTokenMigrateTo
+from pyrogram.raw.types.auth import LoginTokenMigrateTo, LoginTokenSuccess
 
 from .storage import CustomStorage
 from .utils import SESSION_FILE
@@ -29,8 +29,7 @@ from .web import Web
 
 def _input_passwd() -> Optional[str]:
     """Input session password"""
-    password = input(
-        "Input '.session' password encrypt (empty for none): ").strip()
+    password = input("Input '.session' password encrypt (empty for none): ").strip()
     return password if password else None
 
 
@@ -183,25 +182,21 @@ class Auth:
         Returns:
             tuple: The client and get_me
         """
-        result = await self.client.invoke(ExportLoginToken(
-            api_id=self.config["api_id"],
-            api_hash=self.config["api_hash"],
-            except_ids=[]
-        ))
+        result = await self.client.invoke(
+            ExportLoginToken(api_id=self.config["api_id"], api_hash=self.config["api_hash"], except_ids=[])
+        )
 
         if isinstance(result, LoginTokenSuccess):
             me = await self.client.get_me()
             return self.client, me
 
         token_bytes = result.token
-        token_b64 = base64.urlsafe_b64encode(
-            token_bytes).rstrip(b'=').decode()
+        token_b64 = base64.urlsafe_b64encode(token_bytes).rstrip(b"=").decode()
         url = f"tg://login?token={token_b64}"
 
         qr = qrcode.QRCode()
         qr.add_data(url)
-        logging.info(
-            "Open your telegram app (Settings > Devices > Add new device) and scan")
+        logging.info("Open your telegram app (Settings > Devices > Add new device) and scan")
         qr.print_ascii()
 
         while True:
@@ -260,8 +255,7 @@ class Auth:
             sys.exit(64)
 
         except KeyError:
-            logging.error(
-                "Corrupted session detected! Removing session file...")
+            logging.error("Corrupted session detected! Removing session file...")
             session_path = SESSION_FILE + ".session"
             if os.path.exists(session_path):
                 os.remove(session_path)
