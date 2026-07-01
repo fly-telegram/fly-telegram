@@ -26,7 +26,7 @@ config = ModuleConfig(ConfigValue("notify", True, "Notify for new updates", vali
 @events.loop(every=600)  # 10 min
 async def check_updates(client):
     notify = config["notify"]
-    if not notify and check():
+    if not notify or not check():
         return
 
     chat_id = database.get("chats", "updates")
@@ -85,7 +85,7 @@ async def restart_cmd(self):
         },
     )
 
-    os.execl(sys.executable, sys.executable, "-m", "fly-telegram")
+    os.execl(sys.executable, sys.executable, "-m", "fly-telegram", *sys.argv[1:])
 
 
 @loader.alias("upd")
@@ -146,7 +146,7 @@ async def update_handler(call: InlineCall):
     except git.GitCommandError:
         repo.git.reset("--hard")
 
-    os.execl(sys.executable, sys.executable, "-m", "fly-telegram")
+    os.execl(sys.executable, sys.executable, "-m", "fly-telegram", *sys.argv[1:])
 
 
 async def no_update_handler(call: InlineCall):
