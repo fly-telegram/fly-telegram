@@ -1,0 +1,10 @@
+{
+  "name": "language",
+  "description": "The Fly Telegram loader module, for select language",
+  "version": [1, 0, "beta"],
+  "author": {
+    "name": "fly-telegram",
+    "link": "https://t.me/fly_ub"
+  },
+  "license": "GNU-APGL 3.0"
+}

@@ -29,11 +29,26 @@ from aiogram.types import (
 )
 from aiogram.utils.token import TokenValidationError
 from database import database
+from languages import langpack
 
 from .botmanager import BotManager
 from .call import InlineCall
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
+def _lang(client, func):
+    module = getattr(func, "__module__", None)
+    if module and ".modules." in module:
+        parts = module.split(".")
+        try:
+            idx = parts.index("modules")
+            module_name = parts[idx + 1]
+            modules_path = client.loader.modules_path if hasattr(client, "loader") else None
+            return langpack(modules_path, module_name)
+        except (ValueError, IndexError):
+            pass
+    return {}
 
 
 class Via:
@@ -42,7 +57,7 @@ class Via:
         self.results = {}
         self.handlers = {}
 
-    def add(self, text, prefix="via_", buttons=None, description="🕊️ fly telegram system result"):
+    def add(self, text, prefix="via_", buttons=None, description="🕊️ fly telegram"):
         query_id = str(uuid4())
         input_text = InputTextMessageContent(message_text=text, parse_mode="HTML")
         reply_markup = None
@@ -85,7 +100,7 @@ class Via:
 
         result = InlineQueryResultArticle(
             id=f"{prefix}{query_id}",
-            title="🕊️ fly telegram v2",
+            title="🕊️ fly telegram",
             description=description,
             input_message_content=input_text,
             reply_markup=reply_markup,
@@ -160,7 +175,7 @@ class Inline:
         )
         return query_id
 
-    def via(self, text, prefix="via_", buttons=None, description="🕊️ fly telegram v2"):
+    def via(self, text, prefix="via_", buttons=None, description="🕊️ fly telegram"):
         return self.viamanager.add(text, prefix, buttons, description)
 
     def update_via(self, id, **kwargs):
@@ -192,10 +207,10 @@ class Inline:
                 results=[
                     InlineQueryResultArticle(
                         id="notprems",
-                        title="🕊️ fly telegram v2",
+                        title="🕊️ fly telegram",
                         description="Not available",
                         input_message_content=InputTextMessageContent(
-                            message_text="<b>🕊️ fly telegram v2</b>\n<b>Not available for you</b>", parse_mode="html"
+                            message_text="<b>🕊️ fly telegram</b>\n<b>Not available for you</b>", parse_mode="html"
                         ),
                     )
                 ],
@@ -239,10 +254,10 @@ class Inline:
             results=[
                 InlineQueryResultArticle(
                     id="default",
-                    title="🕊️ fly telegram v2",
+                    title="🕊️ fly telegram",
                     description="Not found!",
                     input_message_content=InputTextMessageContent(
-                        message_text="<b>🕊️ fly telegram v2</b>\n<b>The query is not found</b>", parse_mode="html"
+                        message_text="<b>🕊️ fly telegram</b>\n<b>The query is not found</b>", parse_mode="html"
                     ),
                 )
             ],
@@ -255,13 +270,18 @@ class Inline:
 
     async def process_callback(self, callback_query: CallbackQuery):
         data = callback_query.data
-        call = InlineCall(callback_query, self.client, self._bot)
+
+        func, params = self.viamanager.get_huuid(data)
+        lang = {}
+        if func:
+            lang = _lang(self.client, func)
+
+        call = InlineCall(callback_query, self.client, self._bot, lang=lang)
 
         if call.from_user.id != self.client.me.id and not self.inline_rights(call.from_user.id):
             await call.answer("❌ Not for you")
             return
 
-        func, params = self.viamanager.get_huuid(data)
         if func:
             try:
                 sig = inspect.signature(func)

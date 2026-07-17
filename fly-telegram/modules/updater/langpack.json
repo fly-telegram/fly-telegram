@@ -1,0 +1,80 @@
+{
+  "ru": {
+    "new_update": "🕊 <b>Доступно новое обновление!</b>",
+    "install": "📥 Установить!",
+    "restarting": "🕊 <b>Перезапуск...</b>",
+    "restarted": "🕊 <b>Перезапущено! ({}s)</b>",
+    "update_now": "🕊 <b>Обновить сейчас?</b>",
+    "yes": "✅ Да",
+    "no": "❌ Нет",
+    "latest_version": "🕊 <b>Уже установлена последняя версия!</b>",
+    "updated": "🕊 <b>Обновлено! ({}s)</b>",
+    "updating": "🕊 <b>Обновление...</b>",
+    "cancelled": "🕊 <b>fly telegram отменено</b>"
+  },
+  "en": {
+    "new_update": "🕊 <b>New update available!</b>",
+    "install": "📥 Install!",
+    "restarting": "🕊 <b>Restarting...</b>",
+    "restarted": "🕊 <b>Restarted! ({}s)</b>",
+    "update_now": "🕊 <b>Update now?</b>",
+    "yes": "✅ Yes",
+    "no": "❌ No",
+    "latest_version": "🕊 <b>Already installed latest version!</b>",
+    "updated": "🕊 <b>Updated! ({}s)</b>",
+    "updating": "🕊 <b>Updating...</b>",
+    "cancelled": "🕊 <b>fly telegram cancelled</b>"
+  },
+  "fr": {
+    "new_update": "🕊 <b>Nouvelle mise à jour disponible !</b>",
+    "install": "📥 Installer !",
+    "restarting": "🕊 <b>Redémarrage...</b>",
+    "restarted": "🕊 <b>Redémarré ! ({}s)</b>",
+    "update_now": "🕊 <b>Mettre à jour maintenant ?</b>",
+    "yes": "✅ Oui",
+    "no": "❌ Non",
+    "latest_version": "🕊 <b>La dernière version est déjà installée !</b>",
+    "updated": "🕊 <b>Mis à jour ! ({}s)</b>",
+    "updating": "🕊 <b>Mise à jour...</b>",
+    "cancelled": "🕊 <b>fly telegram annulé</b>"
+  },
+  "ge": {
+    "new_update": "🕊 <b>Neues Update verfügbar!</b>",
+    "install": "📥 Installieren!",
+    "restarting": "🕊 <b>Neustart...</b>",
+    "restarted": "🕊 <b>Neugestartet! ({}s)</b>",
+    "update_now": "🕊 <b>Jetzt aktualisieren?</b>",
+    "yes": "✅ Ja",
+    "no": "❌ Nein",
+    "latest_version": "🕊 <b>Neueste Version bereits installiert!</b>",
+    "updated": "🕊 <b>Aktualisiert! ({}s)</b>",
+    "updating": "🕊 <b>Aktualisierung...</b>",
+    "cancelled": "🕊 <b>fly telegram abgebrochen</b>"
+  },
+  "kz": {
+    "new_update": "🕊 <b>Жаңа жаңарту қол жетімді!</b>",
+    "install": "📥 Орнату!",
+    "restarting": "🕊 <b>Қайта бастау...</b>",
+    "restarted": "🕊 <b>Қайта басталды! ({}s)</b>",
+    "update_now": "🕊 <b>Қазір жаңарту керек пе?</b>",
+    "yes": "✅ Иә",
+    "no": "❌ Жоқ",
+    "latest_version": "🕊 <b>Соңғы нұсқа орнатылған!</b>",
+    "updated": "🕊 <b>Жаңартылды! ({}s)</b>",
+    "updating": "🕊 <b>Жаңарту...</b>",
+    "cancelled": "🕊 <b>fly telegram тоқтатылды</b>"
+  },
+  "ua": {
+    "new_update": "🕊 <b>Доступне нове оновлення!</b>",
+    "install": "📥 Встановити!",
+    "restarting": "🕊 <b>Перезапуск...</b>",
+    "restarted": "🕊 <b>Перезапущено! ({}s)</b>",
+    "update_now": "🕊 <b>Оновити зараз?</b>",
+    "yes": "✅ Так",
+    "no": "❌ Ні",
+    "latest_version": "🕊 <b>Остання версія вже встановлена!</b>",
+    "updated": "🕊 <b>Оновлено! ({}s)</b>",
+    "updating": "🕊 <b>Оновлення...</b>",
+    "cancelled": "🕊 <b>fly telegram скасовано</b>"
+  }
+}

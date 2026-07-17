@@ -21,7 +21,7 @@ async def help_cmd(self):
     modules = analyzer.get_modules()
 
     if not modules:
-        await self.message.edit("❌ <b>modules not found</b>")
+        await self.message.edit(self.lang.get("modules_not_found"))
         return
 
     items = []
@@ -39,7 +39,7 @@ async def help_cmd(self):
             for i, (module, commands) in enumerate(items)
         )
 
-    await self.message.edit(f"🕊 <b>All commands</b>\n{all_commands}")
+    await self.message.edit(f"{self.lang.get('all_commands')}\n{all_commands}")
 
 
 async def support_cmd(self):
@@ -48,18 +48,18 @@ async def support_cmd(self):
     await inline.say(
         self.client,
         self.message,
-        "🕊 <b>Do you want to join the support chat?</b>",
+        self.lang.get("support_question"),
         prefix="help_support_",
         buttons=[
             [
                 {
-                    "text": "✅ Yes",
+                    "text": self.lang.get("yes"),
                     "callback": yes_handler,
                 }
             ],
             [
                 {
-                    "text": "❌ No",
+                    "text": self.lang.get("no"),
                     "callback": no_handler,
                 }
             ],
@@ -70,7 +70,7 @@ async def support_cmd(self):
 async def yes_handler(call: InlineCall):
     await call.client.join_chat("t.me/flyTG_support")
     await call.bot.edit_message_text(
-        text=("🕊 <b>Joined to</b> " + '<a href="https://t.me/flyTG_support">support chat</a>'),
+        text=(call.lang.get("joined") + '<a href="https://t.me/flyTG_support">' + call.lang.get("support_chat") + "</a>"),
         parse_mode="HTML",
         inline_message_id=call.inline_message_id,
     )
@@ -78,5 +78,5 @@ async def yes_handler(call: InlineCall):
 
 async def no_handler(call: InlineCall):
     await call.bot.edit_message_text(
-        text="❌ <b>Cancelled</b>", parse_mode="HTML", inline_message_id=call.inline_message_id
+        text=call.lang.get("cancelled"), parse_mode="HTML", inline_message_id=call.inline_message_id
     )

@@ -17,19 +17,15 @@ from pathlib import Path
 from typing import Any, Callable, Optional, Union
 
 from pyrogram import Client, filters
-from pyrogram.handlers import EditedMessageHandler, MessageHandler
+from pyrogram.handlers import DeletedMessagesHandler, EditedMessageHandler, MessageHandler
 from pyrogram.types import Message
-
-try:
-    import ujson as json  # noqa: F401
-except ModuleNotFoundError:
-    pass
 
 THE_DIR = Path(__file__).parent
 if str(THE_DIR) not in sys.path:
     sys.path.append(str(THE_DIR))
 
 from database import database  # noqa: E402
+from languages import langpack, set_modules_path  # noqa: E402
 
 
 class LoaderError(Exception):
@@ -49,15 +45,17 @@ class ModuleImportError(LoaderError):
 
 
 class CommandWrapper:
-    __slots__ = ("client", "func", "filters", "message", "command", "args", "no_timeout", "timeout")
+    __slots__ = ("client", "func", "filters", "message", "command", "args", "no_timeout", "timeout", "lang", "_module_name", "_modules_path")
 
-    def __init__(self, client: Client, func: Callable[..., Any]) -> None:
+    def __init__(self, client: Client, func: Callable[..., Any], module_name: str = "", modules_path: Optional[Path] = None) -> None:
         """
         The wrapper object
 
         Args:
             client (pyrogram.Client): pyrogram client object
             func (Callable/Any): The function
+            module_name (str): The module name
+            modules_path (Path): The modules directory path
         """
         self.client: Client = client
         self.func: Callable[..., Any] = func
@@ -65,9 +63,12 @@ class CommandWrapper:
         self.message: Optional[Message] = None
         self.command: Optional[str] = None
         self.args: list[str] = []
+        self._module_name: str = module_name
+        self._modules_path: Optional[Path] = modules_path
 
         self.timeout: int = getattr(func, "timeout", 30)
         self.no_timeout: bool = getattr(func, "no_timeout", False)
+        self.lang: dict[str, str] = langpack(self._modules_path, self._module_name)
 
     async def __call__(self, message: Message) -> None:
         """
@@ -81,7 +82,7 @@ class CommandWrapper:
 
         full = message.text.strip() if message.text else ""
         if full.startswith(f".{self.command}"):
-            args_text = full[len(self.command) + 1 :].lstrip()
+            args_text = full[len(self.command) + 1:].lstrip()
             self.args = args_text.split() if args_text else []
         else:
             self.args = []
@@ -135,7 +136,7 @@ class CommandWrapper:
         splitted = text.split(maxsplit=len(exp_args) - 1)
 
         if len(splitted) < len(exp_args) - 1:
-            missing = ", ".join(exp_args[len(splitted) :])
+            missing = ", ".join(exp_args[len(splitted):])
             raise ArgumentsError(f"Required arguments: {missing}")
 
         args = splitted[: len(exp_args) - 1]
@@ -210,6 +211,28 @@ class Events:
             return func
 
         return decorator
+
+    @staticmethod
+    def on_delete(func: Callable) -> Callable:
+        """
+        Deleted messages event decorator
+
+        Args:
+            func (Callable): The function
+        """
+        func.on_delete = True
+        return func
+
+    @staticmethod
+    def on_edited(func: Callable) -> Callable:
+        """
+        Edited messages event decorator
+
+        Args:
+            func (Callable): The function
+        """
+        func.on_edited = True
+        return func
 
 
 events = Events()
@@ -509,6 +532,7 @@ class Loader:
         self.ModuleConfig = ModuleConfig
         self.ConfigValue = ConfigValue
         self.validators = validators
+        set_modules_path(self.modules_path)
 
     @staticmethod
     def alias(*aliases: str) -> Callable:
@@ -608,6 +632,10 @@ class Loader:
 
                     task = asyncio.create_task(self._run_loop(client, func, every, name))
                     self.func_tasks[name].append(task)
+                if getattr(func, "on_delete", False):
+                    self._register_on_delete(client, func, name)
+                if getattr(func, "on_edited", False):
+                    self._register_on_edited(client, func, name)
 
             for event in self.func_events[name]["load"]:
                 if inspect.iscoroutinefunction(event):
@@ -731,6 +759,56 @@ class Loader:
 
         return handler
 
+    def _register_on_delete(self, client: Client, func: Callable, name: str) -> DeletedMessagesHandler:
+        """
+        Register deleted messages handler
+
+        Args:
+            client (pyrogram.Client): The pyrogram client object
+            func (Callable): The function
+            name (str): The module name
+        """
+
+        async def wrapper(c: Client, messages: list):
+            try:
+                if inspect.iscoroutinefunction(func):
+                    await func(c, messages)
+                else:
+                    func(c, messages)
+            except Exception as err:
+                logging.error(f"on_delete error in {name}: {err}")
+
+        handler = DeletedMessagesHandler(wrapper)
+        client.add_handler(handler)
+        self.command_handlers.setdefault(name, []).append(handler)
+
+        return handler
+
+    def _register_on_edited(self, client: Client, func: Callable, name: str) -> EditedMessageHandler:
+        """
+        Register edited messages handler
+
+        Args:
+            client (pyrogram.Client): The pyrogram client object
+            func (Callable): The function
+            name (str): The module name
+        """
+
+        async def wrapper(c: Client, message: Message):
+            try:
+                if inspect.iscoroutinefunction(func):
+                    await func(c, message)
+                else:
+                    func(c, message)
+            except Exception as err:
+                logging.error(f"on_edited error in {name}: {err}")
+
+        handler = EditedMessageHandler(wrapper)
+        client.add_handler(handler)
+        self.command_handlers.setdefault(name, []).append(handler)
+
+        return handler
+
     def _import_or_reload(self, module_name: str) -> Any:
         """
         Import module or reload
@@ -772,7 +850,7 @@ class Loader:
             func (Callable/Any): The function
             module_name (str): The module name
         """
-        wrapper: CommandWrapper = CommandWrapper(client, func)
+        wrapper: CommandWrapper = CommandWrapper(client, func, module_name, self.modules_path)
 
         async def wrapped_command(_: Any, message: Message) -> None:
             user_id = message.from_user.id if message.from_user else None

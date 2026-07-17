@@ -1,0 +1,62 @@
+{
+  "ru": {
+    "modules_not_found": "❌ <b>Модули не найдены</b>",
+    "all_commands": "🕊 <b>Все команды</b>",
+    "support_question": "🕊 <b>Вы хотите вступить в чат поддержки?</b>",
+    "yes": "✅ Да",
+    "no": "❌ Нет",
+    "joined": "🕊 <b>Вы вступили в</b> ",
+    "support_chat": "чат поддержки",
+    "cancelled": "🕊 <b>fly telegram отменено</b>"
+  },
+  "en": {
+    "modules_not_found": "❌ <b>modules not found</b>",
+    "all_commands": "🕊 <b>All commands</b>",
+    "support_question": "🕊 <b>Do you want to join the support chat?</b>",
+    "yes": "✅ Yes",
+    "no": "❌ No",
+    "joined": "🕊 <b>Joined to</b> ",
+    "support_chat": "support chat",
+    "cancelled": "🕊 <b>fly telegram cancelled</b>"
+  },
+  "fr": {
+    "modules_not_found": "❌ <b>Modules non trouvés</b>",
+    "all_commands": "🕊 <b>Toutes les commandes</b>",
+    "support_question": "🕊 <b>Voulez-vous rejoindre le chat de support ?</b>",
+    "yes": "✅ Oui",
+    "no": "❌ Non",
+    "joined": "🕊 <b>Rejoint</b> ",
+    "support_chat": "le chat de support",
+    "cancelled": "🕊 <b>fly telegram annulé</b>"
+  },
+  "ge": {
+    "modules_not_found": "❌ <b>Module nicht gefunden</b>",
+    "all_commands": "🕊 <b>Alle Befehle</b>",
+    "support_question": "🕊 <b>Möchten Sie dem Support-Chat beitreten?</b>",
+    "yes": "✅ Ja",
+    "no": "❌ Nein",
+    "joined": "🕊 <b>Beigetreten zu</b> ",
+    "support_chat": "Support-Chat",
+    "cancelled": "🕊 <b>fly telegram abgebrochen</b>"
+  },
+  "kz": {
+    "modules_not_found": "❌ <b>Модульдер табылмады</b>",
+    "all_commands": "🕊 <b>Барлық бұйрықтар</b>",
+    "support_question": "🕊 <b>Сіз қолдау чатына қосылғыңыз келе ме?</b>",
+    "yes": "✅ Иә",
+    "no": "❌ Жоқ",
+    "joined": "🕊 <b>Қосылды</b> ",
+    "support_chat": "қолдау чатына",
+    "cancelled": "🕊 <b>fly telegram тоқтатылды</b>"
+  },
+  "ua": {
+    "modules_not_found": "❌ <b>Модулі не знайдені</b>",
+    "all_commands": "🕊 <b>Всі команди</b>",
+    "support_question": "🕊 <b>Ви хочете приєднатися до чату підтримки?</b>",
+    "yes": "✅ Так",
+    "no": "❌ Ні",
+    "joined": "🕊 <b>Приєднався до</b> ",
+    "support_chat": "чату підтримки",
+    "cancelled": "🕊 <b>fly telegram скасовано</b>"
+  }
+}

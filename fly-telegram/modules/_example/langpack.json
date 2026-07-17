@@ -1,0 +1,32 @@
+{
+  "ru": {
+    "title": "Пример модуля fly telegram",
+    "hint": "Inline — это просто!",
+    "test_button": "Тест"
+  },
+  "en": {
+    "title": "fly telegram example",
+    "hint": "Inline the easy!",
+    "test_button": "Test"
+  },
+  "fr": {
+    "title": "Exemple de module fly telegram",
+    "hint": "Inline, c'est simple !",
+    "test_button": "Test"
+  },
+  "ge": {
+    "title": "fly telegram Modul-Beispiel",
+    "hint": "Inline — ganz einfach!",
+    "test_button": "Test"
+  },
+  "kz": {
+    "title": "fly telegram модуль мысалы",
+    "hint": "Inline — оңай!",
+    "test_button": "Тест"
+  },
+  "ua": {
+    "title": "Приклад модуля fly telegram",
+    "hint": "Inline — це просто!",
+    "test_button": "Тест"
+  }
+}

@@ -57,16 +57,11 @@ async def eval_cmd(self, code):
         await inline.say(
             self.client,
             self.message,
-            (
-                "⚠️ <b>The command can be execute code directly "
-                "through the userbot and has full access to your "
-                "data. Be careful with it. \n"
-                'Click the button "agree" to proceed.</b>'
-            ),
+            self.lang.get("warning_text"),
             buttons=[
                 [
                     {
-                        "text": "✅ Agree",
+                        "text": self.lang.get("agree"),
                         "callback": agree_handler,
                     }
                 ],
@@ -96,16 +91,17 @@ async def eval_cmd(self, code):
             result = str(result.stringify())
 
     await self.message.edit(
-        "<b>🐍 Python code:</b>\n"
+        f"{self.lang.get('executor_title')}\n\n"
+        f"{self.lang.get('python_code')}\n"
         f"<pre language='python'>{code}</pre>\n"
-        f"<b>📀 Result: </b>\n"
+        f"{self.lang.get('result')}\n"
         f"<pre language='python'>{result}</pre>"
     )
 
 
 @loader.alias("term")
 async def terminal_cmd(self, command: str):
-    text = f"📼 <b>Command</b>: \n<code>{command}</code>\n✨ <b>Result</b>: \n"
+    text = f"{self.lang.get('executor_title')}\n\n{self.lang.get('terminal_command')} \n<code>{command}</code>\n{self.lang.get('terminal_result')} \n"
 
     term = AsyncTerminal(self.message, command, text, 0.25)
     await term.run()
@@ -116,9 +112,7 @@ async def agree_handler(call: InlineCall):
     database.set("executor", data)
 
     await call.bot.edit_message_text(
-        text=(
-            "✅ <b>This is message will no longer appear.\nFor security reasons, please enter the command again.</b>"
-        ),
+        text=call.lang.get("success_msg"),
         parse_mode="HTML",
         inline_message_id=call.inline_message_id,
     )

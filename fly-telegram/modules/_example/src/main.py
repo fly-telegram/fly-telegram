@@ -12,30 +12,26 @@
 from inline import InlineCall
 
 
-# _cmd is required for command functions
 async def command_cmd(self):
-    await self.client.unblock_user("spambot")  # use pyrogram client
+    """The example command"""
     await self.message.delete()
     inline = self.client.inline
-    await inline.say(  # say with inline bot
-        client=self.client,  # pyrogram reply
-        message=self.message,  # your message object
-        text="inline the easy!",  # message text
+    await inline.say(
+        client=self.client,
+        message=self.message,
+        text=self.lang.get("title"),
         buttons=[
-            [  # row. btn | btn | btn
+            [
                 {
-                    "text": "test",  # the button name
-                    # your handler. callable function.
+                    "text": self.lang.get("test_button"),
                     "callback": bot_reply,
-                    "params": {  # function params
-                        "text": "inline is easy"  # key: value
-                    },
+                    "params": {"text": self.lang.get("hint")},
                 }
             ]
         ],
     )
 
 
-# your handler
-async def bot_reply(call: InlineCall, text: str):  # InlineCall, "inline is easy"
-    await call.answer(text)  # return answer
+async def bot_reply(call: InlineCall, text: str):
+    """The example callback handler"""
+    await call.answer(text)

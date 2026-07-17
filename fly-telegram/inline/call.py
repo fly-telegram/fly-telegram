@@ -7,18 +7,21 @@
 #              🔒 Licensed under the СС-by-NC
 #           creativecommons.org/licenses/by-nc/4.0/
 
+from typing import Optional
+
 from aiogram.types import CallbackQuery
 from pyrogram import Client
 
 
 class InlineCall:
-    def __init__(self, callback_query: CallbackQuery, client: Client = None, bot=None):
+    def __init__(self, callback_query: CallbackQuery, client: Client = None, bot=None, lang: Optional[dict] = None):
         """
         InlineCall object
         Args:
             callback_query (aiogram.types.CallbackQuery): The callback query
             client (pyrogram.Client): The pyrogram client object
             bot (aiogram.Bot): The bot object
+            lang (dict): The langpack dict for this module
         """
         self.callback_query = callback_query
         self.inline_message_id = callback_query.inline_message_id
@@ -27,6 +30,7 @@ class InlineCall:
         self.from_user = callback_query.from_user
         self.bot = bot
         self.client = client
+        self.lang: dict[str, str] = lang or {}
 
     async def answer(self, text: str = None, show_alert: bool = False):
         """

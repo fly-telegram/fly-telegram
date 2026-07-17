@@ -1,0 +1,62 @@
+{
+  "ru": {
+    "title": "🕊 <b>Выберите язык</b>",
+    "btn_ru": "🇷🇺 Русский",
+    "btn_en": "🇬🇧 English",
+    "btn_fr": "🇫🇷 Français",
+    "btn_ge": "🇩🇪 Deutsch",
+    "btn_ua": "🇺🇦 Українська",
+    "btn_kz": "🇰🇿 Қазақша",
+    "done": "🕊 <b>Язык успешно изменён!</b>."
+  },
+  "en": {
+    "title": "🕊 <b>Select your language</b>",
+    "btn_ru": "🇷🇺 Russian",
+    "btn_en": "🇬🇧 English",
+    "btn_fr": "🇫🇷 French",
+    "btn_ge": "🇩🇪 German",
+    "btn_ua": "🇺🇦 Ukrainian",
+    "btn_kz": "🇰🇿 Kazakh",
+    "done": "🕊 <b>Language changed successfully!</b>"
+  },
+  "fr": {
+    "title": "🕊 <b>Choisissez votre langue</b>",
+    "btn_ru": "🇷🇺 Russe",
+    "btn_en": "🇬🇧 Anglais",
+    "btn_fr": "🇫🇷 Français",
+    "btn_ge": "🇩🇪 Allemand",
+    "btn_ua": "🇺🇦 Ukrainien",
+    "btn_kz": "🇰🇿 Kazakh",
+    "done": "🕊 <b>Langue changée avec succès !</b>"
+  },
+  "ge": {
+    "title": "🕊 <b>Wählen Sie Ihre Sprache</b>",
+    "btn_ru": "🇷🇺 Russisch",
+    "btn_en": "🇬🇧 Englisch",
+    "btn_fr": "🇫🇷 Französisch",
+    "btn_ge": "🇩🇪 Deutsch",
+    "btn_ua": "🇺🇦 Ukrainisch",
+    "btn_kz": "🇰🇿 Kasachisch",
+    "done": "🕊 <b>Sprache erfolgreich geändert!</b>"
+  },
+  "ua": {
+    "title": "🕊 <b>Оберіть вашу мову</b>",
+    "btn_ru": "🇷🇺 Російська",
+    "btn_en": "🇬🇧 Англійська",
+    "btn_fr": "🇫🇷 Французька",
+    "btn_ge": "🇩🇪 Німецька",
+    "btn_ua": "🇺🇦 Українська",
+    "btn_kz": "🇰🇿 Казахська",
+    "done": "🕊 <b>Мову успішно змінено!</b>"
+  },
+  "kz": {
+    "title": "🕊 <b>Тіліңізді таңдаңыз</b>",
+    "btn_ru": "🇷🇺 Орысша",
+    "btn_en": "🇬🇧 Ағылшынша",
+    "btn_fr": "🇫🇷 Французша",
+    "btn_ge": "🇩🇪 Немісше",
+    "btn_ua": "🇺🇦 Украинша",
+    "btn_kz": "🇰🇿 Қазақша",
+    "done": "🕊 <b>Тіл сәтті өзгертілді!</b>"
+  }
+}

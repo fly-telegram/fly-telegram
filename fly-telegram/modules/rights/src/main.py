@@ -1,5 +1,15 @@
+#         _______  _____   ___ ___  _______  _______
+#        |    ___||     |_|   |   ||_     _||     __|
+#        |    ___||       |\     /   |   |  |    |  |
+#        |___|    |_______| |___|    |___|  |_______|
+#                      t.me/FLY_UB
+#
+#            🔒 Licensed under the GNU-APGL 3.0
+#             www.gnu.org/licenses/agpl-3.0.html
+
 from aiogram.types import InlineQuery, InlineQueryResultArticle, InputTextMessageContent
 from database import database
+from languages import getlang
 from loader import events
 
 from .utils import _kb, genresult
@@ -41,6 +51,7 @@ async def _inline_query(client):
     @client.inline.query()
     async def handler(query: InlineQuery):
         q = query.query.strip()
+        lang = getattr(query, "lang", None) or getlang("rights")
         if not q.startswith("newrights"):
             return None
         parts = q.split(maxsplit=2)
@@ -48,9 +59,9 @@ async def _inline_query(client):
             await query.answer(
                 results=[
                     genresult(
-                        "🕊 fly-telegram rights",
-                        "❌ Invalid usage",
-                        "❌ <b>Input username or user ID</b>",
+                        lang.get("rights_title"),
+                        lang.get("invalid_usage"),
+                        lang.get("input_user"),
                     )
                 ],
                 cache_time=0,
@@ -67,9 +78,9 @@ async def _inline_query(client):
                 await query.answer(
                     results=[
                         genresult(
-                            "🕊 fly-telegram rights",
-                            f"❌ '{user}' is invalid",
-                            f"❌ <b>User '{user}' not found!</b>",
+                            lang.get("rights_title"),
+                            lang.get("user_invalid").format(user=user),
+                            lang.get("user_not_found").format(user=user),
                         )
                     ],
                     cache_time=0,
@@ -81,9 +92,9 @@ async def _inline_query(client):
             await query.answer(
                 results=[
                     genresult(
-                        "🕊 fly-telegram rights",
-                        f"❌ '.{command}' not found",
-                        f"❌ <b>Command '.{command}' not found!</b>",
+                        lang.get("rights_title"),
+                        lang.get("command_invalid").format(command=command),
+                        lang.get("command_not_found").format(command=command),
                     )
                 ],
                 cache_time=0,
@@ -111,13 +122,13 @@ async def _inline_query(client):
             results=[
                 InlineQueryResultArticle(
                     id=f"rights_new_{uid}_{command}",
-                    title="🕊 fly-telegram rights",
-                    description=f"User {display} can now use {detail}",
+                    title=lang.get("rights_title"),
+                    description=lang.get("user_can_use").format(display=display, detail=detail),
                     input_message_content=InputTextMessageContent(
                         message_text=(
                             f"🕊 <b>{mod}</b>\n\n"
                             f"├─ <i>user</i>: <code>{display}</code>\n"
-                            f"├─ <i>access</i>: <code>{detail}</code>\n"
+                            f"└─ <i>access</i>: <code>{detail}</code>\n"
                         ),
                         parse_mode="HTML",
                     ),
@@ -130,6 +141,7 @@ async def _inline_query(client):
 
 
 async def rights_cmd(self, user=""):
+    lang = self.lang
     if hasattr(self, "message") and self.message:
         await self.message.delete()
     if user:
@@ -155,7 +167,7 @@ async def rights_cmd(self, user=""):
                         btns.append(
                             [
                                 {
-                                    "text": "🕊️ Inline Access",
+                                    "text": lang.get("inline_access"),
                                     "callback": get_users,
                                     "params": {"uid": id_},
                                 }
@@ -165,17 +177,17 @@ async def rights_cmd(self, user=""):
                         btns.append(
                             [
                                 {
-                                    "text": f"🕊 .{cmd} [{reg.get(cmd, '?')}]",
+                                    "text": lang.get("cmd_inline").format(cmd=cmd, reg=reg.get(cmd, "?")),
                                     "callback": remove,
                                     "params": {"uid": id_, "right": cmd},
                                 }
                             ]
                         )
             else:
-                btns.append([{"text": "No rights yet", "callback": close}])
-            btns.append([{"text": "⬅️ Back", "callback": rights_cmd}])
-            btns.append([{"text": "❌ Close", "callback": close}])
-            text = f"👤 <b>{name}</b>\n├─ <i>id</i>: <code>{id_}</code>\n└─ <i>commands</i>: <code>{len(rights)}</code>"
+                btns.append([{"text": lang.get("no_rights"), "callback": close}])
+            btns.append([{"text": lang.get("back"), "callback": rights_cmd}])
+            btns.append([{"text": lang.get("close"), "callback": close}])
+            text = lang.get("user_info").format(name=name, id=id_, count=len(rights))
             if hasattr(self, "edit_message"):
                 await self.edit_message(text, reply_markup=_kb(self, btns))
             else:
@@ -189,18 +201,18 @@ async def rights_cmd(self, user=""):
             await self.client.inline.say(
                 self.client,
                 self.message if hasattr(self, "message") else None,
-                f"❌ <b>User '{user}' not found!</b>",
+                lang.get("user_not_found_text").format(user=user),
             )
         return
     reg = getattr(self.client.loader, "commands_reg", {})
     if not reg:
         if hasattr(self, "edit_message"):
-            await self.edit_message("❌ <b>No commands found!</b>")
+            await self.edit_message(lang.get("no_commands"))
         else:
             await self.client.inline.say(
                 self.client,
                 self.message if hasattr(self, "message") else None,
-                "❌ <b>No commands found!</b>",
+                lang.get("no_commands"),
             )
         return
     modules = {}
@@ -211,49 +223,51 @@ async def rights_cmd(self, user=""):
         btns.append(
             [
                 {
-                    "text": f"📦 {mod} ({len(cmds)} cmd)",
+                    "text": lang.get("module_cmd").format(mod=mod, count=len(cmds)),
                     "callback": show_module,
                     "params": {"module": mod},
                 }
             ]
         )
     ic = len(users("inline"))
-    btns.append([{"text": f"🕊️ Inline Access ({ic})", "callback": get_users}])
-    btns.append([{"text": "❌ Close", "callback": close}])
+    btns.append([{"text": lang.get("inline_access_count").format(count=ic), "callback": get_users}])
+    btns.append([{"text": lang.get("close"), "callback": close}])
     if hasattr(self, "edit_message"):
-        await self.edit_message("<b>🕊 fly-telegram rights</b>\n", reply_markup=_kb(self, btns))
+        await self.edit_message(lang.get("rights_title_text") + "\n", reply_markup=_kb(self, btns))
     else:
         await self.client.inline.say(
             self.client,
             self.message if hasattr(self, "message") else None,
-            "<b>🕊 fly-telegram rights</b>",
+            lang.get("rights_title_text"),
             buttons=btns,
         )
 
 
 async def show_module(call, module):
     reg = getattr(call.client.loader, "commands_reg", {})
+    lang = call.lang
     cmds = sorted(cmd for cmd, mod in reg.items() if mod == module)
     if not cmds:
-        await call.answer("❌ Module not found!", show_alert=True)
+        await call.answer(lang.get("module_not_found"), show_alert=True)
         return
     data = database.get("rights") or {}
     btns = [
         {
-            "text": f"🔧 .{cmd} ({sum(1 for uid, cmds_ in data.items() if cmd in cmds_)} users)",
+            "text": lang.get("module_cmd_users").format(cmd=cmd, count=sum(1 for uid, cmds_ in data.items() if cmd in cmds_)),
             "callback": show_command,
             "params": {"module": module, "command": cmd},
         }
         for cmd in cmds
     ]
     btns = [[b] for b in btns]
-    btns.append([{"text": "⬅️ Back", "callback": rights_cmd}])
-    btns.append([{"text": "❌ Close", "callback": close}])
-    await call.edit_message(f"🕊 <b>{module}</b>", reply_markup=_kb(call, btns))
+    btns.append([{"text": lang.get("back"), "callback": rights_cmd}])
+    btns.append([{"text": lang.get("close"), "callback": close}])
+    await call.edit_message(lang.get("module_title").format(module=module), reply_markup=_kb(call, btns))
 
 
 async def show_command(call, module, command):
     usrs = users(command)
+    lang = call.lang
     btns = [
         {
             "text": f"👤 {uid}",
@@ -266,7 +280,7 @@ async def show_command(call, module, command):
     btns.append(
         [
             {
-                "text": "➕ Add user",
+                "text": lang.get("add_user"),
                 "switch_inline_query_current_chat": f"newrights {command} ",
             }
         ]
@@ -275,44 +289,46 @@ async def show_command(call, module, command):
         btns.append(
             [
                 {
-                    "text": "🔄 Revoke all",
+                    "text": lang.get("revoke_all"),
                     "callback": revoke,
                     "params": {"right": command, "module": module},
                 }
             ]
         )
-    btns.append([{"text": "⬅️ Back", "callback": show_module, "params": {"module": module}}])
-    btns.append([{"text": "❌ Close", "callback": close}])
-    text = f"🕊 <b>.{command}</b>\n├─ <i>module</i>: <code>{module}</code>\n└─ <i>users with rights</i>: <code>{len(usrs)}</code>"
+    btns.append([{"text": lang.get("back"), "callback": show_module, "params": {"module": module}}])
+    btns.append([{"text": lang.get("close"), "callback": close}])
+    text = lang.get("command_info").format(command=command, module=module, count=len(usrs))
     await call.edit_message(text, reply_markup=_kb(call, btns))
 
 
 async def remove(call, uid, right, module=None):
+    lang = call.lang
     btns = [
         [
             {
-                "text": "✅ Yes, remove",
+                "text": lang.get("yes_remove"),
                 "callback": remove_user,
                 "params": {"uid": uid, "right": right, "module": module},
             }
         ],
         [
             {
-                "text": "❌ No",
+                "text": lang.get("no"),
                 "callback": show_command,
                 "params": {"module": module, "command": right},
             }
         ],
     ]
     await call.edit_message(
-        f"🕊 <b>Remove rights</b>\nRemove <code>{uid}</code>'s right to use <code>.{right}</code>?",
+        lang.get("remove_rights_text").format(uid=uid, right=right),
         reply_markup=_kb(call, btns),
     )
 
 
 async def remove_user(call, uid, right, module=None):
+    lang = call.lang
     ok = drop(right, uid)
-    await call.answer("✅ Removed!" if ok else "❌ No rights for this command.")
+    await call.answer(lang.get("removed") if ok else lang.get("no_rights_for_command"))
     if right == "inline":
         await get_users(call)
     else:
@@ -320,8 +336,9 @@ async def remove_user(call, uid, right, module=None):
 
 
 async def revoke(call, right, module=None):
+    lang = call.lang
     ok = drop(right)
-    await call.answer(f"✅ Revoked .{right} for all!" if ok else "❌ No users had rights.")
+    await call.answer(lang.get("revoked").format(right=right) if ok else lang.get("no_users_had_rights"))
     if right == "inline":
         await get_users(call)
     else:
@@ -330,6 +347,7 @@ async def revoke(call, right, module=None):
 
 async def get_users(call):
     usrs = users("inline")
+    lang = call.lang
     btns = [
         {
             "text": f"👤 {uid}",
@@ -342,7 +360,7 @@ async def get_users(call):
     btns.append(
         [
             {
-                "text": "➕ Add user",
+                "text": lang.get("add_user"),
                 "switch_inline_query_current_chat": "newrights inline ",
             }
         ]
@@ -351,20 +369,20 @@ async def get_users(call):
         btns.append(
             [
                 {
-                    "text": "🔄 Revoke all",
+                    "text": lang.get("revoke_all"),
                     "callback": revoke,
                     "params": {"right": "inline"},
                 }
             ]
         )
-    btns.append([{"text": "⬅️ Back", "callback": rights_cmd}])
-    btns.append([{"text": "❌ Close", "callback": close}])
-    text = f"🕊️ <b>Inline Access</b>\n└─ <i>granted</i>: <code>{len(usrs)}</code>"
+    btns.append([{"text": lang.get("back"), "callback": rights_cmd}])
+    btns.append([{"text": lang.get("close"), "callback": close}])
+    text = lang.get("inline_access_granted").format(count=len(usrs))
     await call.edit_message(text, reply_markup=_kb(call, btns))
 
 
 async def close(call):
-    await call.edit_message("🕊 <b>Rights closed</b>")
+    await call.edit_message(call.lang.get("rights_closed"))
 
 
 @events.on_load

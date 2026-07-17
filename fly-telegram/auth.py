@@ -97,7 +97,6 @@ class Auth:
                 "api_hash": "f626bf229077cae7b9e790606d4efb81",
                 "device_model": "fly telegram",
                 "test_mode": False,  # test DC telegram
-                "quckstart": True,  # soon
                 "proxy": {},  # pyrogram proxy
                 "passwd": None,  # encrypt password for session file
             }

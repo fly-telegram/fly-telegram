@@ -16,9 +16,9 @@ async def ping_cmd(self):
     """The ping command"""
 
     start = perf_counter()
-    message = await self.message.edit("🏓")
+    message = await self.message.edit(self.lang.get("ping"))
 
     delay = perf_counter() - start
     emoji = "⚡" if delay < 0.3 else "✨" if delay < 1 else "🐢"
 
-    await message.edit(f"{emoji} <b>Pong! {delay:.3f} s</b>")
+    await message.edit(f"{emoji} <b>{self.lang.get('pong')} {delay:.3f} s</b>")

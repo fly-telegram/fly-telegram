@@ -14,6 +14,7 @@ from time import perf_counter
 import git
 from database import database
 from inline import InlineCall
+from languages import getlang
 from loader import ConfigValue, Loader, ModuleConfig, events, validators
 
 from .utils import check, origin, repo
@@ -33,15 +34,17 @@ async def check_updates(client):
     if not chat_id:
         return
 
+    lang = getlang("updater")
+
     inline = client.inline
     await inline.say(
         client,
         None,
-        "🕊 <b>New update available!</b>",
+        lang.get("new_update"),
         buttons=[
             [
                 {
-                    "text": "📥 Install!",
+                    "text": lang.get("install"),
                     "callback": update_handler,
                 }
             ]
@@ -72,7 +75,7 @@ async def on_load(client):
 
 
 async def restart_cmd(self):
-    await self.message.edit("🕊 <b>Restarting...</b>")
+    await self.message.edit(self.lang.get("restarting"))
     start = perf_counter()
     database.set(
         "restart",
@@ -80,7 +83,7 @@ async def restart_cmd(self):
             "chat_id": self.message.chat.id,
             "message_id": self.message.id,
             "time": start,
-            "text": "🕊 <b>Restarted! ({}s)</b>",
+            "text": self.lang.get("restarted"),
             "inline": False,
         },
     )
@@ -96,17 +99,17 @@ async def update_cmd(self):
     await inline.say(
         self.client,
         self.message,
-        "🕊 <b>Update now?</b>",
+        self.lang.get("update_now"),
         buttons=[
             [
                 {
-                    "text": "✅ Yes",
+                    "text": self.lang.get("yes"),
                     "callback": update_handler,
                 }
             ],
             [
                 {
-                    "text": "❌ No",
+                    "text": self.lang.get("no"),
                     "callback": no_update_handler,
                 }
             ],
@@ -118,7 +121,7 @@ async def update_handler(call: InlineCall):
     branch = database.get("updater", "branch")
     if not check():
         await call.bot.edit_message_text(
-            text="🕊 <b>Already installed latest version!</b>",
+            text=call.lang.get("latest_version"),
             parse_mode="HTML",
             inline_message_id=call.inline_message_id,
         )
@@ -132,13 +135,13 @@ async def update_handler(call: InlineCall):
             "chat_id": None,
             "message_id": call.inline_message_id,
             "time": start,
-            "text": "🕊 <b>Updated! ({}s)</b>",
+            "text": call.lang.get("updated"),
             "inline": True,
         },
     )
 
     await call.bot.edit_message_text(
-        text="🕊 <b>Updating...</b>", parse_mode="HTML", inline_message_id=call.inline_message_id
+        text=call.lang.get("updating"), parse_mode="HTML", inline_message_id=call.inline_message_id
     )
 
     try:
@@ -151,5 +154,5 @@ async def update_handler(call: InlineCall):
 
 async def no_update_handler(call: InlineCall):
     await call.bot.edit_message_text(
-        text="❌ <b>Cancelled</b>", parse_mode="HTML", inline_message_id=call.inline_message_id
+        text=call.lang.get("cancelled"), parse_mode="HTML", inline_message_id=call.inline_message_id
     )

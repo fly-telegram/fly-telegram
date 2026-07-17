@@ -3,6 +3,7 @@ import contextlib
 from pathlib import Path
 
 from database import database
+from languages import getlang
 
 MODULES_PATH = Path(__file__).parent.parent.parent
 
@@ -111,9 +112,11 @@ def set(module, key, value):
     database.set("config", all_cfg)
 
 
-def fmt(value, vtype="str"):
+def fmt(value, vtype="str", lang=None):
+    if lang is None:
+        lang = getlang("configurator")
     if value is None or value == "":
-        return "<i>not set</i>"
+        return lang.get("not_set") if "not_set" in lang else "<i>not set</i>"
     if vtype == "bool":
-        return "✅ on" if value else "❌ off"
+        return lang.get("on") if value else lang.get("off") if "off" in lang else "❌ off"
     return str(value)

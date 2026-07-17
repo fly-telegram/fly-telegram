@@ -1,0 +1,62 @@
+{
+  "ru": {
+    "warning_text": "⚠️ <b>Команда может выполнять код напрямую через юзербот и имеет полный доступ к вашим данным. Будьте осторожны.\nНажмите кнопку \"согласен\" для продолжения.</b>",
+    "agree": "✅ Согласен",
+    "executor_title": "🕊 <b>fly telegram executor</b>",
+    "python_code": "<b>🐍 Python код:</b>",
+    "result": "<b>📀 Результат: </b>",
+    "terminal_command": "📼 <b>Команда</b>:",
+    "terminal_result": "✨ <b>Результат</b>:",
+    "success_msg": "✅ <b>Это сообщение больше не будет появляться.\nПо соображениям безопасности, пожалуйста, введите команду снова.</b>"
+  },
+  "en": {
+    "warning_text": "⚠️ <b>The command can execute code directly through the userbot and has full access to your data. Be careful with it.\nClick the button \"agree\" to proceed.</b>",
+    "agree": "✅ Agree",
+    "executor_title": "🕊 <b>fly telegram executor</b>",
+    "python_code": "<b>🐍 Python code:</b>",
+    "result": "<b>📀 Result: </b>",
+    "terminal_command": "📼 <b>Command</b>:",
+    "terminal_result": "✨ <b>Result</b>:",
+    "success_msg": "✅ <b>This message will no longer appear.\nFor security reasons, please enter the command again.</b>"
+  },
+  "fr": {
+    "warning_text": "⚠️ <b>La commande peut exécuter du code directement via le userbot et a un accès complet à vos données. Soyez prudent.\nCliquez sur le bouton \"accepter\" pour continuer.</b>",
+    "agree": "✅ Accepter",
+    "executor_title": "🕊 <b>fly telegram executor</b>",
+    "python_code": "<b>🐍 Code Python :</b>",
+    "result": "<b>📀 Résultat : </b>",
+    "terminal_command": "📼 <b>Commande</b> :",
+    "terminal_result": "✨ <b>Résultat</b> :",
+    "success_msg": "✅ <b>Ce message n'apparaîtra plus.\nPour des raisons de sécurité, veuillez saisir la commande à nouveau.</b>"
+  },
+  "ge": {
+    "warning_text": "⚠️ <b>Der Befehl kann Code direkt über den Userbot ausführen und hat vollen Zugriff auf Ihre Daten. Seien Sie vorsichtig.\nKlicken Sie auf \"Zustimmen\", um fortzufahren.</b>",
+    "agree": "✅ Zustimmen",
+    "executor_title": "🕊 <b>fly telegram executor</b>",
+    "python_code": "<b>🐍 Python-Code:</b>",
+    "result": "<b>📀 Ergebnis: </b>",
+    "terminal_command": "📼 <b>Befehl</b>:",
+    "terminal_result": "✨ <b>Ergebnis</b>:",
+    "success_msg": "✅ <b>Diese Meldung wird nicht mehr angezeigt.\nAus Sicherheitsgründen geben Sie den Befehl bitte erneut ein.</b>"
+  },
+  "kz": {
+    "warning_text": "⚠️ <b>Бұйрық юзербот арқылы тікелей код орындауы мүмкін және сіздің деректеріңізге толық қол жеткізеді. Сақ болыңыз.\nЖалғастыру үшін \"келісем\" батырмасын басыңыз.</b>",
+    "agree": "✅ Келісем",
+    "executor_title": "🕊 <b>fly telegram executor</b>",
+    "python_code": "<b>🐍 Python коды:</b>",
+    "result": "<b>📀 Нәтиже: </b>",
+    "terminal_command": "📼 <b>Бұйрық</b>:",
+    "terminal_result": "✨ <b>Нәтиже</b>:",
+    "success_msg": "✅ <b>Бұл хабарлама енді көрсетілмейді.\nҚауіпсіздік мақсатында бұйрықты қайта енгізіңіз.</b>"
+  },
+  "ua": {
+    "warning_text": "⚠️ <b>Команда може виконувати код напряму через юзербот і має повний доступ до ваших даних. Будьте обережні.\nНатисніть кнопку \"згоден\" для продовження.</b>",
+    "agree": "✅ Згоден",
+    "executor_title": "🕊 <b>fly telegram executor</b>",
+    "python_code": "<b>🐍 Python код:</b>",
+    "result": "<b>📀 Результат: </b>",
+    "terminal_command": "📼 <b>Команда</b>:",
+    "terminal_result": "✨ <b>Результат</b>:",
+    "success_msg": "✅ <b>Це повідомлення більше не з'являтиметься.\nЗ міркувань безпеки, будь ласка, введіть команду знову.</b>"
+  }
+}

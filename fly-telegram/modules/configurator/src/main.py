@@ -1,5 +1,4 @@
 import ast
-from pathlib import Path
 from uuid import uuid4
 
 from aiogram.types import (
@@ -9,6 +8,7 @@ from aiogram.types import (
     InlineQueryResultArticle,
     InputTextMessageContent,
 )
+from languages import getlang
 from loader import Loader
 
 from .utils import get, get_modules, set
@@ -48,13 +48,17 @@ def _kb(call, buttons):
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
-def edit_btn(client, module, key, vtype, cur=""):
+def edit_btn(client, module, key, vtype, cur="", lang=None):
     uid = str(uuid4())
     client.inline.viamanager.handlers[f"cfg_{uid}"] = {"module": module, "key": key, "vtype": vtype}
-    return {"text": "✏️ Enter new value", "switch_inline_query_current_chat": f"cfg_{uid} {cur}"}
+    if lang is None:
+        lang = getlang("configurator")
+    return {"text": lang.get("enter_new_value"), "switch_inline_query_current_chat": f"cfg_{uid} {cur}"}
 
 
 def get_choices(module, key):
+    from pathlib import Path
+
     src_path = Path(__file__).parent.parent / module / "src"
     for f in src_path.glob("*.py"):
         try:
@@ -89,23 +93,23 @@ async def config_cmd(self):
     await self.message.delete()
     modules = get_modules()
     if not modules:
-        await self.client.inline.say(self.client, self.message, "❌ <b>No config in modules found!</b>")
+        await self.client.inline.say(self.client, self.message, self.lang.get("no_config"))
         return
 
     buttons = [
-        [{"text": f"📦 {m['name']} ({len(m['keys'])} keys)", "callback": get_module, "params": {"module": m["name"]}}]
+        [{"text": self.lang.get("module_keys").format(name=m["name"], count=len(m["keys"])), "callback": get_module, "params": {"module": m["name"]}}]
         for m in modules
     ]
-    buttons.append([{"text": "❌ Close", "callback": close}])
+    buttons.append([{"text": self.lang.get("close"), "callback": close}])
 
-    await self.client.inline.say(self.client, self.message, "🕊 <b>Configurator</b>", buttons=buttons)
+    await self.client.inline.say(self.client, self.message, self.lang.get("configurator_title"), buttons=buttons)
 
 
 async def get_module(call, module):
     modules = get_modules()
     mod = next((m for m in modules if m["name"] == module), None)
     if not mod:
-        await call.answer("❌ Module not found!", show_alert=True)
+        await call.answer(call.lang.get("module_not_found"), show_alert=True)
         return
 
     buttons = []
@@ -125,10 +129,10 @@ async def get_module(call, module):
                 }
             ]
         )
-    buttons.append([{"text": "⬅️ Back", "callback": config_cmd}])
-    buttons.append([{"text": "❌ Close", "callback": close}])
+    buttons.append([{"text": call.lang.get("back"), "callback": config_cmd}])
+    buttons.append([{"text": call.lang.get("close"), "callback": close}])
 
-    await call.edit_message(f"🕊 <b>{module}</b>", reply_markup=_kb(call, buttons))
+    await call.edit_message(call.lang.get("module_title").format(module=module), reply_markup=_kb(call, buttons))
 
 
 async def edit_key(call, module, key, vtype, default):
@@ -141,7 +145,7 @@ async def edit_key(call, module, key, vtype, default):
         buttons.append(
             [
                 {
-                    "text": "✅ Enable" if not cur else "❌ Disable",
+                    "text": call.lang.get("enable") if not cur else call.lang.get("disable"),
                     "callback": apply,
                     "params": {"module": module, "key": key, "value": new_val, "vtype": vtype},
                 }
@@ -161,28 +165,23 @@ async def edit_key(call, module, key, vtype, default):
                 ]
             )
     else:
-        buttons.append([edit_btn(call.client, module, key, vtype, str(cur) if cur else "")])
+        buttons.append([edit_btn(call.client, module, key, vtype, str(cur) if cur else "", lang=call.lang)])
 
     if default:
         buttons.append(
             [
                 {
-                    "text": "🔄 Reset to default",
+                    "text": call.lang.get("reset_default"),
                     "callback": apply,
                     "params": {"module": module, "key": key, "value": default, "vtype": vtype},
                 }
             ]
         )
 
-    buttons.append([{"text": "⬅️ Back", "callback": get_module, "params": {"module": module}}])
-    buttons.append([{"text": "❌ Close", "callback": close}])
+    buttons.append([{"text": call.lang.get("back"), "callback": get_module, "params": {"module": module}}])
+    buttons.append([{"text": call.lang.get("close"), "callback": close}])
 
-    text = (
-        f"🕊 <b>{module}</b>\n"
-        f"├─ <i>key</i>: <code>{key}</code>\n"
-        f"├─ <i>value</i>: <code>{display}</code> (<i>default</i>: <code>{default}</code>)\n"
-        f"└─ <i>type</i>: <code>{vtype}</code>\n"
-    )
+    text = call.lang.get("key_info").format(module=module, key=key, display=display, default=default, vtype=vtype)
     await call.edit_message(text, reply_markup=_kb(call, buttons))
 
 
@@ -194,7 +193,7 @@ async def apply(call, module, key, value, vtype="str"):
 
 
 async def close(call):
-    await call.edit_message("🕊 <b>Configurator closed</b>")
+    await call.edit_message(call.lang.get("configurator_closed"))
 
 
 async def _inline_query(client):
@@ -207,6 +206,7 @@ async def _inline_query(client):
         if not q.startswith("cfg"):
             return None
 
+        lang = getattr(query, "lang", None) or getlang("configurator")
         parts = q.split(maxsplit=1)
         onepart = parts[0]
 
@@ -227,14 +227,11 @@ async def _inline_query(client):
                     results=[
                         InlineQueryResultArticle(
                             id=f"saved_{uid}",
-                            title="✅ Saved!",
+                            title=lang.get("saved"),
                             description=f"{module_name}.{key} = {converted}",
                             input_message_content=InputTextMessageContent(
-                                message_text=(
-                                    "✅ <b>Saved!</b>\n\n"
-                                    f"├─ <i>module</i>: <code>{module_name}</code>\n"
-                                    f"├─ <i>key</i>: <code>{key}</code>\n"
-                                    f"└─ <i>value</i>: <code>{converted}</code>"
+                                message_text=lang.get("saved_text").format(
+                                    module_name=module_name, key=key, converted=converted
                                 ),
                                 parse_mode="HTML",
                             ),
@@ -249,10 +246,10 @@ async def _inline_query(client):
                     results=[
                         InlineQueryResultArticle(
                             id="expired",
-                            title="⚠️ Handler expired",
-                            description="Go back and try again",
+                            title=lang.get("handler_expired_title"),
+                            description=lang.get("handler_expired_desc"),
                             input_message_content=InputTextMessageContent(
-                                message_text="⚠️ <b>Handler expired!</b>", parse_mode="HTML"
+                                message_text=lang.get("handler_expired_text"), parse_mode="HTML"
                             ),
                         )
                     ],
@@ -269,10 +266,10 @@ async def _inline_query(client):
                     results=[
                         InlineQueryResultArticle(
                             id="no_modules",
-                            title="❌ No modules",
-                            description="No configurable modules found",
+                            title=lang.get("no_modules"),
+                            description=lang.get("no_configurable"),
                             input_message_content=InputTextMessageContent(
-                                message_text="❌ <b>No configurable modules found</b>", parse_mode="HTML"
+                                message_text=lang.get("no_configurable_text"), parse_mode="HTML"
                             ),
                         )
                     ],
@@ -287,11 +284,13 @@ async def _inline_query(client):
                     InlineQueryResultArticle(
                         id=f"mod_{m['name']}",
                         title=f"📦 {m['name']}",
-                        description=f"{len(m['keys'])} configurable keys",
+                        description=lang.get("configurable_keys").format(count=len(m["keys"])),
                         input_message_content=InputTextMessageContent(
                             message_text=(
-                                f"🕊 <b>Configurator: {m['name']}</b>\n\n"
-                                f"<i>Keys:</i>\n"
+                                lang.get("configurator_module_title").format(name=m["name"])
+                                + "\n\n"
+                                + lang.get("keys_header")
+                                + "\n"
                                 + "\n".join(f"• <code>{k['name']}</code> ({k.get('type', 'str')})" for k in m["keys"])
                             ),
                             parse_mode="HTML",
@@ -311,10 +310,10 @@ async def _inline_query(client):
                 results=[
                     InlineQueryResultArticle(
                         id="mod_not_found",
-                        title="❌ Module not found",
-                        description=f"Module '{module_name}' not found",
+                        title=lang.get("module_not_found_title"),
+                        description=lang.get("module_not_found_desc").format(module_name=module_name),
                         input_message_content=InputTextMessageContent(
-                            message_text=f"❌ <b>Module '{module_name}' not found</b>", parse_mode="HTML"
+                            message_text=lang.get("module_not_found_text").format(module_name=module_name), parse_mode="HTML"
                         ),
                     )
                 ],
@@ -331,13 +330,14 @@ async def _inline_query(client):
                     InlineQueryResultArticle(
                         id=f"key_{module_name}_{k['name']}",
                         title=f"🔧 {k['name']}",
-                        description=f"Current: {cur_val} | Type: {k.get('type', 'str')}",
+                        description=lang.get("current_value").format(cur_val=cur_val, vtype=k.get("type", "str")),
                         input_message_content=InputTextMessageContent(
-                            message_text=(
-                                f"🕊 <b>{module_name}.{k['name']}</b>\n\n"
-                                f"├─ <i>current</i>: <code>{cur_val}</code>\n"
-                                f"├─ <i>default</i>: <code>{k['default']}</code>\n"
-                                f"└─ <i>type</i>: <code>{k.get('type', 'str')}</code>"
+                            message_text=lang.get("key_info_inline").format(
+                                module_name=module_name,
+                                key_name=k["name"],
+                                cur_val=cur_val,
+                                default=k["default"],
+                                vtype=k.get("type", "str"),
                             ),
                             parse_mode="HTML",
                         ),
@@ -355,10 +355,10 @@ async def _inline_query(client):
                 results=[
                     InlineQueryResultArticle(
                         id="key_not_found",
-                        title="❌ Key not found",
-                        description=f"Key '{key_name}' not found in module '{module_name}'",
+                        title=lang.get("key_not_found"),
+                        description=lang.get("key_not_found_desc").format(key_name=key_name, module_name=module_name),
                         input_message_content=InputTextMessageContent(
-                            message_text=f"❌ <b>Key '{key_name}' not found in module '{module_name}'</b>",
+                            message_text=lang.get("key_not_found_text").format(key_name=key_name, module_name=module_name),
                             parse_mode="HTML",
                         ),
                     )
@@ -373,14 +373,15 @@ async def _inline_query(client):
             results=[
                 InlineQueryResultArticle(
                     id=f"edit_{module_name}_{key_name}",
-                    title=f"✏️ {module_name}.{key_name}",
-                    description=f"Current: {cur_val}",
+                    title=lang.get("edit_key_title").format(module_name=module_name, key_name=key_name),
+                    description=lang.get("current").format(cur_val=cur_val),
                     input_message_content=InputTextMessageContent(
-                        message_text=(
-                            f"🕊 <b>{module_name}.{key_name}</b>\n\n"
-                            f"├─ <i>current</i>: <code>{cur_val}</code>\n"
-                            f"├─ <i>default</i>: <code>{key_info['default']}</code>\n"
-                            f"└─ <i>type</i>: <code>{key_info.get('type', 'str')}</code>"
+                        message_text=lang.get("key_info_inline").format(
+                            module_name=module_name,
+                            key_name=key_name,
+                            cur_val=cur_val,
+                            default=key_info["default"],
+                            vtype=key_info.get("type", "str"),
                         ),
                         parse_mode="HTML",
                     ),
