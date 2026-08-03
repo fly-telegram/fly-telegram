@@ -19,3 +19,4 @@ sqlcipher3>=0.6.0
 ruff>=0.15.14
 pre-commit>=4.2.0
 autopep8>=2.3.2
+requests>=2.34.2
